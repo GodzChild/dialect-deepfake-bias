@@ -1,0 +1,62 @@
+# Spoof Generation Configuration
+# ================================
+
+# Paths
+paths:
+  decte_audio_dir: "data/decte/audio"
+  decte_metadata: "data/decte/metadata/speaker_info.json"
+  decte_transcripts_dir: "data/decte/transcripts"    # Your existing Whisper transcripts
+  vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
+  output_dir: "data/generated_spoofs"
+
+# Audio preprocessing
+audio:
+  target_sr: 16000          # Standardize everything to 16kHz
+  max_duration_sec: 15.0    # Cap utterance length
+  min_duration_sec: 2.0     # Skip very short clips
+  mono: true
+
+# TTS/VC systems to use for spoof generation
+generators:
+  xtts_v2:
+    enabled: true
+    model_name: "tts_models/multilingual/multi-dataset/xtts_v2"
+    # XTTS needs: reference audio (3-10 sec) + text transcript
+    # Your Whisper transcripts will be used as input text
+    reference_duration_sec: 8.0   # Length of reference clip for voice cloning
+    language: "en"
+    device: "cuda"
+
+  openvoice_v2:
+    enabled: false            # Enable after XTTS pipeline is validated
+    checkpoint_dir: "checkpoints/openvoice_v2"
+    device: "cuda"
+
+  styletts2:
+    enabled: false            # Enable in second pass
+    config_path: "checkpoints/styletts2/config.yml"
+    device: "cuda"
+
+  rvc:
+    enabled: false            # Enable last — most complex setup
+    model_dir: "checkpoints/rvc"
+    device: "cuda"
+
+# Generation protocol
+protocol:
+  # For each DECTE speaker, generate spoofs of N utterances
+  max_utterances_per_speaker: 10
+  # Use a separate set of utterances as reference vs. target
+  # reference utterances = voice identity; target utterances = text to synthesize
+  reference_utterance_count: 3
+  # Random seed for reproducibility
+  seed: 42
+
+# Speaker metadata mapping (you'll populate this from DECTE docs)
+# Maps DECTE speaker IDs to social variables for later analysis
+speaker_metadata_fields:
+  - speaker_id
+  - gender        # M/F
+  - age_group     # young/middle/old (from DECTE documentation)
+  - ses_class     # socioeconomic status
+  - recording_era # 1960s-70s / 1990s / 2007-2010
