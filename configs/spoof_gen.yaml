@@ -3,9 +3,9 @@
 
 # Paths
 paths:
-  decte_audio_dir: "data/decte/audio"
+  decte_audio_dir: "data/01_chunks"
   decte_metadata: "data/decte/metadata/speaker_info.json"
-  decte_transcripts_dir: "data/decte/transcripts"    # Your existing Whisper transcripts
+  decte_transcripts_dir: "data/01_chunk_transcripts"    # Your existing Whisper transcripts
   vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
   output_dir: "data/generated_spoofs"
 
