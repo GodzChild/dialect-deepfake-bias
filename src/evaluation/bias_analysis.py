@@ -54,6 +54,28 @@ def compute_grouped_metrics(
         if col not in predictions_df.columns:
             continue
 
+        if col == "generator_name":
+            # Bonafide rows are tagged "bonafide" and shared across all
+            # generators, so a naive subset would leave each real generator
+            # with 0 bonafide (see build_evaluation_pairs). Pool the full
+            # bonafide set once and compare each generator's spoofs against
+            # it. Bonafide is scored only once regardless of generator count.
+            bonafide = predictions_df[predictions_df["label"] == 1]["score"].values
+            for gen_value in predictions_df[col].dropna().unique():
+                if gen_value in ("bonafide", "FILL_IN", "unknown", ""):
+                    continue
+                spoof = predictions_df[
+                    (predictions_df[col] == gen_value)
+                    & (predictions_df["label"] == 0)
+                ]["score"].values
+                if len(bonafide) < 5 or len(spoof) < 5:
+                    continue
+                m = compute_metrics(bonafide, spoof)
+                row = metrics_to_dict(m, group_name=str(gen_value))
+                row["grouping_variable"] = col
+                rows.append(row)
+            continue
+
         for group_value in predictions_df[col].dropna().unique():
             if group_value in ("FILL_IN", "unknown", ""):
                 continue  # skip unfilled metadata

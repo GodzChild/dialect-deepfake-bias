@@ -190,7 +190,14 @@ def build_evaluation_pairs(manifest_path: str, config: dict) -> pd.DataFrame:
                 records.append({
                     "audio_path": bp,
                     "label": 1,
-                    **base_metadata,
+                    # Bonafide files are shared across generators (the same
+                    # DECTE reference wav feeds both XTTS and OpenVoice).
+                    # Tag them "bonafide" so per-generator grouping in
+                    # bias_analysis pools the same real files against each
+                    # generator's spoofs, instead of first-writer-wins.
+                    "generator_name": "bonafide",
+                    "speaker_id": entry.get("source_speaker_id", "unknown"),
+                    "dialect_group": "decte",
                     **bonafide_metadata,
                 })
 
@@ -265,6 +272,32 @@ def main():
         result_df = run_detection(detector, eval_df)
         all_predictions.append(result_df)
 
+        # --- Diagnostic: score/label distributions (catches broken detector
+        # loading, direction flips, and per-generator bonafide dropouts) ---
+        print(f"\n{detector.name} - score/label diagnostics")
+        print("-" * 60)
+        print("counts by (generator_name, label):")
+        print(result_df.groupby(["generator_name", "label"])
+              .size().unstack(fill_value=0).to_string())
+        print("\nmean score by label:")
+        print(result_df.groupby("label")["score"]
+              .agg(["count", "mean", "std", "min", "max"]).to_string())
+        print("\nmean score by (generator_name, label):")
+        print(result_df.groupby(["generator_name", "label"])["score"]
+              .agg(["count", "mean", "std"]).to_string())
+        print("\nfirst 10 rows:")
+        print(result_df[["audio_path", "label", "score",
+                         "generator_name", "speaker_id"]]
+              .head(10).to_string(index=False))
+        # Warn on a near-constant score distribution (broken checkpoint /
+        # preprocessing mismatch signature: everything clusters within ~1e-3).
+        score_span = float(result_df["score"].max() - result_df["score"].min())
+        if score_span < 1e-3:
+            print(f"\nWARNING: {detector.name} score span is {score_span:.6f} - "
+                  "detector may not be loading correctly. Verify the "
+                  "checkpoint and preprocessing before trusting metrics.")
+        print("-" * 60)
+
         # --- Overall metrics for this detector ---
         bonafide_scores = result_df[result_df["label"] == 1]["score"].values
         spoof_scores = result_df[result_df["label"] == 0]["score"].values
@@ -320,9 +353,11 @@ def main():
     print("\n" + "=" * 60)
     print("PHASE 2 COMPLETE")
     print("=" * 60)
-    print("\nNote: speaker_info.json still has FILL_IN placeholders for most")
-    print("fields — group breakdowns for gender/age/SES will be empty or")
-    print("meaningless until you fill in real values from DECTE documentation.")
+    print("\nNote: speaker metadata is loaded from")
+    print("  data/decte/metadata/speaker_info.json (per-speaker)")
+    print("and collapsed to file level in-script via combine_file_metadata.")
+    print("Some groups may be reported as 'mixed' or 'unknown' when an")
+    print("interview contains multiple speakers or has incomplete metadata.")
 
 
 if __name__ == "__main__":

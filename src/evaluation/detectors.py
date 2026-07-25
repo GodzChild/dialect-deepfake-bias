@@ -72,79 +72,74 @@ class AASISTDetector(BaseDetector):
         self.model = None
 
     def load(self):
-    
-
         AURALGUARD_ROOT = Path(
             r"C:\Users\AYO\Desktop\JKU\Extra Semester\THESIS AND PRACTICAL\auralguard-aasistpp"
         )
-
         sys.path.insert(0, str(AURALGUARD_ROOT / "src"))
-
         from aasist_loader import build_aasist_backbone
+        from model_aasistpp import AuralGuardAASISTPP
 
         aasist_root = AURALGUARD_ROOT / "external" / "aasist"
         aasist_config = AURALGUARD_ROOT / "external" / "aasist" / "config" / "AASIST.conf"
 
-        self.model = build_aasist_backbone(
+        # Build the raw AASIST backbone (no checkpoint yet -- the trained
+        # weights live in the wrapper's state_dict under "backbone.*").
+        backbone = build_aasist_backbone(
             aasist_root=aasist_root,
             aasist_config=aasist_config,
-            checkpoint=self.checkpoint_path,
+            checkpoint=None,
             device=self.device,
         )
 
-        self.model.to(self.device)
+        # Wrap with AuralGuard's multi-task heads (binary_head is the
+        # trained deepfake classifier).
+        self.model = AuralGuardAASISTPP(backbone, feature_dim=160).to(self.device)
+
+        # Strict load: all 235 checkpoint tensors must map to model params.
+        ckpt = torch.load(self.checkpoint_path, map_location=self.device, weights_only=False)
+        state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
+        self.model.load_state_dict(state, strict=True)
         self.model.eval()
 
-        print("AASIST model loaded successfully")
-
-        #state_dict = torch.load(self.checkpoint_path, map_location=self.device)
-        # Some checkpoints wrap weights in a dict with a "model" or "state_dict" key
-        #f isinstance(state_dict, dict) and "state_dict" in state_dict:
-        #    state_dict = state_dict["state_dict"]
-        #self.model.load_state_dict(state_dict)
-        #self.model.to(self.device)
-        #self.model.eval()
+        print("AuralGuardAASISTPP loaded successfully (strict=True)")
 
     def _load_audio(self, audio_path: str) -> torch.Tensor:
-        """Load and preprocess audio to match AASIST's expected input."""
-        waveform, sr = torchaudio.load(audio_path)
-        if waveform.shape[0] > 1:
-            waveform = waveform.mean(dim=0, keepdim=True)
-        if sr != self.target_sr:
-            waveform = torchaudio.transforms.Resample(sr, self.target_sr)(waveform)
+        """Match auralguard-aasistpp/src/dataset.py::load_audio_fixed exactly
+        (soundfile-based, mono average, resample, zero-pad, deterministic
+        crop from 0). Same preprocessing the checkpoint was trained on --
+        any divergence here silently breaks the detector."""
+        import soundfile as sf
+        import numpy as np
+        import torch.nn.functional as F
 
-        # AASIST typically expects a fixed-length input (commonly ~4 sec,
-        # achieved via padding/cropping — "Repeat_padding" in the original repo).
-        # ADAPT this to match your training preprocessing exactly, or results
-        # will be meaningless (train/test preprocessing mismatch is a very
-        # common silent bug).
-        target_len = self.target_sr * 4  # 4 seconds, ADAPT if different
-        cur_len = waveform.shape[1]
-        if cur_len < target_len:
-            n_repeats = target_len // cur_len + 1
-            waveform = waveform.repeat(1, n_repeats)[:, :target_len]
+        data, sr = sf.read(audio_path, dtype="float32", always_2d=True)
+        wav = torch.from_numpy(np.ascontiguousarray(data.T))
+        if wav.ndim == 2:
+            wav = wav.mean(dim=0)
         else:
-            waveform = waveform[:, :target_len]
+            wav = wav.flatten()
+        if sr != self.target_sr:
+            wav = torchaudio.functional.resample(wav, sr, self.target_sr)
+        wav = wav.float()
 
-        return waveform.to(self.device)
+        num_samples = int(self.target_sr * 4.0)  # 4-sec window matches training
+        if wav.numel() < num_samples:
+            wav = F.pad(wav, (0, num_samples - wav.numel()))
+        else:
+            wav = wav[:num_samples]
+
+        return wav.unsqueeze(0).to(self.device)  # -> [1, num_samples]
 
     @torch.no_grad()
     def score(self, audio_path: str) -> float:
-        """
-        Run AASIST on one file, return bonafide-ness score.
+        """Run AuralGuardAASISTPP on one file, return bonafide-ness score.
 
-        ADAPT the output handling to match your model's actual output shape.
-        AASIST commonly outputs 2 logits [spoof_logit, bonafide_logit].
+        AuralGuard binary_head convention (see
+        auralguard-aasistpp/src/infer.py:45): index 0 = REAL, index 1 = FAKE.
+        metrics.py expects HIGHER score = MORE bonafide, so we take
+        softmax(binary_logits)[0, 0].
         """
         waveform = self._load_audio(audio_path)
-        output = self.model(waveform)
-
-        # ADAPT: match your model's actual output format
-        if isinstance(output, tuple):
-            output = output[-1]  # some AASIST impls return (hidden, logits)
-
-        # Softmax over [spoof, bonafide] logits, take bonafide probability
-        probs = torch.softmax(output, dim=-1)
-        bonafide_score = probs[0, 1].item()  # index 1 = bonafide, ADAPT if reversed
-
-        return bonafide_score
+        outputs = self.model(waveform)
+        probs = torch.softmax(outputs["binary_logits"], dim=-1)
+        return probs[0, 0].item()
