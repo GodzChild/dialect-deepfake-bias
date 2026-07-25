@@ -1,0 +1,54 @@
+# Spoof Generation Configuration — MEDIUM TEST (OpenVoice V2 only)
+# ==================================================================
+# Purpose: validate OpenVoice V2 on a larger but still bounded slice
+# before committing to full generation. Expected outcome:
+#   max_speakers=7 covers the first 7 eligible speakers alphabetically.
+#   The first 2 (decten1pvc07, decten1pvc09) already have 5 openvoice_v2
+#   files each from the small test and will be skipped by the resume
+#   logic, so the run should generate ~25 NEW files (5 new speakers x 5).
+#   Manifest should end around 451 rows.
+#
+# Run in the `openvoice` conda env:
+#   conda activate openvoice
+#   python scripts/02_generate_spoofs.py --config configs/spoof_gen.medium.yaml
+#
+# Manifest merge is safe: existing xtts_v2 rows (and the 10 openvoice_v2
+# rows from the small test) are preserved; only new entries are added.
+
+paths:
+  decte_audio_dir: "data/01_chunks"
+  decte_metadata: "data/decte/metadata/speaker_info_by_audio.json"
+  decte_transcripts_dir: "data/01_chunk_transcripts"
+  vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
+  output_dir: "data/generated_spoofs"
+
+audio:
+  target_sr: 16000
+  max_duration_sec: 15.0
+  min_duration_sec: 2.0
+  mono: true
+
+generators:
+  xtts_v2:
+    enabled: false            # OpenVoice-only for this test
+
+  openvoice_v2:
+    enabled: true
+    converter_ckpt_dir: "checkpoints/openvoice_v2/converter"
+    base_speaker_ses_path: "checkpoints/openvoice_v2/base_speakers/ses/en-us.pth"
+    melo_language: "EN"
+    melo_speaker_key: "EN-US"
+    device: "cuda"
+
+protocol:
+  max_speakers: 7                    # <-- medium test: 7 (first 2 already covered -> ~5 new)
+  max_utterances_per_speaker: 5      # <-- 5 utts each -> ~25 new attempts
+  reference_utterance_count: 3
+  seed: 42
+
+speaker_metadata_fields:
+  - speaker_id
+  - gender
+  - age_group
+  - ses_class
+  - recording_era
