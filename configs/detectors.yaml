@@ -7,7 +7,7 @@ detectors:
     # Point this to your trained AASIST checkpoint from auralguard-aasistpp,
     # or a pretrained checkpoint from the original AASIST repo
     # (https://github.com/clovaai/aasist) if you haven't trained your own yet.
-    checkpoint_path: "checkpoints/aasist/aasist_model.pth"
+    checkpoint_path: "C:/Users/AYO/Desktop/JKU/Extra Semester/THESIS AND PRACTICAL/auralguard-aasistpp/results/final_accent_globe_wavefake_balanced_full/best.pt"
     # Path to your model definition code if not installed as a package
     model_module_path: "checkpoints/aasist/model_code"
     device: "cuda"

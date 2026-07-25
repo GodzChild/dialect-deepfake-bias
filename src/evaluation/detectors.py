@@ -12,6 +12,8 @@ from pathlib import Path
 import numpy as np
 import torch
 import torchaudio
+import sys
+from pathlib import Path
 
 
 class BaseDetector(ABC):
@@ -70,43 +72,38 @@ class AASISTDetector(BaseDetector):
         self.model = None
 
     def load(self):
-        """
-        Load the AASIST architecture and checkpoint weights.
+    
 
-        IMPORTANT: This is a template. Replace the import and instantiation
-        below with your actual model class from auralguard-aasistpp.
-        Common AASIST implementations define a class like `Model(args)` or
-        `AASIST(config)` — check your original repo's model.py.
-        """
-        if self.model_module_path:
-            import sys
-            sys.path.insert(0, self.model_module_path)
+        AURALGUARD_ROOT = Path(
+            r"C:\Users\AYO\Desktop\JKU\Extra Semester\THESIS AND PRACTICAL\auralguard-aasistpp"
+        )
 
-        try:
-            # ADAPT: import your actual AASIST model class here
-            # Example (from the original AASIST repo structure):
-            # from models.AASIST import Model as AASISTModel
-            # self.model = AASISTModel(config_dict)
-            raise NotImplementedError(
-                "Import your AASIST model class here. See auralguard-aasistpp "
-                "repo for the original model.py / AASIST.py definition. "
-                "Replace this block with: "
-                "from models.AASIST import Model; self.model = Model(config)"
-            )
-        except NotImplementedError:
-            print(
-                "\n⚠️  AASISTDetector.load() needs your model import filled in.\n"
-                "   Open src/evaluation/detectors.py and follow the ADAPT comments.\n"
-            )
-            raise
+        sys.path.insert(0, str(AURALGUARD_ROOT / "src"))
 
-        state_dict = torch.load(self.checkpoint_path, map_location=self.device)
-        # Some checkpoints wrap weights in a dict with a "model" or "state_dict" key
-        if isinstance(state_dict, dict) and "state_dict" in state_dict:
-            state_dict = state_dict["state_dict"]
-        self.model.load_state_dict(state_dict)
+        from aasist_loader import build_aasist_backbone
+
+        aasist_root = AURALGUARD_ROOT / "external" / "aasist"
+        aasist_config = AURALGUARD_ROOT / "external" / "aasist" / "config" / "AASIST.conf"
+
+        self.model = build_aasist_backbone(
+            aasist_root=aasist_root,
+            aasist_config=aasist_config,
+            checkpoint=self.checkpoint_path,
+            device=self.device,
+        )
+
         self.model.to(self.device)
         self.model.eval()
+
+        print("AASIST model loaded successfully")
+
+        #state_dict = torch.load(self.checkpoint_path, map_location=self.device)
+        # Some checkpoints wrap weights in a dict with a "model" or "state_dict" key
+        #f isinstance(state_dict, dict) and "state_dict" in state_dict:
+        #    state_dict = state_dict["state_dict"]
+        #self.model.load_state_dict(state_dict)
+        #self.model.to(self.device)
+        #self.model.eval()
 
     def _load_audio(self, audio_path: str) -> torch.Tensor:
         """Load and preprocess audio to match AASIST's expected input."""
