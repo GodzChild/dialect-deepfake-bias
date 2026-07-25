@@ -55,15 +55,111 @@ def create_detector(config: dict):
     return detectors
 
 
+def normalize_file_id(value: str) -> str:
+    """Normalize DECTE file/chunk names to transcript file_id style."""
+    value = str(value).replace("\\", "/").lower()
+    stem = Path(value).stem
+
+    if "_chunk_" in stem:
+        stem = stem.split("_chunk_")[0]
+
+    if stem.endswith("audio"):
+        stem = stem[:-5]
+
+    return stem
+
+
+def load_speaker_metadata(path: str = "data/decte/metadata/speaker_info.json") -> dict:
+    """Load speaker metadata and also build file-level lookup."""
+    import json
+
+    metadata_path = Path(path)
+    if not metadata_path.exists():
+        print(f"WARNING: speaker metadata not found: {metadata_path}")
+        return {"by_speaker": {}, "by_file": {}}
+
+    by_speaker = json.loads(metadata_path.read_text(encoding="utf-8"))
+    by_file = {}
+
+    for speaker_id, info in by_speaker.items():
+        file_id = info.get("file_id", "unknown")
+        by_file.setdefault(file_id, []).append(info)
+
+    return {
+        "by_speaker": by_speaker,
+        "by_file": by_file,
+    }
+
+
+def combine_file_metadata(speakers: list[dict]) -> dict:
+    """
+    If an interview file has multiple speakers, combine safely.
+    If all speakers share the same value, keep it.
+    If values differ, mark as mixed.
+    """
+    fields = ["gender", "age_group", "education", "occupation", "residence", "recording_era"]
+    combined = {}
+
+    for field in fields:
+        values = sorted({
+            spk.get(field, "unknown")
+            for spk in speakers
+            if spk.get(field, "unknown") != "unknown"
+        })
+
+        if len(values) == 0:
+            combined[field] = "unknown"
+        elif len(values) == 1:
+            combined[field] = values[0]
+        else:
+            combined[field] = "mixed"
+
+    return combined
+
+
+def lookup_metadata(entry: dict, audio_path: str, speaker_meta: dict) -> dict:
+    by_speaker = speaker_meta["by_speaker"]
+    by_file = speaker_meta["by_file"]
+
+    source_speaker_id = str(entry.get("source_speaker_id", "unknown")).lower()
+    file_id = normalize_file_id(audio_path)
+
+    # 1. Exact speaker match, e.g. pvc03a
+    if source_speaker_id in by_speaker:
+        info = by_speaker[source_speaker_id]
+    # 2. File/interview match, e.g. decten1pvc03
+    elif file_id in by_file:
+        info = combine_file_metadata(by_file[file_id])
+    else:
+        info = {
+            "gender": "unknown",
+            "age_group": "unknown",
+            "education": "unknown",
+            "occupation": "unknown",
+            "residence": "unknown",
+            "recording_era": "unknown",
+        }
+
+    return {
+        "speaker_gender": info.get("gender", "unknown"),
+        "speaker_age_group": info.get("age_group", "unknown"),
+        "speaker_education": info.get("education", "unknown"),
+        "speaker_occupation": info.get("occupation", "unknown"),
+        "speaker_residence": info.get("residence", "unknown"),
+        "speaker_recording_era": info.get("recording_era", "unknown"),
+    }
+
+
 def build_evaluation_pairs(manifest_path: str, config: dict) -> pd.DataFrame:
     """
-    Build the full list of (audio_path, label, metadata) pairs to evaluate:
-      - Every successfully generated spoof file -> label 0
-      - The corresponding bonafide source file -> label 1
+    Build the full list of audio files to evaluate:
+      - spoof file -> label 0
+      - matching bonafide source file -> label 1
 
-    Reads directly from the Phase 1 manifest.jsonl.
+    Also attaches speaker metadata from data/decte/metadata/speaker_info.json.
     """
     records = []
+    speaker_meta = load_speaker_metadata()
 
     with jsonlines.open(manifest_path) as reader:
         for entry in reader:
@@ -71,38 +167,34 @@ def build_evaluation_pairs(manifest_path: str, config: dict) -> pd.DataFrame:
                 continue
 
             spoof_path = entry["output_path"]
-            # The bonafide reference is the FIRST reference audio used
-            # (the clip that provided voice identity for cloning)
             bonafide_paths = entry.get("reference_audio_paths", [])
 
-            metadata = {
-                "speaker_gender": entry.get("speaker_gender", "unknown"),
-                "speaker_age_group": entry.get("speaker_age_group", "unknown"),
-                "speaker_ses_class": entry.get("speaker_ses_class", "unknown"),
-                "speaker_recording_era": entry.get("speaker_recording_era", "unknown"),
+            base_metadata = {
                 "generator_name": entry.get("generator_name", "unknown"),
                 "speaker_id": entry.get("source_speaker_id", "unknown"),
-                "dialect_group": "decte",  # set to "vctk" for the control set later
+                "dialect_group": "decte",
             }
 
-            # Spoof record
+            spoof_metadata = lookup_metadata(entry, spoof_path, speaker_meta)
+
             records.append({
                 "audio_path": spoof_path,
                 "label": 0,
-                **metadata,
+                **base_metadata,
+                **spoof_metadata,
             })
 
-            # Bonafide record(s) — dedupe since multiple spoofs share the
-            # same reference audio
             for bp in bonafide_paths:
+                bonafide_metadata = lookup_metadata(entry, bp, speaker_meta)
+
                 records.append({
                     "audio_path": bp,
                     "label": 1,
-                    **metadata,
+                    **base_metadata,
+                    **bonafide_metadata,
                 })
 
     df = pd.DataFrame(records)
-    # Drop duplicate bonafide entries (same file referenced by multiple spoofs)
     df = df.drop_duplicates(subset=["audio_path", "label"])
     return df
 
