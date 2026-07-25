@@ -49,9 +49,21 @@ def create_generators(config: dict) -> list[BaseSpoofGenerator]:
             target_sr=config["audio"]["target_sr"],
         ))
 
+    if gen_configs.get("openvoice_v2", {}).get("enabled", False):
+        # Deferred import: OpenVoice deps only exist in the `openvoice` env.
+        from .openvoice_gen import OpenVoiceGenerator
+        cfg = gen_configs["openvoice_v2"]
+        generators.append(OpenVoiceGenerator(
+            output_dir=output_dir,
+            converter_ckpt_dir=cfg["converter_ckpt_dir"],
+            base_speaker_ses_path=cfg["base_speaker_ses_path"],
+            melo_language=cfg.get("melo_language", "EN"),
+            melo_speaker_key=cfg.get("melo_speaker_key", "EN-Newest"),
+            device=cfg.get("device", "cuda"),
+            target_sr=config["audio"]["target_sr"],
+        ))
+
     # Add other generators here as you enable them:
-    # if gen_configs["openvoice_v2"]["enabled"]:
-    #     generators.append(OpenVoiceGenerator(...))
     # if gen_configs["styletts2"]["enabled"]:
     #     generators.append(StyleTTS2Generator(...))
 
@@ -102,9 +114,21 @@ class SpoofPipeline:
         random.seed(seed)
 
         speakers_with_utts = set(u.speaker_id for u in self.loader.utterances)
+        speaker_list = sorted(speakers_with_utts)
+        max_speakers = protocol.get("max_speakers")
+        if max_speakers:
+            # Small-test mode: keep only speakers with enough valid utterances
+            # to fill the full reference + target budget, so the run yields
+            # exactly max_speakers * max_utts attempts.
+            from collections import Counter
+            utt_counts = Counter(u.speaker_id for u in self.loader.utterances)
+            min_needed = n_ref + max_utts
+            speaker_list = [s for s in speaker_list if utt_counts[s] >= min_needed]
+            speaker_list = speaker_list[:max_speakers]
+
         print(f"\n{'=' * 60}")
         print(f"GENERATING SPOOFS")
-        print(f"Speakers: {len(speakers_with_utts)}")
+        print(f"Speakers: {len(speaker_list)} (of {len(speakers_with_utts)} available)")
         print(f"Generators: {[g.name for g in self.generators]}")
         print(f"Max utterances per speaker: {max_utts}")
         print(f"{'=' * 60}\n")
@@ -114,7 +138,7 @@ class SpoofPipeline:
             gen.load_model()
 
         # Process each speaker
-        for spk_id in tqdm(sorted(speakers_with_utts), desc="Speakers"):
+        for spk_id in tqdm(speaker_list, desc="Speakers"):
             ref_utts, target_utts = self.loader.get_reference_and_target_utterances(
                 spk_id, n_reference=n_ref
             )
@@ -165,22 +189,41 @@ class SpoofPipeline:
         self._print_summary()
 
     def _save_manifest(self):
-        """Save complete generation manifest as JSONL."""
+        """Save complete generation manifest as JSONL.
+
+        Merges with any existing manifest.jsonl so that entries generated
+        in prior runs (whose files were skipped by the resume/skip logic
+        above and are therefore absent from self.results) are preserved.
+        Deduplication key: output_path. Newest entry wins.
+        """
         self.manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Load existing manifest (if any) keyed by output_path
+        merged: dict[str, dict] = {}
+        if self.manifest_path.exists():
+            with jsonlines.open(str(self.manifest_path), mode="r") as reader:
+                for record in reader:
+                    key = record.get("output_path")
+                    if key:
+                        merged[key] = record
+
+        # Overlay this run's results (newest wins on collision)
+        for result in self.results:
+            record = asdict(result)
+            if result.source_speaker_id in self.loader.speakers:
+                spk = self.loader.speakers[result.source_speaker_id]
+                record["speaker_gender"] = spk.gender
+                record["speaker_age_group"] = spk.age_group
+                record["speaker_ses_class"] = spk.ses_class
+                record["speaker_recording_era"] = spk.recording_era
+            merged[record["output_path"]] = record
+
+        # Rewrite merged set
         with jsonlines.open(str(self.manifest_path), mode="w") as writer:
-            for result in self.results:
-                record = asdict(result)
-                # Add speaker metadata
-                if result.source_speaker_id in self.loader.speakers:
-                    spk = self.loader.speakers[result.source_speaker_id]
-                    record["speaker_gender"] = spk.gender
-                    record["speaker_age_group"] = spk.age_group
-                    record["speaker_ses_class"] = spk.ses_class
-                    record["speaker_recording_era"] = spk.recording_era
+            for record in merged.values():
                 writer.write(record)
 
-        print(f"\nManifest saved to {self.manifest_path}")
+        print(f"\nManifest saved to {self.manifest_path} ({len(merged)} entries)")
 
     def _print_summary(self):
         """Print generation summary statistics."""

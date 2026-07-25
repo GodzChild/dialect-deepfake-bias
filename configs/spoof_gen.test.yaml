@@ -1,0 +1,48 @@
+# Spoof Generation Configuration — SMALL TEST (OpenVoice V2 only)
+# =================================================================
+# Purpose: verify OpenVoice V2 integration end-to-end on a tiny slice
+# without regenerating the 416 XTTS files or touching the main config.
+# Expected outcome: 2 speakers x 5 utterances = 10 new openvoice_v2
+# entries appended to data/generated_spoofs/manifest.jsonl.
+#
+# Run in the `openvoice` conda env:
+#   conda activate openvoice
+#   python scripts/02_generate_spoofs.py --config configs/spoof_gen.test.yaml
+
+paths:
+  decte_audio_dir: "data/01_chunks"
+  decte_metadata: "data/decte/metadata/speaker_info_by_audio.json"
+  decte_transcripts_dir: "data/01_chunk_transcripts"
+  vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
+  output_dir: "data/generated_spoofs"
+
+audio:
+  target_sr: 16000
+  max_duration_sec: 15.0
+  min_duration_sec: 2.0
+  mono: true
+
+generators:
+  xtts_v2:
+    enabled: false            # OpenVoice-only for this test; XTTS run separately in spoofgen env
+
+  openvoice_v2:
+    enabled: true
+    converter_ckpt_dir: "checkpoints/openvoice_v2/converter"
+    base_speaker_ses_path: "checkpoints/openvoice_v2/base_speakers/ses/en-us.pth"
+    melo_language: "EN"
+    melo_speaker_key: "EN-US"
+    device: "cuda"
+
+protocol:
+  max_speakers: 2                    # <-- small test: only first 2 speakers (sorted order)
+  max_utterances_per_speaker: 5      # <-- small test: 5 utts each
+  reference_utterance_count: 3
+  seed: 42
+
+speaker_metadata_fields:
+  - speaker_id
+  - gender
+  - age_group
+  - ses_class
+  - recording_era
