@@ -56,8 +56,27 @@ dialect-deepfake-bias/
 - Some previous AASIST training code from earlier repo (auralguard-aasistpp)
 - DECTE audio downloaded and accessible
 
-**Current status:** [UPDATE THIS EACH SESSION, e.g.: "Phase 1 — XTTS generation
-running, 60/160 speakers processed, some failures on short utterances"]
+**Current status (as of this update):**
+- Phase 1 COMPLETE: XTTS v2 spoof generation working end-to-end.
+  416/416 successful generations. Manifest at data/generated_spoofs/manifest.jsonl.
+- Chunk pipeline built: DECTE full interviews were too long (596s-5367s), so
+  audio is now chunked (data/01_chunks/) with matching per-chunk transcripts
+  (data/01_chunk_transcripts/) built from FairFix-corrected Whisper output
+  (data/03_fairfix_inputs/).
+- Two conda envs in use: `dialectbias` (data prep/detection) and `spoofgen`
+  (Coqui TTS — needed transformers==4.33.3 and torch==2.5.1 downgrades to
+  work around XTTS checkpoint loading issues).
+- speaker_info.json still has FILL_IN placeholders for gender/age_group/
+  ses_class/recording_era — must be filled from DECTE documentation before
+  any bias analysis is meaningful.
+- Phase 2 scaffold just added: src/evaluation/{metrics,detectors,bias_analysis}.py
+  and scripts/03_run_detectors.py. AASISTDetector.load() has a placeholder
+  that needs the actual model class imported from auralguard-aasistpp.
+- Known limitation: spoof text currently comes from Whisper/FairFix-corrected
+  transcripts, which normalize dialect toward standard English. A future
+  improvement is forced-alignment of the original DECTE reference transcripts
+  (which are more dialect-authentic) to chunk boundaries via WhisperX/MFA/aeneas.
+- [UPDATE THIS EACH SESSION with whatever you're working on right now]
 
 ---
 

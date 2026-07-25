@@ -1,0 +1,25 @@
+# Detector Evaluation Configuration
+# ====================================
+
+detectors:
+  aasist:
+    enabled: true
+    # Point this to your trained AASIST checkpoint from auralguard-aasistpp,
+    # or a pretrained checkpoint from the original AASIST repo
+    # (https://github.com/clovaai/aasist) if you haven't trained your own yet.
+    checkpoint_path: "checkpoints/aasist/aasist_model.pth"
+    # Path to your model definition code if not installed as a package
+    model_module_path: "checkpoints/aasist/model_code"
+    device: "cuda"
+    target_sr: 16000
+
+  # Add more detectors here as you build them out:
+  # wav2vec2_aasist:
+  #   enabled: false
+  #   checkpoint_path: "checkpoints/wav2vec2_aasist/model.pth"
+  #   device: "cuda"
+
+  # whisper_detector:
+  #   enabled: false
+  #   checkpoint_path: "checkpoints/whisper_detector/model.pth"
+  #   device: "cuda"
