@@ -82,17 +82,34 @@ class SpoofPipeline:
         self.manifest_path = Path(self.config["paths"]["output_dir"]) / "manifest.jsonl"
         self.results: list[SpoofResult] = []
 
-        # Load DECTE data
+        # Loader dispatch: default 'decte' preserves prior behaviour.
+        # Set `loader: vctk` in a config (see configs/spoof_gen.vctk.test.yaml)
+        # to swap in the VCTK control-set loader without touching DECTE code.
         paths = self.config["paths"]
         audio_cfg = self.config["audio"]
-        self.loader = DECTELoader(
-            audio_dir=paths["decte_audio_dir"],
-            metadata_path=paths["decte_metadata"],
-            transcripts_dir=paths["decte_transcripts_dir"],
-            target_sr=audio_cfg["target_sr"],
-            min_duration=audio_cfg["min_duration_sec"],
-            max_duration=audio_cfg["max_duration_sec"],
-        )
+        loader_kind = str(self.config.get("loader", "decte")).lower()
+        if loader_kind == "vctk":
+            # Deferred import so DECTE-only runs never touch VCTK code.
+            from ..data.vctk_loader import VCTKLoader
+            vctk_cfg = self.config.get("vctk", {})
+            self.loader = VCTKLoader(
+                audio_dir=paths["vctk_audio_dir"],
+                transcripts_dir=paths["vctk_transcripts_dir"],
+                speaker_info_path=paths["vctk_speaker_info"],
+                accent_filter=vctk_cfg.get("accent_filter", "English"),
+                target_sr=audio_cfg["target_sr"],
+                min_duration=audio_cfg["min_duration_sec"],
+                max_duration=audio_cfg["max_duration_sec"],
+            )
+        else:
+            self.loader = DECTELoader(
+                audio_dir=paths["decte_audio_dir"],
+                metadata_path=paths["decte_metadata"],
+                transcripts_dir=paths["decte_transcripts_dir"],
+                target_sr=audio_cfg["target_sr"],
+                min_duration=audio_cfg["min_duration_sec"],
+                max_duration=audio_cfg["max_duration_sec"],
+            )
 
     def prepare_data(self):
         """Load and prepare DECTE corpus."""

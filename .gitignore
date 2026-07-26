@@ -1,5 +1,6 @@
 # Data (too large for git, and DECTE has access restrictions)
-data/
+# Anchored to repo root so it does not silently swallow src/data/, tests/data/, etc.
+/data/
 checkpoints/
 
 # Python

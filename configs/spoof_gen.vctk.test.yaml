@@ -1,0 +1,72 @@
+# Spoof Generation Configuration — VCTK SMALL TEST (Entry 4 control)
+# =====================================================================
+# Purpose: validate the VCTK loader + generator pipeline end-to-end on
+# a tiny slice before scaling. Uses a SEPARATE output directory and
+# SEPARATE manifest so the existing DECTE manifest
+# (data/generated_spoofs/manifest.jsonl, 516 rows) is never touched.
+#
+# Loader: vctk. Requires a small SpoofPipeline dispatch change to honour
+# `loader: vctk` (proposed in this session's plan, NOT applied yet).
+# Until that dispatch is added, this config will still be constructed
+# by SpoofPipeline but the pipeline will default to DECTELoader --
+# a no-op safety net that avoids accidental VCTK writes.
+#
+# Run in the `openvoice` env (OpenVoice-only first per XTTS/OpenVoice
+# env split):
+#   conda activate openvoice
+#   python scripts/02_generate_spoofs.py --config configs/spoof_gen.vctk.test.yaml
+#
+# Expected outcome once pipeline dispatch is wired:
+#   2 English-accent VCTK speakers x 5 target utterances = 10 new
+#   openvoice_v2 files under data/generated_spoofs_vctk/openvoice_v2/,
+#   new manifest at data/generated_spoofs_vctk/manifest.jsonl with 10
+#   rows. Zero writes anywhere near DECTE data or manifest.
+
+loader: vctk
+corpus: vctk
+
+paths:
+  vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
+  vctk_transcripts_dir: "data/vctk/txt"
+  vctk_speaker_info: "data/vctk/speaker-info.txt"
+  output_dir: "data/generated_spoofs_vctk"
+  # DECTE paths kept present so a naive pipeline read of paths[...]
+  # for shared keys doesn't KeyError when loader=vctk. They are not
+  # consumed by VCTKLoader.
+  decte_audio_dir: "data/01_chunks"
+  decte_metadata: "data/decte/metadata/speaker_info_by_audio.json"
+  decte_transcripts_dir: "data/01_chunk_transcripts"
+
+audio:
+  target_sr: 16000
+  max_duration_sec: 15.0
+  min_duration_sec: 2.0
+  mono: true
+
+vctk:
+  accent_filter: "English"          # loose SBE per Entry 4 decision (33 eligible)
+
+generators:
+  xtts_v2:
+    enabled: false                  # start OpenVoice-only; XTTS in a separate env
+
+  openvoice_v2:
+    enabled: true
+    converter_ckpt_dir: "checkpoints/openvoice_v2/converter"
+    base_speaker_ses_path: "checkpoints/openvoice_v2/base_speakers/ses/en-us.pth"
+    melo_language: "EN"
+    melo_speaker_key: "EN-US"
+    device: "cuda"
+
+protocol:
+  max_speakers: 2                   # <-- small test: only 2 speakers
+  max_utterances_per_speaker: 5     # <-- 5 target utts each -> 10 attempts
+  reference_utterance_count: 3
+  seed: 42
+
+speaker_metadata_fields:
+  - speaker_id
+  - gender
+  - age_group
+  - accent
+  - region
