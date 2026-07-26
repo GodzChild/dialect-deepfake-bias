@@ -22,6 +22,11 @@ class SpoofResult:
     success: bool
     error_message: str = ""
     generation_time_sec: float = 0.0
+    # Populated by SpoofPipeline.run() -- enables the matched
+    # "original vs spoof" bonafide pairing in build_evaluation_pairs.
+    # Defaults preserve backward compat with pre-schema-change manifests.
+    source_audio_path: str = ""
+    corpus: str = ""
 
 
 class BaseSpoofGenerator(ABC):

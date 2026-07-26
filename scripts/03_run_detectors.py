@@ -150,11 +150,27 @@ def lookup_metadata(entry: dict, audio_path: str, speaker_meta: dict) -> dict:
     }
 
 
-def build_evaluation_pairs(manifest_path: str, config: dict) -> pd.DataFrame:
+def build_evaluation_pairs(
+    manifest_path: str, config: dict, corpus: str = "decte"
+) -> pd.DataFrame:
     """
     Build the full list of audio files to evaluate:
       - spoof file -> label 0
       - matching bonafide source file -> label 1
+
+    Bonafide selection prefers `source_audio_path` (the exact original
+    utterance whose text was synthesised) when the manifest has it and
+    the file exists on disk. Otherwise falls back to
+    `reference_audio_paths` (voice-identity references) so pre-schema-
+    change manifests still work.
+
+    `dialect_group` (the reporting label used by bias_analysis) is taken
+    from the per-row `dialect_group` field if present; otherwise from
+    the `corpus` CLI arg. The per-row `corpus` field is preserved as its
+    own column (broad corpus name, e.g. "vctk" or "decte") so downstream
+    analysis can distinguish the underlying dataset from the sub-group
+    reporting label (e.g. dialect_group="vctk_english_control",
+    corpus="vctk").
 
     Also attaches speaker metadata from data/decte/metadata/speaker_info.json.
     """
@@ -167,12 +183,25 @@ def build_evaluation_pairs(manifest_path: str, config: dict) -> pd.DataFrame:
                 continue
 
             spoof_path = entry["output_path"]
-            bonafide_paths = entry.get("reference_audio_paths", [])
+
+            # Prefer the matched original if the manifest carries it
+            # (Phase 2 schema). Fall back to voice-identity refs otherwise.
+            source_audio_path = entry.get("source_audio_path", "")
+            if source_audio_path and Path(source_audio_path).exists():
+                bonafide_paths = [source_audio_path]
+            else:
+                bonafide_paths = entry.get("reference_audio_paths", [])
+
+            # dialect_group = reporting label (e.g. "vctk_english_control").
+            # corpus       = broad underlying corpus name (e.g. "vctk").
+            row_dialect_group = entry.get("dialect_group") or corpus
+            row_corpus = entry.get("corpus") or corpus
 
             base_metadata = {
                 "generator_name": entry.get("generator_name", "unknown"),
                 "speaker_id": entry.get("source_speaker_id", "unknown"),
-                "dialect_group": "decte",
+                "dialect_group": row_dialect_group,
+                "corpus": row_corpus,
             }
 
             spoof_metadata = lookup_metadata(entry, spoof_path, speaker_meta)
@@ -197,7 +226,8 @@ def build_evaluation_pairs(manifest_path: str, config: dict) -> pd.DataFrame:
                     # generator's spoofs, instead of first-writer-wins.
                     "generator_name": "bonafide",
                     "speaker_id": entry.get("source_speaker_id", "unknown"),
-                    "dialect_group": "decte",
+                    "dialect_group": row_dialect_group,
+                    "corpus": row_corpus,
                     **bonafide_metadata,
                 })
 
@@ -239,6 +269,12 @@ def main():
         "--manifest", type=str, default="data/generated_spoofs/manifest.jsonl"
     )
     parser.add_argument("--output-dir", type=str, default="results")
+    parser.add_argument(
+        "--corpus", type=str, default="decte",
+        help="Corpus label used as dialect_group when the manifest row does "
+             "not carry a per-row `corpus` field. Use e.g. `vctk_english_control` "
+             "for VCTK manifests.",
+    )
     args = parser.parse_args()
 
     print("=" * 60)
@@ -251,7 +287,8 @@ def main():
 
     # Build evaluation pairs from Phase 1 manifest
     print(f"\nLoading manifest from {args.manifest}...")
-    eval_df = build_evaluation_pairs(args.manifest, config)
+    print(f"Corpus tag (fallback for rows without one): {args.corpus}")
+    eval_df = build_evaluation_pairs(args.manifest, config, corpus=args.corpus)
     print(f"Built {len(eval_df)} evaluation pairs "
           f"({(eval_df['label']==1).sum()} bonafide, "
           f"{(eval_df['label']==0).sum()} spoof)")
@@ -324,9 +361,20 @@ def main():
         if not grouped.empty:
             print(grouped.to_string(index=False))
 
-        # --- Dialect vs standard gap (once VCTK control exists) ---
-        gap_result = compute_dialect_vs_standard_gap(result_df)
-        print(f"\n  Dialect vs standard gap: {gap_result}")
+        # --- Dialect vs standard gap (only when BOTH corpora are present) ---
+        # compute_dialect_vs_standard_gap expects both a dialectal group
+        # (default "decte") and a standard-accent group (default "vctk").
+        # Skip cleanly for single-corpus evaluations (typical today, since
+        # VCTK and DECTE runs use separate manifests / output dirs).
+        present_corpora = set(result_df["corpus"].dropna().unique())
+        if {"decte", "vctk"}.issubset(present_corpora):
+            gap_result = compute_dialect_vs_standard_gap(result_df)
+            print(f"\n  Dialect vs standard gap: {gap_result}")
+        else:
+            print(
+                f"\n  Dialect-vs-standard gap skipped: this output contains "
+                f"only one corpus/group ({sorted(present_corpora)})."
+            )
 
     # Save all raw predictions (gitignored — large file, keep locally)
     predictions_df = pd.concat(all_predictions, ignore_index=True)

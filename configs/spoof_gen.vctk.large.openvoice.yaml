@@ -1,0 +1,72 @@
+# Spoof Generation Configuration — VCTK LARGE (OpenVoice V2 only)
+# =================================================================
+# Purpose: bring the VCTK-English OpenVoice sample count up to ~100
+# spoofs so it matches the DECTE OpenVoice budget (100 spoofs) for
+# cross-corpus comparison in Entry 4.
+#
+# Prior VCTK small test already produced 10 openvoice_v2 files across
+# 2 speakers (p225, p226); this run adds ~90 more from the next
+# eligible English-accent VCTK speakers.
+#
+# Sizing (with resume-skip logic):
+#   max_speakers = 20 alphabetically eligible English-accent speakers
+#     (>= n_ref + max_utts = 3 + 5 = 8 valid utterances)
+#   - first 2 already have 5 openvoice files each -> skipped
+#   - next 18 will each generate 5 -> ~90 new files
+#   VCTK manifest goes from 10 -> 100 openvoice_v2 rows.
+#
+# Run in the `openvoice` env:
+#   conda activate openvoice
+#   python scripts/02_generate_spoofs.py --config configs/spoof_gen.vctk.large.openvoice.yaml
+#
+# Manifest merge is safe: existing 10 rows in
+# data/generated_spoofs_vctk/manifest.jsonl are preserved; only new
+# entries are appended. The DECTE manifest at
+# data/generated_spoofs/manifest.jsonl is never touched.
+
+loader: vctk
+corpus: vctk
+
+paths:
+  vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
+  vctk_transcripts_dir: "data/vctk/txt"
+  vctk_speaker_info: "data/vctk/speaker-info.txt"
+  output_dir: "data/generated_spoofs_vctk"
+  # DECTE paths present but unused when loader=vctk.
+  decte_audio_dir: "data/01_chunks"
+  decte_metadata: "data/decte/metadata/speaker_info_by_audio.json"
+  decte_transcripts_dir: "data/01_chunk_transcripts"
+
+audio:
+  target_sr: 16000
+  max_duration_sec: 15.0
+  min_duration_sec: 2.0
+  mono: true
+
+vctk:
+  accent_filter: "English"          # loose SBE per Entry 4 decision
+
+generators:
+  xtts_v2:
+    enabled: false                  # OpenVoice-only for this run
+
+  openvoice_v2:
+    enabled: true
+    converter_ckpt_dir: "checkpoints/openvoice_v2/converter"
+    base_speaker_ses_path: "checkpoints/openvoice_v2/base_speakers/ses/en-us.pth"
+    melo_language: "EN"
+    melo_speaker_key: "EN-US"
+    device: "cuda"
+
+protocol:
+  max_speakers: 20                  # <-- first 2 already covered -> ~18 new
+  max_utterances_per_speaker: 5     # <-- 5 utts each -> ~90 new attempts
+  reference_utterance_count: 3
+  seed: 42
+
+speaker_metadata_fields:
+  - speaker_id
+  - gender
+  - age_group
+  - accent
+  - region

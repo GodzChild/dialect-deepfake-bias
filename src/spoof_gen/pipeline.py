@@ -188,6 +188,17 @@ class SpoofPipeline:
                         language="en",
                     )
                     result.source_speaker_id = spk_id
+                    # Store the ORIGINAL target audio path (not the voice-
+                    # identity refs) so eval can pair each spoof against
+                    # the exact real utterance whose text it synthesised.
+                    result.source_audio_path = utt.audio_path
+                    # Corpus tag lets eval infer dialect_group without a
+                    # CLI override; falls back to the loader kind if the
+                    # config doesn't specify one explicitly.
+                    result.corpus = self.config.get(
+                        "corpus",
+                        self.config.get("loader", "decte"),
+                    )
 
                     self.results.append(result)
 
