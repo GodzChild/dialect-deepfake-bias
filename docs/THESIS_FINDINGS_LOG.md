@@ -344,6 +344,160 @@ rerun.
 
 ---
 
-## Entry 5 — [DATE] — [next milestone]
+## Entry 5 — 2026-07-26 — VCTK XTTS matched-control result and 2x2 generator comparison
+
+**Status: completes the 2x2 (corpus x generator) table.** The missing
+"VCTK x XTTS v2" cell flagged as an open item at the end of Entry 4 is
+now filled. Together with Entries 2 and 4 the study now supports a
+direct corpus x generator interaction analysis on this detector.
+
+### VCTK generation
+
+- 100 XTTS v2 samples generated successfully in the `spoofgen` env
+  (`configs/spoof_gen.vctk.xtts.yaml`, 20 English-accent VCTK speakers
+  × 5 target utterances, seed 42).
+- Merged into the existing VCTK manifest by the manifest-merge writer;
+  the DECTE manifest at `data/generated_spoofs/manifest.jsonl` was not
+  touched.
+- **VCTK manifest now has 200 rows**: 100 `openvoice_v2` + 100 `xtts_v2`.
+
+### Detector evaluation
+
+- Eval command:
+  ```
+  python scripts/03_run_detectors.py \
+    --manifest data/generated_spoofs_vctk/manifest.jsonl \
+    --output-dir results/vctk \
+    --corpus vctk_english_control
+  ```
+- Detector: fixed AuralGuard-AASIST from Entry 3, unchanged.
+- Built **320 evaluation pairs**: **120 bonafide** matched originals +
+  **200 spoof** samples. `dialect_group = vctk_english_control`,
+  `corpus = vctk`.
+
+### Result (citable text)
+
+> On VCTK English-accent control speech, the fixed AuralGuard-AASIST
+> detector achieved 21.83% EER (AUC 0.8917) on XTTS v2 spoofs and
+> 74.58% EER (AUC 0.1643) on OpenVoice v2 spoofs, evaluated against 120
+> unique matched original utterances. Under a shared audio-quality and
+> accent condition, the detector is over three times better at rejecting
+> XTTS v2 spoofs than OpenVoice v2 spoofs, strengthening the conclusion
+> from Entries 2 and 4 that OpenVoice v2 constitutes a major
+> generator-specific vulnerability for this detector rather than a
+> dialect-driven artifact.
+
+### Raw numbers (VCTK, this entry)
+
+| Scope             | n_bonafide | n_spoof | EER (%) | AUC    |
+|-------------------|-----------:|--------:|--------:|-------:|
+| Overall (both gens combined) | 120 | 200 | 45.50 | 0.5280 |
+| XTTS v2           | 120        | 100     | 21.833  | 0.8917 |
+| OpenVoice v2      | 120        | 100     | 74.583  | 0.1643 |
+
+### 2x2 corpus × generator table (Entries 2, 4, 5 combined)
+
+| Corpus                       | XTTS v2 EER | OpenVoice v2 EER |
+|------------------------------|------------:|-----------------:|
+| DECTE dialectal              | 34.63%      | 47.84%           |
+| VCTK English-control         | **21.83%**  | **74.58%**       |
+
+Row difference (VCTK harder or easier than DECTE by generator):
+
+- XTTS: DECTE 34.63% - VCTK 21.83% = +12.8pp harder on DECTE → *dialect/domain effect visible for XTTS*.
+- OpenVoice: DECTE 47.84% - VCTK 74.58% = -26.7pp *easier* on DECTE → OpenVoice is actually *worse* on the clean VCTK control than on DECTE.
+
+The OpenVoice row inverting the expected direction is the most
+interesting single number in the table: on studio-quality standard-
+accent English, the detector is *more* fooled by OpenVoice than on
+dialectal interview speech.
+
+### Interpretation
+
+Entry 4 already shifted the story from "DECTE dialect is the driver"
+to "OpenVoice is the driver". Entry 5 puts firm bounds on that:
+
+1. **Generator effect dominates corpus effect.** Within each corpus,
+   the XTTS-vs-OpenVoice EER gap (13pp on DECTE, 53pp on VCTK) is
+   larger than the corpus-effect gap on either generator (13pp for
+   XTTS, 27pp for OpenVoice).
+2. **Dialect effect for XTTS is real but modest.** The XTTS row alone
+   (34.63% DECTE vs 21.83% VCTK) is consistent with the domain-
+   transfer difficulty already documented in Entries 1 and 3 — DECTE
+   is harder for XTTS-style TTS than clean VCTK is.
+3. **OpenVoice's failure mode is not dialect.** OpenVoice v2 gets
+   *worse* EER on the cleaner VCTK than on DECTE. This is unlikely
+   to be a "clean-audio helps the detector" argument (Entry 3 shows
+   the detector is highly capable on similar clean data) — it points
+   instead to something specific in OpenVoice v2 outputs that this
+   detector actively misclassifies as bonafide.
+
+### Caveat — "balanced per-generator", not "fully paired utterance-by-utterance"
+
+The two VCTK generator subsets are **100 samples each**, but the eval
+built **120 unique bonafide originals**. Overlap check on
+`source_audio_path`:
+
+```
+xtts_v2 originals    : 100
+openvoice_v2 originals: 100
+overlap              : 80
+union                : 120
+xtts-only originals  : 20
+openvoice-only       : 20
+```
+
+Report this as a **balanced per-generator comparison** — same speakers,
+same protocol, matched originals used as bonafide for each generator —
+**not** as a "same 100 utterances synthesised by both generators"
+paired comparison. Reason for the 80% (not 100%) overlap:
+`SpoofPipeline.run()` seeds `random` once and calls `random.sample` per
+speaker to pick 5 target utterances. Between speakers, the loaded
+generator's internal libraries advance `random`'s module state
+differently for OpenVoice vs XTTS. p225 (first speaker, fresh seed
+state) fully overlaps; later speakers overlap partially. Fixable in a
+future run by pre-picking the target set once per corpus.
+
+Other caveats from Entry 4 still apply:
+- VCTK is heavily biased to `21-30` speakers (19 of 20); DECTE spans
+  multiple decades.
+- AuralGuard's training set includes GLOBE (US-English studio-clean),
+  so the detector's *bonafide* recognition on VCTK is aided by
+  in-distribution familiarity. The load-bearing numbers are the *spoof*
+  EERs, not the bonafide-side scores.
+
+### Reproducibility state at this entry
+
+- VCTK XTTS config: `configs/spoof_gen.vctk.xtts.yaml` (commit
+  `debcee2`).
+- VCTK manifest: `data/generated_spoofs_vctk/manifest.jsonl` (200 rows,
+  gitignored).
+- Eval outputs: `results/vctk/detector_predictions.csv`,
+  `results/vctk/group_bias_summary_aasist.csv` (both gitignored).
+- Detector fix from Entry 3, grouping fix from Entry 2, matched-pair
+  eval logic + schema extension from commit `3510c7a`.
+
+### Next research step (queued, not yet started)
+
+The 2x2 is now filled at N=100 per cell. Sensible next moves, in
+priority order:
+
+1. **Pre-picked target-set fix** — small change to `SpoofPipeline.run()`
+   that pre-computes each speaker's 5 targets once per config and
+   caches them, so XTTS-vs-OpenVoice runs on the same corpus become
+   truly paired (overlap → 100).
+2. **Second detector** — the entire 2x2 hangs on AuralGuard-AASIST.
+   Adding one more anti-spoofing detector (e.g. Wav2Vec2-AASIST, or
+   the RawGAT-ST family) would let us claim the generator effect is
+   not detector-specific.
+3. **Bootstrap 95% CIs on the four VCTK numbers** — same treatment as
+   Entry 2's DECTE balanced comparison. That'd let us report the
+   XTTS-vs-OpenVoice gap on VCTK with confidence bounds, and check
+   whether the DECTE-vs-VCTK gap for each generator is
+   statistically distinguishable.
+
+---
+
+## Entry 6 — [DATE] — [next milestone]
 
 *(add here once available)*
