@@ -222,6 +222,128 @@ shift. Until this control exists, all DECTE numbers must be phrased as
 
 ---
 
-## Entry 4 — [DATE] — [next milestone]
+## Entry 4 — 2026-07-26 — VCTK OpenVoice matched-control result (XTTS control not yet run)
+
+**Status: partial.** VCTK OpenVoice V2 evaluation is complete under the same
+protocol as DECTE. **VCTK XTTS v2 control is not yet run**, so the
+cross-corpus generator comparison remains one-sided until that lands.
+This entry documents what changes about the interpretation of Entries 1–2
+in light of the new VCTK OpenVoice numbers.
+
+### Method
+- Reused the fixed AuralGuard-AASIST detector from Entry 3.
+- VCTK bonafide/spoof pool: 20 English-accent VCTK speakers × 5 target
+  utterances each = 100 spoofs. Bonafide = the *matched* 100 original
+  target utterances (enabled by the `source_audio_path` schema field
+  added in this cycle + one-shot backfill).
+- Eval command:
+  ```
+  python scripts/03_run_detectors.py \
+    --manifest data/generated_spoofs_vctk/manifest.jsonl \
+    --output-dir results/vctk \
+    --corpus vctk_english_control
+  ```
+- Detector, preprocessing, and metric functions unchanged from Entries 1–3.
+
+### Result (citable text)
+
+> On a VCTK English-accent control set of 100 matched original utterances
+> and 100 OpenVoice v2 spoofs of those same utterances, the fixed
+> AuralGuard-AASIST detector achieved 75.50% EER and 0.1670 AUC (accuracy
+> 0.2450; FAR 75.00%; FRR 76.00%). Mean detector "bonafide-ness" score
+> was 0.9154 on real VCTK originals versus 0.9894 on their OpenVoice v2
+> spoofs — the detector scored the spoofs as *more real* than the real
+> utterances they were cloned from. This confirms that OpenVoice v2's
+> difficulty for the detector is not limited to DECTE dialectal speech;
+> it also holds on standard-accent studio-quality VCTK English input.
+
+### Raw numbers
+
+| Scope                | n_bonafide | n_spoof | EER (%) | AUC    | Accuracy | FAR (%) | FRR (%) | Mean bonafide score | Mean spoof score |
+|----------------------|-----------:|--------:|--------:|-------:|---------:|--------:|--------:|--------------------:|-----------------:|
+| VCTK OpenVoice v2    | 100        | 100     | 75.50   | 0.1670 | 0.2450   | 75.00   | 76.00   | 0.9154              | 0.9894           |
+
+Composition of the 20 VCTK speakers used (English accent, alphabetical
+top-20 with ≥ 8 usable utterances): 13 southern (Southern England / London
+/ Surrey / SE England / SW England), 7 non-southern (Manchester × 2,
+Cumbria, Stockton-on-Tees, Birmingham, Nottingham, Staffordshire).
+Gender: 11F / 9M. Age band: 19 of 20 in `21-30`; one in `31-40`. No
+speakers labelled Newcastle → no direct region overlap with DECTE.
+
+### Interpretation (updates the story from Entries 1–2)
+
+Before this entry, the strongest defensible reading of Entries 1–2 was
+that OpenVoice v2's high EER on DECTE (47.84% in Entry 2's balanced
+comparison) *might* reflect an interaction between the OpenVoice generator
+and DECTE's dialect / interview-style acoustics. Entry 4 rules that
+interpretation out as *primary*: OpenVoice v2 defeats this detector on
+studio-quality, near-standard-accent English speech too, and by an even
+larger margin (VCTK 75.50% EER vs DECTE 47.84% EER).
+
+Revised strongest claim:
+
+> AuralGuard-AASIST shows a severe generator-specific vulnerability to
+> OpenVoice v2 voice-cloned speech across both the DECTE dialectal
+> corpus and a VCTK English-accent control set. DECTE remains useful
+> for dialect / domain-transfer analysis, but the OpenVoice difficulty
+> is not itself a dialect effect — it is present on standard-accent
+> studio speech as well.
+
+Notable specific finding: the detector's mean bonafide-ness score on
+VCTK OpenVoice spoofs (0.9894) is *higher* than on the real VCTK
+originals (0.9154). This is not "detector fails to discriminate" (Entry 3
+already ruled out a broken detector); it is "detector is systematically
+confident that OpenVoice v2 outputs are bonafide."
+
+### Caveats
+
+- **VCTK XTTS control missing.** The parallel VCTK XTTS v2 result is the
+  natural next step. Without it we cannot say whether the VCTK–DECTE
+  gap on OpenVoice (75.5% vs 47.8%) reflects OpenVoice interacting with
+  studio audio in a specific way, or a bulk domain effect that would
+  show up on VCTK XTTS too.
+- VCTK is heavily biased to young speakers (19/20 in `21-30`); DECTE
+  spans multiple decades. Any DECTE-vs-VCTK comparison must acknowledge
+  this age-band confound alongside the accent / audio-quality ones.
+- The AuralGuard training set includes GLOBE (a US-English clean
+  corpus). VCTK is not identical but is similar enough in style
+  (studio-read English) that the detector's *bonafide* recognition on
+  VCTK is likely aided by that training exposure — the 75% *spoof-side*
+  failure is therefore the load-bearing number, not the ~92% mean real
+  score.
+
+### Reproducibility state at this entry
+
+- Backfilled manifest: `data/generated_spoofs_vctk/manifest.jsonl`
+  (100 rows, `source_audio_path` + `corpus="vctk"` populated by
+  `scripts/08_backfill_source_audio_path.py`).
+- Eval outputs: `results/vctk/detector_predictions.csv`,
+  `results/vctk/group_bias_summary_aasist.csv` (both gitignored).
+- Detector fix from Entry 3, grouping fix from Entry 2, matched-pair
+  eval logic new in this cycle (commit `3510c7a`).
+
+### Next research step (queued, not yet started)
+
+**VCTK XTTS v2 100-sample control** — same 20 speakers × 5 utterances,
+XTTS v2 instead of OpenVoice v2, matched originals as bonafide. Then a
+2×2 table becomes possible:
+
+|           | XTTS v2 | OpenVoice v2 |
+|-----------|--------:|-------------:|
+| DECTE     | 34.63%  | 47.84%       |
+| VCTK      | ???     | 75.50%       |
+
+The DECTE row is from Entry 2; the VCTK OpenVoice cell is this entry;
+the VCTK XTTS cell is the missing block. That table is what makes the
+generator-vs-corpus interaction claim publishable.
+
+XTTS runs in the separate `spoofgen` env — needs its own
+`configs/spoof_gen.vctk.xtts.yaml` (mirrors the OpenVoice VCTK config
+with generators reversed) and its own generation pass before the eval
+rerun.
+
+---
+
+## Entry 5 — [DATE] — [next milestone]
 
 *(add here once available)*
