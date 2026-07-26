@@ -1,0 +1,70 @@
+# Spoof Generation Configuration — VCTK XTTS v2 (Entry 4 completion)
+# ====================================================================
+# Purpose: fill the missing "VCTK x XTTS v2" cell in the 2x2 corpus x
+# generator table (DECTE-XTTS, DECTE-OpenVoice, VCTK-XTTS, VCTK-OpenVoice).
+#
+# Reuses the SAME 20 English-accent VCTK speakers x 5 target utterances
+# as the VCTK OpenVoice run (seed=42, same eligibility rule), so per-
+# utterance XTTS/OpenVoice comparison is direct: same original -> XTTS
+# spoof and OpenVoice spoof, evaluated against the same 100 matched
+# bonafide originals.
+#
+# Sizing:
+#   max_speakers = 20 alphabetically eligible English-accent speakers
+#     (>= n_ref + max_utts = 3 + 5 = 8 valid utterances)
+#   No prior VCTK XTTS files on disk -> ALL 20 x 5 = 100 files new.
+#   VCTK manifest goes 100 -> 200 rows (100 openvoice_v2 + 100 xtts_v2).
+#
+# Run in the `spoofgen` env (XTTS-only, separate from openvoice env):
+#   conda activate spoofgen
+#   python scripts/02_generate_spoofs.py --config configs/spoof_gen.vctk.xtts.yaml
+#
+# Manifest merge is safe: existing 100 openvoice_v2 rows are preserved;
+# only new xtts_v2 entries are appended. The DECTE manifest at
+# data/generated_spoofs/manifest.jsonl is never touched.
+
+loader: vctk
+corpus: vctk
+
+paths:
+  vctk_audio_dir: "data/vctk/wav48_silence_trimmed"
+  vctk_transcripts_dir: "data/vctk/txt"
+  vctk_speaker_info: "data/vctk/speaker-info.txt"
+  output_dir: "data/generated_spoofs_vctk"
+  # DECTE paths present but unused when loader=vctk.
+  decte_audio_dir: "data/01_chunks"
+  decte_metadata: "data/decte/metadata/speaker_info_by_audio.json"
+  decte_transcripts_dir: "data/01_chunk_transcripts"
+
+audio:
+  target_sr: 16000
+  max_duration_sec: 15.0
+  min_duration_sec: 2.0
+  mono: true
+
+vctk:
+  accent_filter: "English"          # matches Entry 4's loose SBE control
+
+generators:
+  xtts_v2:
+    enabled: true
+    model_name: "tts_models/multilingual/multi-dataset/xtts_v2"
+    reference_duration_sec: 8.0
+    language: "en"
+    device: "cuda"
+
+  openvoice_v2:
+    enabled: false                  # XTTS-only for this run
+
+protocol:
+  max_speakers: 20                  # <-- 0 prior XTTS -> all 20 generate 5 each
+  max_utterances_per_speaker: 5     # <-- 5 utts each -> 100 new attempts
+  reference_utterance_count: 3
+  seed: 42
+
+speaker_metadata_fields:
+  - speaker_id
+  - gender
+  - age_group
+  - accent
+  - region
