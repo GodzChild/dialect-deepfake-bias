@@ -1208,6 +1208,187 @@ Priority reordered given Entry 9 splits the story cleanly by generator:
 
 ---
 
-## Entry 10 — [DATE] — [next milestone]
+## Entry 10 — 2026-07-27 — LFCC-LR replicates OpenVoice corpus-gap reversal
+
+**Status: cross-detector replication of Entry 9's OpenVoice reversal.**
+Entry 9 established a statistically supported *negative* DECTE − VCTK
+OpenVoice gap on AASIST (−26.74 pp, CI [−35.69, −18.26]) — i.e. VCTK
+is harder for OpenVoice than DECTE is, opposite to the XTTS direction.
+Entry 10 re-runs the same paired-bootstrap analysis with the
+already-fitted LFCC + Logistic Regression detector from Entry 8, on
+the exact same audio files. The reversal replicates: LFCC-LR gap is
+−42.62 pp with 95% CI [−50.78, −35.64] — same direction, entirely
+below zero, and (interestingly) *larger* in magnitude than AASIST's.
+
+Combined with Entry 8 (which gave the XTTS gap the same cross-detector
+support), the thesis' generator-vs-corpus story is now anchored by two
+architecturally-different detectors on both generators.
+
+### Method
+- Reused the fitted LFCC + LR pipeline from Entry 8
+  (`results/second_detector_lfcc_lr/lfcc_lr_model.joblib`). **No
+  retraining. No new feature extraction on the training set. No
+  changes to the model.**
+- Sourced eval file lists directly from the AASIST prediction CSVs
+  used in Entry 9, so the LR eval slice matches the AASIST eval slice
+  file-for-file:
+    - DECTE: `results/detector_predictions.csv` → 216 unique bonafide
+      + 100 unique OpenVoice spoofs.
+    - VCTK:  `results/vctk/detector_predictions.csv` → 120 unique
+      matched bonafide + 100 unique OpenVoice spoofs.
+- LFCC extraction, audio preprocessing, and utterance-level pooling
+  are byte-for-byte the same as Entry 8's script — 20 LFCC coefficients
+  + Δ + ΔΔ (60-dim per frame) → mean+std pooling → 120-dim vector.
+- Scoring through the full `Pipeline(StandardScaler + LR)`; score =
+  `predict_proba(...)[:, class 0]` = P(bonafide). Higher = more real.
+- 1000 non-parametric bootstrap iterations, base seed 42, joint
+  independent resampling per corpus (same design as Entries 6, 8, 9).
+- Reproducer: `python scripts/13_lfcc_lr_openvoice_corpus_gap.py`.
+
+### Result (citable text)
+
+> The already-fitted LFCC + Logistic Regression detector from Entry 8
+> was re-run on the identical DECTE and VCTK audio files that AASIST
+> scored in Entry 9 (216 bonafide + 100 OpenVoice v2 spoofs from
+> DECTE; 120 bonafide + 100 OpenVoice v2 spoofs from VCTK), with the
+> same paired bootstrap protocol. The LFCC-LR detector achieved
+> 38.21% EER on DECTE OpenVoice (95% CI 33.17–43.53%) and 80.83% EER
+> on VCTK OpenVoice (95% CI 76.33–87.25%). The DECTE-minus-VCTK gap
+> is −42.62 pp with a 95% bootstrap CI of [−50.78, −35.64] pp
+> (entirely below zero, matching the direction of AASIST's −26.74 pp
+> gap from Entry 9). The OpenVoice corpus-gap reversal is therefore
+> cross-detector supported at 95% — VCTK OpenVoice is significantly
+> harder for both a deep graph-attention detector (AASIST) and a
+> classical linear detector (LFCC + LR) than DECTE OpenVoice is,
+> which is the opposite direction from the XTTS corpus gap and
+> confirms that the OpenVoice failure mode should not be described
+> as a dialect effect.
+
+### Raw numbers
+
+| Arm                          | n_bonafide | n_spoof | EER (%) | EER 95% CI       | AUC    |
+|------------------------------|-----------:|--------:|--------:|-----------------:|-------:|
+| LFCC-LR DECTE OpenVoice v2   | 216        | 100     | 38.213  | 33.167 – 43.528  | 0.6036 |
+| LFCC-LR VCTK  OpenVoice v2   | 120        | 100     | 80.833  | 76.333 – 87.250  | 0.0830 |
+| **Gap (DECTE − VCTK) in pp** | —          | —       | **−42.620** | **[−50.779, −35.639]** | —      |
+
+### Cross-detector OpenVoice-gap comparison (Entries 9 + 10)
+
+| Detector    | DECTE OV EER (95% CI)      | VCTK OV EER (95% CI)       | Gap DECTE − VCTK (95% CI)       | Sign of gap |
+|-------------|---------------------------:|---------------------------:|--------------------------------:|:------------|
+| AASIST      | 47.84% (41.83 – 53.39)     | 74.58% (68.17 – 80.92)     | **−26.74 pp [−35.69, −18.26]** | negative    |
+| LFCC + LR   | 38.21% (33.17 – 43.53)     | 80.83% (76.33 – 87.25)     | **−42.62 pp [−50.78, −35.64]** | negative    |
+
+Both gap CIs are entirely below zero; both point estimates are
+substantially negative. The two detectors disagree on absolute EER
+level (LFCC-LR is a weaker classifier overall) and on the exact
+magnitude of the gap (−42.62 pp vs −26.74 pp), but they agree on the
+sign and on statistical support. That's the load-bearing claim.
+
+### Interpretation
+
+- **OpenVoice reversal is now cross-detector supported.** The
+  DECTE < VCTK OpenVoice direction shows up on:
+    - AASIST (Entry 9): −26.74 pp, CI [−35.69, −18.26]
+    - LFCC + LR (this entry): −42.62 pp, CI [−50.78, −35.64]
+  Two very different architectures — one deep graph-attention model
+  with learned SincConv, one convex linear classifier on hand-crafted
+  cepstral features — both put the gap solidly on the negative side.
+- **It is not AASIST-specific.** Entry 9 already argued informally
+  that the reversal reflects something about OpenVoice v2's output
+  distribution, not something about DECTE speech. Entry 10 provides
+  the cross-architecture confirmation that argument needs.
+- **The OpenVoice failure mode should be described as a
+  generator-specific corpus interaction, not DECTE dialect bias.**
+  A dialect effect would push the same direction as XTTS's Entries
+  6/8 (DECTE > VCTK). It doesn't — and now it doesn't for either
+  detector. The thesis should describe the OpenVoice-VCTK
+  interaction as a distinct scientific finding: something about
+  OpenVoice v2's synthesised waveforms confuses studio-quality
+  bonafide-vs-spoof discrimination in a way that dialectal
+  interview-style audio partially masks.
+- **The LFCC-LR gap magnitude is even larger than AASIST's.** LFCC-LR
+  hits 80.83% EER on VCTK OpenVoice — very close to the ~74% AASIST
+  saw and consistent with a detector that also fails badly there.
+  Meanwhile LFCC-LR on DECTE OpenVoice (38.21%) is actually *better*
+  than AASIST's DECTE OpenVoice (47.84%), which drives the wider gap.
+  Nothing to over-interpret in the exact magnitude — direction is
+  what matters.
+
+### Caveats
+
+- **LFCC-LR is a simple classical baseline and performs poorly on
+  VCTK OpenVoice** (80.83% EER, AUC 0.0830). Do not cite these
+  absolute numbers as "how good the LR detector is" — they are only
+  meaningful as one leg of a cross-architecture direction check.
+- **Both detectors' VCTK OpenVoice AUCs are well below 0.5** (0.1643
+  for AASIST in Entry 9; 0.0830 for LFCC-LR here). Same mechanism as
+  Entry 9: OpenVoice v2 spoofs receive systematically higher
+  bonafide-ness scores than real VCTK utterances do, and the metric
+  functions correctly report this as sub-random ranking. Not a
+  pipeline bug.
+- The LFCC-LR training set (~34k rows, AuralGuard train minus the 16
+  DECTE test speakers) does not overlap the DECTE test slice, but it
+  does contain OpenVoice-adjacent audio only indirectly (via
+  WaveFake). Both detectors are being tested out-of-distribution for
+  OpenVoice v2 specifically, so the direction agreement is a
+  cross-detector claim, not a cross-training-data claim.
+- Prior Entry 5/6/9 caveats still apply: VCTK's age-band skew,
+  GLOBE-adjacent training bias on the real side, and the fact that
+  VCTK and DECTE differ on multiple axes simultaneously. The
+  generator-specific-interaction interpretation is robust to those
+  because the same reversal is what defines it.
+
+### Reproducibility state at this entry
+
+- Script: `scripts/13_lfcc_lr_openvoice_corpus_gap.py`.
+- Fitted LR model (reused, not retrained):
+  `results/second_detector_lfcc_lr/lfcc_lr_model.joblib` (Entry 8).
+- Inputs (both gitignored, produced by earlier Phase 2 runs):
+  - `results/detector_predictions.csv` (DECTE full Phase 2)
+  - `results/vctk/detector_predictions.csv` (VCTK Phase 2)
+- Output (gitignored via `results/` rule):
+  - `results/lfcc_lr_openvoice_corpus_gap/lfcc_lr_openvoice_corpus_gap_bootstrap_ci.csv`
+- Bootstrap parameters: 1000 iterations, base seed 42 (shared with
+  every other bootstrap analysis in this project).
+
+### Updated headline table — 2 detectors × 2 generators × 2 corpora, all with 95% CIs
+
+Combining Entries 6, 8, 9, 10:
+
+| Detector    | XTTS gap DECTE − VCTK (95% CI)      | OpenVoice gap DECTE − VCTK (95% CI)     |
+|-------------|------------------------------------:|----------------------------------------:|
+| AASIST      | **+12.80 pp [+6.13, +22.07]**       | **−26.74 pp [−35.69, −18.26]**          |
+| LFCC + LR   | **+12.44 pp [+1.96, +21.76]**       | **−42.62 pp [−50.78, −35.64]**          |
+
+Both cells of the XTTS column are positive; both cells of the
+OpenVoice column are negative. All four gap CIs are entirely on
+their respective sides of zero. The direction split by generator is
+now cross-architecture supported.
+
+### Next research step (queued, not yet started)
+
+Priority reordered given the OpenVoice reversal is now cross-detector:
+
+1. **Reviving gender / age / region breakdown on DECTE test slice.**
+   Sociolinguistic angle for the thesis; small analysis over existing
+   predictions CSVs — no new audio or training.
+2. **Pre-picked target-set fix** for future paired VCTK runs
+   (Entry 5's 80/120 overlap caveat). Code-only, no regeneration for
+   existing tables.
+3. **Second-detector mitigation replication.** Retrain the LFCC-LR
+   classifier with the DECTE-adapted training subset (mitigation
+   train CSV, same as Entry 7) and see whether the "mitigation
+   reduces DECTE XTTS EER" pattern (Entry 7 on AASIST) also
+   replicates on LFCC-LR. Would round out the entire matrix
+   (2 detectors × baseline + mitigated × 2 corpora × 2 generators).
+4. **Draft the thesis chapters.** With Entries 1-10 committed, all
+   headline claims carry statistical support and reproducible
+   scripts. The measurement + statistics phases are effectively
+   complete for a bachelor-thesis scope.
+
+---
+
+## Entry 11 — [DATE] — [next milestone]
 
 *(add here once available)*
