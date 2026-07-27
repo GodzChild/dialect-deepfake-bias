@@ -224,24 +224,83 @@ def write_csv(path: Path, rows: list[dict]):
             writer.writerow(r)
 
 
-def write_test_manifest(
-    manifest: list[dict], test_speakers: set[str], path: Path,
-):
-    """Filtered copy of the DECTE manifest: only XTTS entries from the
-    20 held-out test speakers. Same schema as the source manifest."""
+def _strip_spoofed_suffix(utt_id: str) -> str:
+    return utt_id[: -len("_spoofed")] if utt_id.endswith("_spoofed") else utt_id
+
+
+def resolve_decte_source_audio(
+    source_utterance_id: str, audio_by_utt_id: dict[str, str],
+) -> Path | None:
+    """Resolve a DECTE spoof's source_utterance_id -> original bonafide audio.
+
+    Fast path: exact lookup in DECTELoader's utterances index.
+    Fallback: rglob under data/01_chunks/ for the chunk stem.
+    Returns None if neither works.
+    """
+    stem = _strip_spoofed_suffix(source_utterance_id)
+    if stem in audio_by_utt_id:
+        p = Path(audio_by_utt_id[stem])
+        if p.exists():
+            return p
+    matches = list(DECTE_AUDIO_DIR.rglob(f"{stem}.wav"))
+    return matches[0] if matches else None
+
+
+def build_test_manifest_rows(
+    manifest: list[dict],
+    test_speakers: set[str],
+    loader: DECTELoader,
+) -> tuple[list[dict], list[tuple[str, str]]]:
+    """Filter DECTE manifest to (xtts_v2, success, in-test-speakers) rows
+    and ensure each carries a valid source_audio_path.
+
+    Returns (rows_ready_to_write, unresolved_list). Any row where the
+    matched original audio cannot be located is added to unresolved.
+    Rows that already have a valid source_audio_path pass through
+    unchanged (idempotent for post-Entry-4 manifests).
+    """
+    audio_by_utt_id = {u.utterance_id: u.audio_path for u in loader.utterances}
+
+    rows_out: list[dict] = []
+    unresolved: list[tuple[str, str]] = []
+
+    for entry in manifest:
+        if entry.get("generator_name") != "xtts_v2":
+            continue
+        if not entry.get("success", False):
+            continue
+        if entry.get("source_speaker_id") not in test_speakers:
+            continue
+
+        existing = entry.get("source_audio_path", "")
+        if existing and Path(existing).exists():
+            rows_out.append(entry)
+            continue
+
+        resolved = resolve_decte_source_audio(
+            entry.get("source_utterance_id", ""), audio_by_utt_id
+        )
+        if resolved is None:
+            unresolved.append((
+                entry.get("source_utterance_id", "<missing>"),
+                entry.get("source_speaker_id", "<missing>"),
+            ))
+            continue
+
+        new_entry = dict(entry)
+        new_entry["source_audio_path"] = str(resolved)
+        rows_out.append(new_entry)
+
+    return rows_out, unresolved
+
+
+def write_test_manifest(rows: list[dict], path: Path) -> int:
+    """Write the pre-validated rows list to a JSONL manifest."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    n = 0
     with path.open("w", encoding="utf-8") as f:
-        for entry in manifest:
-            if entry.get("generator_name") != "xtts_v2":
-                continue
-            if not entry.get("success", False):
-                continue
-            if entry.get("source_speaker_id") not in test_speakers:
-                continue
-            f.write(json.dumps(entry) + "\n")
-            n += 1
-    return n
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+    return len(rows)
 
 
 def main():
@@ -357,13 +416,27 @@ def main():
         sys.exit(2)
     print("LEAKAGE CHECK: OK (speakers and files disjoint across all three splits)")
 
+    # --- pre-validate held-out test manifest rows (must have source_audio_path) ---
+    test_manifest_rows, unresolved = build_test_manifest_rows(
+        manifest, split_data["mitigation_test"]["speakers"], loader,
+    )
+    print()
+    print(f"Test-manifest rows to write         : {len(test_manifest_rows)}")
+    print(f"Unresolved source_audio_path rows   : {len(unresolved)}")
+    if unresolved:
+        print("ABORT: cannot resolve original bonafide audio for these test-manifest rows:")
+        for utt, spk in unresolved[:10]:
+            print(f"  {utt}  (speaker {spk})")
+        if len(unresolved) > 10:
+            print(f"  ... and {len(unresolved) - 10} more")
+        print("No files written. Investigate the manifest / DECTELoader before rerunning.")
+        sys.exit(3)
+
     # --- write outputs ---
     write_csv(OUT_TRAIN_CSV, split_data["mitigation_train"]["rows"])
     write_csv(OUT_VAL_CSV, split_data["mitigation_val"]["rows"])
     write_csv(OUT_TEST_CSV, split_data["mitigation_test"]["rows"])
-    n_test_manifest = write_test_manifest(
-        manifest, split_data["mitigation_test"]["speakers"], OUT_TEST_MANIFEST,
-    )
+    n_test_manifest = write_test_manifest(test_manifest_rows, OUT_TEST_MANIFEST)
 
     print()
     print("Wrote outputs:")

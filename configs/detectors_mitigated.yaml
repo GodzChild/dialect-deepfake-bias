@@ -1,0 +1,39 @@
+# Detector Evaluation Configuration — MITIGATED (Phase 4 v1 frozen-backbone)
+# ==========================================================================
+# Copy of configs/detectors.yaml with ONLY the AASIST checkpoint path swapped
+# to the mitigated fine-tune (checkpoints/mitigation_v1_decte_finetune/best.pt,
+# produced by auralguard-aasistpp/src/train.py with --freeze-backbone).
+#
+# All other fields (model_module_path, device, target_sr) unchanged — the
+# mitigated checkpoint is the same AuralGuardAASISTPP architecture, just
+# with different head weights, so no detector code change is required.
+#
+# Usage: pass to scripts/03_run_detectors.py via `--config`:
+#   python scripts/03_run_detectors.py --config configs/detectors_mitigated.yaml \
+#       --manifest ...  --output-dir ...  --corpus ...
+#
+# Do not overwrite; a companion config `configs/detectors.yaml` still points
+# at the baseline for before/after comparison runs.
+
+detectors:
+  aasist:
+    enabled: true
+    # Mitigated fine-tune produced by Phase 4 v1 (frozen backbone, 5 epochs,
+    # lr 1e-4, batch 4, DECTE mitigation train/val CSVs). Best val EER 40.31%
+    # at epoch 4. Baseline (auralguard-aasistpp .../best.pt) is untouched.
+    checkpoint_path: "C:/Users/AYO/Desktop/JKU/Extra Semester/THESIS AND PRACTICAL/dialect-deepfake-bias/checkpoints/mitigation_v1_decte_finetune/best.pt"
+    # Path to your model definition code if not installed as a package
+    model_module_path: "checkpoints/aasist/model_code"
+    device: "cuda"
+    target_sr: 16000
+
+  # Add more detectors here as you build them out:
+  # wav2vec2_aasist:
+  #   enabled: false
+  #   checkpoint_path: "checkpoints/wav2vec2_aasist/model.pth"
+  #   device: "cuda"
+
+  # whisper_detector:
+  #   enabled: false
+  #   checkpoint_path: "checkpoints/whisper_detector/model.pth"
+  #   device: "cuda"
