@@ -1041,6 +1041,173 @@ headline claim:
 
 ---
 
-## Entry 9 — [DATE] — [next milestone]
+## Entry 9 — 2026-07-27 — OpenVoice corpus gap reverses direction, showing generator-specific vulnerability
+
+**Status: statistically supported reversal of direction relative to the
+XTTS gap.** Entry 6 established a positive DECTE − VCTK XTTS gap
+(DECTE harder, +12.80 pp, CI entirely above zero). Entry 9 attaches the
+same paired-bootstrap CI to the OpenVoice arm and finds the gap goes
+the **other way**: DECTE − VCTK OpenVoice = −26.74 pp, 95% CI
+[−35.69, −18.26], entirely below zero. Combined with Entry 6, this is
+the clearest quantitative evidence yet that the OpenVoice-specific
+failure mode should not be described as a dialect effect.
+
+### Method
+- Reused two existing prediction CSVs — no rescoring, no retraining:
+    - DECTE: `results/detector_predictions.csv` (full Phase 2 run,
+      contains all `openvoice_v2` rows generated across the DECTE
+      manifest)
+    - VCTK: `results/vctk/detector_predictions.csv` (Entry 5 run)
+- Filtered to `detector_name == "aasist"` and
+  `generator_name == "openvoice_v2"`.
+- Bonafide pools: DECTE full 216 unique bonafide rows; VCTK full 120
+  unique matched originals (Entry 5 methodology).
+- Spoof pools: 100 OpenVoice v2 spoofs per corpus (both already at
+  N=100 — no downsampling needed).
+- Metrics via `src/evaluation/metrics.compute_metrics` (unchanged).
+- 1000 non-parametric bootstrap iterations, base seed 42. Each
+  iteration independently resamples each arm's bonafide and spoof
+  arrays with replacement (same original sizes), computes EER per
+  corpus, and records the gap in a single pass — same joint-bootstrap
+  design as Entry 6.
+- Reproducer: `python scripts/12_bootstrap_openvoice_corpus_gap.py`.
+
+### Result (citable text)
+
+> Under a shared detector (AuralGuard-AASIST) and generator (OpenVoice
+> v2), the detector achieved 47.84% EER on the DECTE dialectal test
+> condition (95% bootstrap CI 41.83–53.39%) and 74.58% EER on the VCTK
+> English-control condition (95% bootstrap CI 68.17–80.92%). The
+> DECTE-minus-VCTK gap was −26.74 percentage points with a 95%
+> bootstrap CI of [−35.69, −18.26] pp. Because the full gap CI lies
+> below zero, the DECTE-vs-VCTK OpenVoice comparison reverses the
+> direction of the XTTS comparison from Entry 6 (+12.80 pp, CI entirely
+> above zero) at 95%. OpenVoice v2 is measurably harder for the
+> detector on standard-accent studio-quality English (VCTK) than on
+> Tyneside dialectal interview speech (DECTE), so the OpenVoice failure
+> mode should be described as a generator-specific / OpenVoice-domain-
+> interaction vulnerability, not a dialect effect.
+
+### Raw numbers
+
+| Arm                          | n_bonafide | n_spoof | EER (%) | EER 95% CI       | AUC    |
+|------------------------------|-----------:|--------:|--------:|-----------------:|-------:|
+| DECTE OpenVoice v2           | 216        | 100     | 47.843  | 41.827 – 53.394  | 0.5675 |
+| VCTK  OpenVoice v2           | 120        | 100     | 74.583  | 68.167 – 80.917  | 0.1643 |
+| **Gap (DECTE − VCTK) in pp** | —          | —       | **−26.741** | **[−35.686, −18.255]** | —      |
+
+Notes:
+- The VCTK OpenVoice AUC of 0.1643 (well below 0.5) is not a metric
+  error. It reflects that OpenVoice v2 spoofs receive systematically
+  higher bonafide-ness scores from AASIST than real VCTK utterances do
+  (Entry 4 already showed this at the mean-score level). The metric
+  is doing the right thing — the *detector* is inverted on this
+  generator+corpus combination.
+- Gap CI is on the difference directly (recorded per bootstrap
+  iteration), not derived from the two marginal CIs.
+
+### Direction comparison — XTTS vs OpenVoice, same detector, same corpora
+
+Combining Entry 6 and Entry 9:
+
+| Generator | DECTE EER (95% CI)      | VCTK EER (95% CI)      | Gap (DECTE − VCTK, 95% CI) | Sign of gap |
+|-----------|------------------------:|-----------------------:|---------------------------:|:------------|
+| XTTS v2   | 34.63 (28.85 – 41.33) % | 21.83 (15.91 – 27.25) %| **+12.80 [+6.13, +22.07] pp** | positive (DECTE harder) |
+| OpenVoice v2 | 47.84 (41.83 – 53.39) % | 74.58 (68.17 – 80.92) %| **−26.74 [−35.69, −18.26] pp** | negative (VCTK harder) |
+
+Both gap CIs are entirely on their respective sides of zero — the sign
+flip between generators is statistically supported at 95%.
+
+### Interpretation
+
+- **XTTS shows DECTE > VCTK.** Dialect/domain shift makes XTTS spoofs
+  harder to catch on Tyneside DECTE than on standard-accent VCTK.
+  This is the thesis-headline "dialect gap" claim from Entry 6.
+- **OpenVoice shows VCTK > DECTE.** The direction is opposite. Whatever
+  is making OpenVoice v2 hard for AASIST, it's *worse* on the cleaner
+  studio-quality VCTK than on the dialectal interview-style DECTE.
+- **Therefore OpenVoice failure is not dialect bias.** A dialect effect
+  should push the same direction as XTTS's DECTE > VCTK. It doesn't.
+  The two generator gaps flip sign under identical detector +
+  bonafide-pool + audio-preprocessing conditions.
+- The OpenVoice failure is best described as a **generator-specific /
+  OpenVoice-domain-interaction vulnerability** — something in OpenVoice
+  v2's output distribution collides with AASIST's decision surface in
+  a way that VCTK-clean input exposes more strongly than DECTE-noisy
+  input. This is a separate research question from the dialect gap
+  and should be reported as a distinct finding in the thesis.
+
+### Caveats
+
+- **Single detector.** All Entry 9 numbers come from AuralGuard-AASIST.
+  The XTTS gap has already been replicated on a second detector
+  (LFCC + LR, Entry 8) so its cross-architecture support is stronger
+  than the OpenVoice gap's. Ideally the OpenVoice DECTE-vs-VCTK gap
+  should be re-run through the LFCC-LR pipeline before making the
+  reversal claim in the thesis' strongest form. Queued for a future
+  entry if time allows.
+- **VCTK's low OpenVoice AUC (0.1643) reflects mis-ranking, not
+  broken detection direction.** The score-direction convention was
+  fixed and sanity-checked in Entry 3; the mis-ranking is a real
+  property of AASIST's behaviour on OpenVoice v2, not a pipeline bug.
+- Prior Entry 4 / 5 caveats still apply: VCTK's age-band skew, GLOBE-
+  adjacent training bias on the real side, and the fact that VCTK and
+  DECTE differ on multiple axes (dialect + recording style + channel
+  + age distribution) simultaneously. The "generator-specific"
+  interpretation of Entry 9 is robust to all of those because the
+  *same* comparison in the *opposite* direction is what defines the
+  reversal.
+
+### Reproducibility state at this entry
+
+- Script: `scripts/12_bootstrap_openvoice_corpus_gap.py`.
+- Inputs (both gitignored, produced by earlier Phase 2 runs):
+  - `results/detector_predictions.csv` (DECTE full Phase 2)
+  - `results/vctk/detector_predictions.csv` (VCTK Phase 2)
+- Output (gitignored via `results/` rule):
+  - `results/openvoice_corpus_gap/openvoice_corpus_gap_bootstrap_ci.csv`
+- Bootstrap parameters: 1000 iterations, base seed 42 (same as
+  Entries 2, 5, 6, 7, 8, so all CI computations in the log share the
+  same resampling contract).
+
+### Updated headline table — corpus × generator with 95% CIs, both directions
+
+Combining Entries 6 (XTTS gap) and 9 (OpenVoice gap):
+
+| Corpus                       | XTTS v2 EER (95% CI)          | OpenVoice v2 EER (95% CI)      |
+|------------------------------|------------------------------:|-------------------------------:|
+| DECTE dialectal              | 34.63% (28.85 – 41.33)        | 47.84% (41.83 – 53.39)         |
+| VCTK English-control         | 21.83% (15.91 – 27.25)        | 74.58% (68.17 – 80.92)         |
+| **DECTE − VCTK gap (95% CI)** | **+12.80 pp [+6.13, +22.07]** | **−26.74 pp [−35.69, −18.26]** |
+
+The two gap rows are in opposite directions, both statistically
+supported at 95% — a cleaner narrative structure for the thesis:
+*XTTS exposes dialect/domain difficulty; OpenVoice exposes a separate
+generator-specific vulnerability.*
+
+### Next research step (queued, not yet started)
+
+Priority reordered given Entry 9 splits the story cleanly by generator:
+
+1. **LFCC-LR replication of the OpenVoice DECTE-vs-VCTK gap.** Mirrors
+   Entry 8's XTTS replication. Small script — reuses the existing
+   LFCC-LR model from Entry 8 (or retrains a fresh one on the
+   leakage-filtered training set), scores the two OpenVoice subsets,
+   and runs the same joint bootstrap. Would elevate Entry 9 to
+   cross-architecture status.
+2. **Reviving gender / age / region breakdown on DECTE test slice.**
+   Sociolinguistic angle for the thesis; small analysis over existing
+   predictions CSVs.
+3. **Pre-picked target-set fix** for future paired VCTK runs
+   (Entry 5's 80/120 overlap caveat). Code-only, no regeneration
+   for existing tables.
+4. **Second-detector mitigation replication.** Retrain the LFCC-LR
+   classifier with a DECTE-adapted training subset (using the same
+   mitigation train CSV that Entry 7 used) and see whether the
+   mitigation direction (Entry 7 for AASIST) also replicates.
+
+---
+
+## Entry 10 — [DATE] — [next milestone]
 
 *(add here once available)*
