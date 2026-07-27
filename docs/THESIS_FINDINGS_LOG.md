@@ -871,6 +871,176 @@ Priority reordered given that mitigation is now statistically supported:
 
 ---
 
-## Entry 8 — [DATE] — [next milestone]
+## Entry 8 — 2026-07-27 — LFCC + Logistic Regression second detector replicates DECTE-vs-VCTK XTTS gap
+
+**Status: cross-architecture replication of the Entry 6 headline.** The
+DECTE-vs-VCTK XTTS dialect/domain gap AASIST showed in Entry 6 also
+appears — at essentially the same magnitude and with 95% bootstrap
+support — on a completely different detector family: hand-crafted LFCC
+features + a linear (logistic-regression) classifier. This is the
+strongest evidence yet that the gap is not an artefact of the AASIST
+architecture.
+
+### Method
+- **Features**: 20 LFCC coefficients + Δ + ΔΔ (60-dim per frame) via a
+  linear-scale triangular filter bank + log + type-2 orthonormal DCT
+  (standard ASVspoof LFCC front-end, implemented with `librosa.stft` +
+  `scipy.fftpack.dct`). Mean + std pooling over time → **120-dim
+  utterance vector**.
+- **Audio preprocessing IDENTICAL to the AASIST detector**: soundfile
+  read → mono average → resample to 16 kHz → deterministic 4-second
+  zero-padded crop from position 0. Both detectors therefore see the
+  same 4-s window per file. **Architecture-only comparison.**
+- **Classifier**: `sklearn.pipeline.Pipeline([StandardScaler(),
+  LogisticRegression(class_weight="balanced", C=1.0, max_iter=1000,
+  solver="lbfgs", random_state=42)])`.
+- **Score**: `predict_proba(...)[:, class 0]` = P(bonafide). Higher =
+  more real, matching `src/evaluation/metrics.py`'s convention.
+- **Training data**: the full AuralGuard train CSV (35,206 rows),
+  **filtered to remove the 16 held-out DECTE mitigation-test speakers**
+  to protect against leakage into the eval slice.
+- **Evaluation**: same held-out slices as AASIST — DECTE mitigation test
+  manifest (86 XTTS spoofs vs 86 matched originals) and VCTK XTTS
+  subset (100 XTTS spoofs vs 120 unique matched originals from the
+  Entry 5 pool).
+- **Bootstrap**: 1000 iterations, seed 42, joint stratified independent
+  resampling of each corpus's bonafide and spoof arrays, per-iteration
+  DECTE-EER and VCTK-EER and their difference recorded — so the gap CI
+  is on the difference directly.
+- **Reproducer**: `python scripts/11_lfcc_lr_second_detector.py`.
+
+### Leakage protection and data-integrity checks
+
+- Leakage filter matched **1,445 rows** in the AuralGuard train CSV
+  against the 16 held-out DECTE mitigation test speakers. All 1,445
+  removed before feature extraction.
+- DECTE rows in AuralGuard train CSV: **8,057 before filter → 6,612 after**.
+- Path resolution check on the ~34k retained training rows: **80 files
+  missing (0.24%)** — well below the script's 5% abort threshold.
+- Final training matrix: **X = (33,681, 120)**, class balance intact.
+- `model.classes_` = `[0 1]` — confirms `predict_proba[:, 0]` is P(bonafide).
+
+### Result (citable text)
+
+> On the same held-out DECTE mitigation test slice and VCTK XTTS
+> control that AASIST was scored on, a second detector built on
+> classical hand-crafted features (LFCC + Δ + ΔΔ, mean-std pooled,
+> 120-dim) fed to a StandardScaler + LogisticRegression classifier
+> produced 44.19% EER on DECTE XTTS (95% bootstrap CI 36.05–51.16%)
+> and 31.75% EER on VCTK XTTS (95% CI 25.00–38.17%). The DECTE minus
+> VCTK gap is +12.44 percentage points with a 95% bootstrap CI of
+> [+1.96, +21.76] pp (entirely above zero). Both the direction and
+> the point-estimate magnitude closely match AASIST's Entry 6 gap of
+> +12.80 pp — so the DECTE-vs-VCTK XTTS dialect/domain gap replicates
+> across two architecturally very different detectors (deep
+> graph-attention + learned SincConv vs a convex linear model on
+> hand-crafted spectral features).
+
+### Raw numbers
+
+Two detectors, same protocol, same held-out data:
+
+| Detector | DECTE XTTS EER (95% CI) | VCTK XTTS EER (95% CI) | Gap DECTE − VCTK (95% CI) | Overall strength |
+|---|---:|---:|---:|:---|
+| **AASIST** (Entry 6)     | 34.63% (28.85 – 41.33) | 21.83% (15.91 – 27.25) | **+12.80 pp (+6.13 – +22.07)** | Deep, strong AUC ~0.68/0.89 |
+| **LFCC + LR** (this entry) | 44.19% (36.05 – 51.16) | 31.75% (25.00 – 38.17) | **+12.44 pp (+1.96 – +21.76)** | Classical baseline, AUC ~0.66/0.73 |
+
+Gap-magnitude difference between detectors: |12.80 − 12.44| = 0.36 pp.
+Both gap CIs are entirely above zero; both lie in roughly the same
+positive range.
+
+### Interpretation
+
+- **LFCC + LR is weaker than AASIST overall.** Its DECTE XTTS EER of
+  44.19% and VCTK XTTS EER of 31.75% are both higher than AASIST's
+  34.63% and 21.83%. That is expected — a linear model on 120
+  hand-crafted features cannot match AASIST's learned graph-attention
+  representation on absolute detection strength.
+- **But the DECTE-vs-VCTK gap is almost identical.** +12.44 pp for
+  LFCC-LR vs +12.80 pp for AASIST — the two point estimates differ by
+  a third of a percentage point. Both gap CIs are entirely positive.
+  The dialect/domain difficulty gap survives a full swap of feature
+  extractor and classifier family.
+- **This supports the claim that the gap is not architecture-specific.**
+  The Entry 6 headline result ("does your accent make you vulnerable?
+  — yes for XTTS") is not a quirk of AASIST's deep graph-attention
+  design; a linear classifier on classical cepstral features sees
+  essentially the same effect. That materially strengthens the
+  thesis' external validity.
+- **Note on the marginal CIs overlapping** — the LFCC-LR DECTE CI
+  (36.05–51.16%) and VCTK CI (25.00–38.17%) overlap in [36.05, 38.17],
+  which naively looks inconsistent with "gap CI entirely above zero".
+  It isn't: the marginal CIs are wider than the *per-iteration*
+  paired differences. The joint bootstrap correctly evaluates each
+  bootstrap iteration's DECTE and VCTK EER together and records the
+  gap. Every bootstrap iteration having DECTE > VCTK (or nearly every)
+  is compatible with the marginals sitting in the overlap zone.
+  Reporting the direct gap CI is the correct thing.
+
+### Caveats
+
+- **LFCC + LR is a simple classical baseline, not state-of-the-art.**
+  This entry is about *the gap replicating across detector families*,
+  not about the absolute EER numbers being deployment-worthy. Do not
+  cite the 31.75% or 44.19% figures as "how good/bad the detector is
+  in general" — cite them only in comparison to each other.
+- **The result confirms direction and gap magnitude, not absolute
+  deployment performance.** Neither the LFCC-LR baseline nor AASIST
+  is being proposed as a production system. What this entry supports
+  is: *whatever detector you run on this DECTE-vs-VCTK XTTS setup,
+  you are likely to see a similar-sized dialect/domain gap*.
+- Other Entry 6 caveats still apply: DECTE-vs-VCTK is a
+  corpus/domain comparison, not a pure dialect comparison. VCTK's
+  age-band skew, GLOBE-adjacent training bias on the real side, and
+  the small held-out sample sizes are unchanged.
+
+### Reproducibility state at this entry
+
+- Script: `scripts/11_lfcc_lr_second_detector.py` (self-contained: LFCC
+  extraction + LR training + evaluation + bootstrap in one file).
+- Training source: `auralguard-aasistpp/data/metadata/train_final_accent_globe_wavefake_balanced.csv`
+  with the 16 DECTE test speakers filtered out via the script's
+  `speaker_from_path` + speaker-column fallback logic.
+- Eval sources (unchanged, same as Entries 5–7):
+  - `data/generated_spoofs/manifest_mitigation_test.jsonl` (DECTE)
+  - `data/generated_spoofs_vctk/manifest.jsonl` (VCTK, XTTS subset filtered in-script)
+- Outputs (all gitignored under `results/second_detector_lfcc_lr/`):
+  - `train_features.npz` (feature cache; use `--refresh-features` to rebuild)
+  - `lfcc_lr_model.joblib` (fitted StandardScaler + LR)
+  - `lfcc_lr_results.csv` (per-corpus rows + gap row with CIs)
+
+### Updated thesis table (two detectors, four cells with CIs)
+
+| Corpus                        | AASIST XTTS EER (95% CI)      | LFCC+LR XTTS EER (95% CI)     |
+|-------------------------------|------------------------------:|------------------------------:|
+| DECTE dialectal               | 34.63% (28.85 – 41.33)        | 44.19% (36.05 – 51.16)        |
+| VCTK English-control          | 21.83% (15.91 – 27.25)        | 31.75% (25.00 – 38.17)        |
+| **DECTE − VCTK gap**          | **+12.80 pp (+6.13 – +22.07)** | **+12.44 pp (+1.96 – +21.76)** |
+
+### Next research step (queued, not yet started)
+
+Priority reordered given the two-detector replication now anchors the
+headline claim:
+
+1. **DECTE-vs-VCTK OpenVoice bootstrap (delta CI).** Entry 5's finding
+   that OpenVoice's VCTK EER (74.58%) is *worse* than its DECTE EER
+   (47.84%) has never been given a delta CI. Same joint-bootstrap
+   machinery as Entry 6, opposite direction. Small script, no new
+   audio or training.
+2. **LFCC-LR mitigation replication.** Retrain the LFCC-LR classifier
+   with a DECTE-adapted training subset (using the same mitigation
+   train CSV that Entry 7 used) and see whether a paired-bootstrap
+   comparison of baseline-LR vs adapted-LR on DECTE test shows the
+   same "mitigation helps" pattern Entry 7 saw for AASIST. Would show
+   the mitigation direction is also detector-invariant.
+3. **Reviving gender / age / region breakdown on the DECTE test slice.**
+   Sociolinguistic angle for the thesis; small analysis script over
+   the existing predictions CSVs.
+4. **Pre-picked target-set fix** for future paired VCTK runs
+   (Entry 5's 80/120 overlap caveat). Code-only, no regeneration.
+
+---
+
+## Entry 9 — [DATE] — [next milestone]
 
 *(add here once available)*
