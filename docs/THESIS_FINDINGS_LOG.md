@@ -696,6 +696,181 @@ statistical support:
 
 ---
 
-## Entry 7 — [DATE] — [next milestone]
+## Entry 7 — 2026-07-27 — Mitigation v2 partial-unfreeze adaptation significantly reduces DECTE XTTS EER
+
+**Status: statistically supported mitigation.** Mitigation v1 (Entry 7's
+predecessor, head-only fine-tune) produced only a suggestive DECTE
+improvement whose paired-bootstrap CI included zero. Mitigation v2
+(partial backbone unfreeze — last heterogeneous-GAT block + all heads)
+turns that suggestive result into a **statistically supported win**:
+DECTE XTTS EER drops from 40.70% to 23.26% with a 95% CI on the delta
+of [-28.49, -9.30] pp (entirely below zero), and VCTK XTTS shows no
+significant regression. This is the first mitigation result in the
+project that clears the "delta CI entirely below zero" bar.
+
+### Method
+- Started from the baseline checkpoint
+  `auralguard-aasistpp/results/final_accent_globe_wavefake_balanced_full/best.pt`
+  (val_metrics.eer ≈ 1.7% — Entry 3), NOT from mitigation v1.
+- Reused the leakage-safe DECTE speaker split from
+  `scripts/09_build_mitigation_csvs.py` (52 train / 14 val / 16 test).
+- Applied the new `--unfreeze-modules` scalpel added to
+  `auralguard-aasistpp/src/train.py` this cycle:
+  ```
+  --freeze-backbone
+  --unfreeze-modules "HtrgGAT_layer_ST21,HtrgGAT_layer_ST22,pool_hS2,pool_hT2,master2"
+  --lr 3e-5  --epochs 5  --batch-size 4
+  ```
+- Trainable parameter budget printed at training start:
+  **31,372 trainable / 268,104 frozen** (~10.5% of the model). The five
+  named backbone modules plus the three AuralGuard heads all showed up
+  in the trainable list; nothing else did.
+- In-domain sanity check with the v2 checkpoint on the AuralGuard val
+  set: **PASS at 2.50% EER** (within ~1pp of the baseline's 1.7%), so
+  the partial adaptation did not catastrophically forget the original
+  training distribution.
+- Evaluation via the same paired-bootstrap protocol as v1
+  (`scripts/10_bootstrap_mitigation_effect.py`, 1000 iterations, seed 42,
+  stratified within-file resampling so the delta is a true paired
+  comparison).
+
+### Result (citable text)
+
+> A conservative partial-unfreeze mitigation (last heterogeneous-GAT
+> block of AASIST plus the three AuralGuard heads, 31,372 trainable of
+> 300k total parameters, learning rate 3e-5, 5 epochs) reduced held-out
+> DECTE XTTS EER from 40.70% to 23.26%, a change of -17.44 percentage
+> points with a paired-bootstrap 95% confidence interval of
+> [-28.49, -9.30] pp (interval entirely below zero). On the VCTK
+> English-control set, XTTS EER moved from 21.83% to 19.17%, a change
+> of -2.67 pp with a 95% CI of [-5.42, +3.17] pp (interval includes
+> zero, i.e. no statistically significant regression). An in-domain
+> sanity check on the AuralGuard validation set gave 2.50% EER, within
+> approximately one percentage point of the baseline's ~1.7%, confirming
+> that the partial adaptation did not destroy general anti-spoofing
+> capability.
+
+### Raw numbers — v1 vs v2
+
+DECTE XTTS held-out test slice (16 speakers, 86 matched pairs):
+
+| Run | Baseline EER | Mitigated EER | Delta (pp) | 95% CI (pp)        | Verdict                              |
+|-----|-------------:|--------------:|-----------:|-------------------:|:-------------------------------------|
+| v1  | 40.698%      | 36.047%       |  -4.651    | [-12.791, +2.907]  | Neutral (CI includes 0)              |
+| v2  | 40.698%      | **23.256%**   | **-17.442**| **[-28.488, -9.302]**| **WIN (CI entirely below 0)**      |
+
+VCTK XTTS control (100 XTTS spoofs vs 120 bonafide, out-of-training):
+
+| Run | Baseline EER | Mitigated EER | Delta (pp) | 95% CI (pp)       | Verdict                          |
+|-----|-------------:|--------------:|-----------:|------------------:|:---------------------------------|
+| v1  | 21.833%      | 25.917%       |  +4.083    | [-0.417, +7.169]  | OK — no significant regression   |
+| v2  | 21.833%      | **19.167%**   |  -2.667    | [-5.419, +3.167]  | OK — no significant regression   |
+
+Notes:
+- v1 and v2 baseline rows are identical because both compare against the
+  same untouched AuralGuard-AASIST baseline on the same held-out test
+  files — v2's mitigated column is the only thing that changed.
+- v2's AUC on DECTE XTTS is **0.8759** (up from baseline 0.6530); on
+  VCTK XTTS it's **0.8936** (up from baseline 0.8917). Ranking quality
+  improved on DECTE without any measurable drop on VCTK.
+
+### Interpretation
+
+- **Head-only adaptation (v1) was too weak.** With only ~1,600
+  trainable parameters (the three heads), the model could shift its
+  classification boundary but couldn't adjust its feature
+  representation of DECTE speech. The point-estimate improvement of
+  -4.65pp on DECTE hid inside a wide CI that reached +2.91pp.
+- **Partial final-GAT unfreezing (v2) produced a statistically
+  supported DECTE improvement.** Adding ~30k parameters in the last
+  heterogeneous graph-attention stage was enough for the model to
+  re-shape its final feature view for DECTE while leaving the early
+  conv/encoder/first-GAT stack untouched. The DECTE delta CI now sits
+  entirely below zero.
+- **The dialect/domain gap can be reduced by adapting the final
+  feature stage, not only the classifier heads.** This is the key
+  methodological finding of the mitigation phase: the ~13pp DECTE-vs-
+  VCTK XTTS gap documented in Entry 6 is not immutable — a small,
+  targeted fine-tune can close most of it under the same generator.
+- **OpenVoice remains a separate, unresolved vulnerability.** Nothing
+  in this mitigation experiment addresses the ~75% OpenVoice EER seen
+  on VCTK in Entry 5. That failure mode is orthogonal to the dialect/
+  domain gap this entry mitigates.
+
+### Caveats
+
+- **Single-detector, single-corpus-pair scope.** This entry
+  demonstrates that mitigation is *possible* on AuralGuard-AASIST for
+  the DECTE-vs-VCTK XTTS comparison. It does not show the technique
+  generalises to other detectors, other dialects, or other generators.
+  A second-detector replication is now the highest-priority open item.
+- **v2 was tuned on DECTE XTTS data.** It should not be presented as a
+  universal anti-spoofing improvement. What it demonstrates is that
+  small, targeted adaptation of the last feature stage can close a
+  measured domain gap on the specific corpus it was trained for. The
+  16-speaker held-out DECTE test slice makes the specific number
+  defensible; broader claims need more data.
+- **Small held-out DECTE test set (86 XTTS spoofs / 86 bonafide).**
+  The bootstrap CI of [-28.49, -9.30]pp is wide precisely because the
+  test slice is small. A larger DECTE test set would tighten this CI
+  substantially. The key qualitative claim ("CI entirely below zero")
+  is robust to this width, but the exact -17.44pp point estimate
+  should not be over-interpreted.
+- **VCTK CI still touches ~+3pp on the upper side.** The v2 VCTK
+  result is "no significant regression" — not "guaranteed no
+  regression". A larger VCTK evaluation would sharpen the guardrail.
+
+### Reproducibility state at this entry
+
+- Baseline checkpoint (never modified):
+  `auralguard-aasistpp/results/final_accent_globe_wavefake_balanced_full/best.pt`
+- v1 checkpoint (never modified since Entry 7's predecessor):
+  `checkpoints/mitigation_v1_decte_finetune/best.pt`
+- v2 checkpoint (this entry):
+  `checkpoints/mitigation_v2_partial_unfreeze/best.pt`
+- Training script: `auralguard-aasistpp/src/train.py` with the
+  `--unfreeze-modules` addition (Option A patch from this cycle).
+- Detector configs (one per model, all in this repo):
+  - `configs/detectors.yaml` → baseline
+  - `configs/detectors_mitigated.yaml` → v1
+  - `configs/detectors_mitigated_v2.yaml` → v2
+- Data (unchanged from v1):
+  - `data/decte/metadata/decte_mitigation_train.csv` (52 speakers)
+  - `data/decte/metadata/decte_mitigation_val.csv` (14 speakers)
+  - `data/generated_spoofs/manifest_mitigation_test.jsonl` (16 speakers, 86 XTTS)
+- Eval outputs (all gitignored under `results/mitigation_v2/`):
+  - `baseline_decte/detector_predictions.csv`
+  - `mitigated_decte/detector_predictions.csv`
+  - `baseline_vctk/detector_predictions.csv`
+  - `mitigated_vctk/detector_predictions.csv`
+  - `mitigation_effect_bootstrap_ci.csv`
+  - `indomain_sanity_metrics.csv`
+
+### Next research step (queued, not yet started)
+
+Priority reordered given that mitigation is now statistically supported:
+
+1. **Second detector baseline + mitigation replication.** The single
+   most valuable next milestone. Retrain a second anti-spoofing model
+   (Wav2Vec2-AASIST or RawGAT-ST) on the same data, run the same
+   DECTE-vs-VCTK XTTS pipeline, and see whether the corpus gap AND the
+   mitigation both replicate. This turns "one lucky mitigation on one
+   detector" into "the effect and its fix generalise across detector
+   families".
+2. **DECTE-vs-VCTK OpenVoice bootstrap (delta CI).** Mitigation v2 was
+   deliberately scoped to XTTS. Entry 5's finding that OpenVoice's
+   VCTK EER (74.58%) is *worse* than its DECTE EER (47.84%) has never
+   been given a delta CI. Same script as Entry 6, opposite direction.
+3. **Reviving gender / age / region breakdown on the mitigation
+   split.** Would let us report *who* the mitigation helps most in the
+   DECTE test slice — sociolinguistic angle for the thesis.
+4. **Pre-picked target-set fix.** Small `SpoofPipeline.run()` change so
+   future XTTS-vs-OpenVoice runs on the same corpus are truly paired
+   (Entry 5's 80/120 overlap caveat). Code-only, no regeneration for
+   existing tables.
+
+---
+
+## Entry 8 — [DATE] — [next milestone]
 
 *(add here once available)*

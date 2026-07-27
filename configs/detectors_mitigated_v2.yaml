@@ -1,0 +1,51 @@
+# Detector Evaluation Configuration — MITIGATED v2 (partial-backbone unfreeze)
+# ==============================================================================
+# Copy of configs/detectors_mitigated.yaml with ONLY the AASIST checkpoint path
+# swapped to the v2 mitigated fine-tune
+# (checkpoints/mitigation_v2_partial_unfreeze/best.pt).
+#
+# Mitigation v2 unfroze the last heterogeneous-GAT block of AASIST plus all
+# AuralGuard heads. Trained via auralguard-aasistpp/src/train.py with:
+#   --freeze-backbone
+#   --unfreeze-modules "HtrgGAT_layer_ST21,HtrgGAT_layer_ST22,pool_hS2,pool_hT2,master2"
+#   --lr 3e-5  --epochs 5  --batch-size 4
+# 31,372 trainable parameters (vs 268,104 frozen). Best val EER 27.91%.
+# Baseline (auralguard-aasistpp .../best.pt) and mitigation v1 checkpoints
+# are untouched.
+#
+# All other fields (model_module_path, device, target_sr) are unchanged --
+# same AuralGuardAASISTPP architecture, only different weights, so no
+# detector code change is required.
+#
+# Usage: pass to scripts/03_run_detectors.py via `--config`:
+#   python scripts/03_run_detectors.py --config configs/detectors_mitigated_v2.yaml \
+#       --manifest ...  --output-dir ...  --corpus ...
+#
+# The companion configs still exist and point at their respective checkpoints:
+#   configs/detectors.yaml            -> baseline (auralguard best.pt)
+#   configs/detectors_mitigated.yaml  -> mitigation v1 (frozen backbone)
+#   configs/detectors_mitigated_v2.yaml (this file) -> mitigation v2 (partial unfreeze)
+
+detectors:
+  aasist:
+    enabled: true
+    # Mitigated v2 fine-tune produced by Phase 4 v2 (partial backbone unfreeze:
+    # HtrgGAT_layer_ST21/22 + pool_hS2/hT2 + master2 + all heads; lr 3e-5,
+    # 5 epochs, batch 4, DECTE mitigation train/val CSVs). Best val EER 27.91%.
+    # Baseline and v1 checkpoints are untouched.
+    checkpoint_path: "C:/Users/AYO/Desktop/JKU/Extra Semester/THESIS AND PRACTICAL/dialect-deepfake-bias/checkpoints/mitigation_v2_partial_unfreeze/best.pt"
+    # Path to your model definition code if not installed as a package
+    model_module_path: "checkpoints/aasist/model_code"
+    device: "cuda"
+    target_sr: 16000
+
+  # Add more detectors here as you build them out:
+  # wav2vec2_aasist:
+  #   enabled: false
+  #   checkpoint_path: "checkpoints/wav2vec2_aasist/model.pth"
+  #   device: "cuda"
+
+  # whisper_detector:
+  #   enabled: false
+  #   checkpoint_path: "checkpoints/whisper_detector/model.pth"
+  #   device: "cuda"
