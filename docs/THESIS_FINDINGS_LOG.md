@@ -498,6 +498,204 @@ priority order:
 
 ---
 
-## Entry 6 — [DATE] — [next milestone]
+## Entry 6 — 2026-07-26 — Bootstrap confidence intervals for XTTS corpus gap and VCTK generator gap
+
+**Status: primary statistical test for the thesis headline.** Two
+bootstrap analyses were run against existing prediction CSVs (no
+rescoring, no regeneration). The **primary** result is the XTTS
+DECTE-vs-VCTK corpus gap — the direct test of the thesis question
+("does dialectal/domain-shifted speech make deepfake detection
+harder?"). The **secondary** result is the VCTK XTTS-vs-OpenVoice
+generator gap from Entry 5, now with CIs.
+
+### Method (shared)
+- Reused `results/detector_predictions.csv` (DECTE, Entry 2 run) and
+  `results/vctk/detector_predictions.csv` (VCTK, Entry 5 run). No audio
+  was rescored, no generation was rerun.
+- Filtered to `detector_name == "aasist"`.
+- Metrics via `src/evaluation/metrics.compute_metrics` (unchanged).
+- 1000 non-parametric bootstrap iterations per analysis, base seed 42.
+  Each iteration independently resamples each arm's bonafide and spoof
+  arrays with replacement at their original sizes.
+- Reproducers:
+  - Primary: `python scripts/06_bootstrap_xtts_corpus_gap.py`
+  - Secondary: `python scripts/05_bootstrap_vctk_generator_ci.py`
+
+---
+
+## Primary result — XTTS DECTE-vs-VCTK corpus/domain gap (thesis headline)
+
+### Result (citable text)
+
+> Under a shared detector (AuralGuard-AASIST) and generator (XTTS v2),
+> the detector achieved 34.63% EER on the DECTE dialectal test
+> condition (95% bootstrap CI 28.85–41.33%) and 21.83% EER on the VCTK
+> English-control condition (95% bootstrap CI 15.91–27.25%). The
+> DECTE-minus-VCTK gap was +12.80 percentage points with a 95%
+> bootstrap CI of +6.13 to +22.07 percentage points. Because the full
+> gap CI lies above zero, the DECTE-vs-VCTK dialect/domain gap for
+> XTTS v2 is statistically supported at 95%. This is the direct test
+> of the thesis question ("does dialectal / domain-shifted speech make
+> audio deepfake detection harder?"), and the answer is yes for this
+> detector-generator pair.
+
+### Raw numbers
+
+| Arm                          | n_bonafide | n_spoof | EER (%) | EER 95% CI       | AUC    |
+|------------------------------|-----------:|--------:|--------:|-----------------:|-------:|
+| DECTE XTTS v2                | 216        | 100     | 34.630  | 28.852 – 41.333  | 0.6792 |
+| VCTK  XTTS v2                | 120        | 100     | 21.833  | 15.906 – 27.250  | 0.8917 |
+| **Gap (DECTE − VCTK) in pp** | —          | —       | **+12.796** | **+6.133 – +22.068** | —      |
+
+Notes:
+- DECTE XTTS arm downsampled to n=100 spoofs via seed 42 to match
+  Entry 2's balanced-N comparison. Bonafide pool: DECTE's full 216
+  unique reference utterances.
+- VCTK XTTS arm uses the full 100 XTTS spoofs against the 120 unique
+  matched originals (Entry 5 slate).
+- The corpus-gap CI is computed by *joint* bootstrap: on each iteration
+  both corpora's arrays are independently resampled, both EERs are
+  recomputed, and the gap is recorded — so the CI is on the difference
+  directly, not on the two marginals separately.
+
+### Interpretation (headline)
+
+- **The full gap CI is above zero.** DECTE (34.63%) is harder than
+  VCTK (21.83%) for XTTS v2 across the entire 95% resampling interval
+  — the +6.13pp lower bound leaves substantial margin above 0.
+- **The dialect/domain gap for XTTS v2 is statistically supported at
+  95%.** This is the load-bearing quantitative claim for the thesis
+  headline "does your accent make you vulnerable?".
+- The primary story is now: *dialect/domain matters for XTTS*. The
+  secondary story (below) is that generator type matters even more in
+  some cases — OpenVoice's severe VCTK failure is real, but the
+  headline dialect/domain result no longer depends on OpenVoice
+  behaviour.
+
+---
+
+## Secondary result — VCTK XTTS-vs-OpenVoice generator gap
+
+### Result (citable text)
+
+> On the VCTK English-control set, XTTS v2 achieved 21.83% EER with a
+> 95% bootstrap CI of 15.92–27.75%, while OpenVoice v2 achieved 74.58%
+> EER with a 95% bootstrap CI of 67.75–80.42%. The non-overlapping
+> intervals show that OpenVoice v2 is substantially more difficult for
+> the detector than XTTS v2 in this control condition. This supports a
+> generator-specific vulnerability claim in addition to (not instead
+> of) the primary dialect/domain result above.
+
+### Raw numbers
+
+| Generator     | n_bonafide | n_spoof | EER (%) | EER 95% CI       | AUC    |
+|---------------|-----------:|--------:|--------:|-----------------:|-------:|
+| VCTK XTTS v2      | 120    | 100     | 21.833  | 15.917 – 27.750  | 0.8917 |
+| VCTK OpenVoice v2 | 120    | 100     | 74.583  | 67.750 – 80.419  | 0.1643 |
+
+Interval separation: XTTS upper 27.75% vs OpenVoice lower 67.75% →
+**~40 percentage points between the intervals**, well beyond any
+"sampling noise" objection.
+
+*Small note on the two VCTK-XTTS CI numbers.* The primary section
+reports the VCTK XTTS CI as 15.906–27.250% (from `scripts/06`, joint
+seed 42 with DECTE); the secondary section reports 15.917–27.750%
+(from `scripts/05`, per-generator seed 42/43 offset). Both use 1000
+iterations of the same non-parametric bootstrap; the tenths-of-a-point
+difference reflects only the different starting seeds of the two
+scripts' RNG state. Point estimate (21.833%), AUC (0.8917), and sample
+sizes are identical.
+
+### Interpretation (secondary)
+
+- OpenVoice v2 is much harder than XTTS v2 on VCTK, and the CIs do not
+  overlap → generator-specific vulnerability is statistically clear.
+- **But this is secondary to the dialect/domain result.** The primary
+  thesis claim ("dialectal / domain-shifted speech is harder for
+  detection") holds independently of any OpenVoice behaviour, because
+  the primary test compared XTTS on both corpora.
+- The generator-vulnerability finding remains valuable as a second-order
+  contribution: it complicates the naive "one number per corpus" story
+  and shows that any thesis that quotes a single EER per corpus is
+  hiding a large generator effect.
+
+---
+
+## Caveats (shared)
+
+- **The VCTK generator comparison is balanced per generator, not fully
+  paired utterance-by-utterance.** The VCTK XTTS and OpenVoice subsets
+  share 80 of 120 unique source originals — each subset has 20
+  originals unique to it. See Entry 5's caveat block for the
+  RandomState explanation. Report as "balanced per-generator
+  comparison" only.
+- **DECTE-vs-VCTK is a corpus/domain comparison, not a pure dialect
+  comparison.** DECTE and VCTK differ on multiple axes at once:
+  dialect (Tyneside vs mostly-southern English), recording style
+  (interview vs studio-read), channel (variable field recording vs
+  clean 48 kHz studio), age distribution (multi-decade vs 19/20 in
+  `21-30`), and even the transcript / target-utterance construction
+  pipeline. Use the phrase **"dialect / domain gap"** — not "dialect
+  gap alone" — unless a later analysis isolates dialect specifically
+  (e.g. by adding a Northern English VCTK subset, an age-matched
+  subset, or channel-matched noise).
+- Other caveats from Entries 4 and 5 still apply: AuralGuard's
+  training set includes GLOBE (a US-English clean corpus), so the
+  detector's *bonafide* recognition on VCTK is aided by in-distribution
+  familiarity — the load-bearing numbers are the *spoof* EERs, not
+  the bonafide-side scores. Everything hangs on a single detector
+  (AuralGuard-AASIST); a second detector remains queued.
+
+## Reproducibility state at this entry
+
+- Primary script: `scripts/06_bootstrap_xtts_corpus_gap.py`.
+- Secondary script: `scripts/05_bootstrap_vctk_generator_ci.py`
+  (commit `b555df8`).
+- Inputs: `results/detector_predictions.csv` (DECTE, gitignored) and
+  `results/vctk/detector_predictions.csv` (VCTK, gitignored).
+- Outputs (both gitignored):
+  - `results/xtts_corpus_gap_bootstrap_ci.csv`
+  - `results/vctk/vctk_generator_bootstrap_ci.csv`
+- Bootstrap parameters: 1000 iterations, base seed 42; DECTE XTTS spoof
+  set downsampled to n=100 via seed 42 to reproduce Entry 2's balanced
+  sample.
+
+## Updated thesis table (with 95% CIs for all four cells)
+
+| Corpus                       | XTTS v2 EER (95% CI)              | OpenVoice v2 EER (95% CI)         |
+|------------------------------|----------------------------------:|----------------------------------:|
+| DECTE dialectal (Entry 2)    | 34.63% (29.54 – 41.10%)           | 47.84% (42.07 – 54.32%)           |
+| VCTK English-control         | 21.83% (15.91 – 27.25%)           | 74.58% (67.75 – 80.42%)           |
+
+Row summary:
+- **XTTS v2 corpus gap: +12.80pp, 95% CI [+6.13, +22.07] — supported.**
+  (This is the thesis headline.)
+- OpenVoice v2 corpus gap: −26.74pp (DECTE actually easier). CI on
+  this gap not yet computed; noted as an open item.
+
+## Next research step (queued, not yet started)
+
+Priority reordered given that the headline dialect/domain claim now has
+statistical support:
+
+1. **Mitigation attempt (small, safe).** Fine-tune / adapt
+   AuralGuard-AASIST using a small dialect-aware training set and
+   re-run the DECTE-vs-VCTK XTTS bootstrap. Success criterion is
+   simply "the DECTE XTTS EER drops and/or the corpus gap shrinks" —
+   this turns the thesis from measurement into a partial solution.
+2. **Second detector baseline.** Adding one more anti-spoofing
+   detector (Wav2Vec2-AASIST or RawGAT-ST family) would let us claim
+   the dialect/domain and generator effects are not
+   AuralGuard-specific.
+3. **Reviving gender / age / region breakdown.** Would make the
+   sociolinguistic side of the thesis stronger, complementing the
+   corpus-level headline.
+4. **Pre-picked target-set fix.** Small `SpoofPipeline.run()` change so
+   future XTTS-vs-OpenVoice runs on the same corpus are truly paired
+   (overlap → 100). Code-only, no regeneration for existing tables.
+
+---
+
+## Entry 7 — [DATE] — [next milestone]
 
 *(add here once available)*
