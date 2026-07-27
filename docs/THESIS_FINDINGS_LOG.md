@@ -1389,6 +1389,192 @@ Priority reordered given the OpenVoice reversal is now cross-detector:
 
 ---
 
-## Entry 11 — [DATE] — [next milestone]
+## Entry 11 — 2026-07-27 — DECTE subgroup diagnostics show broad but uneven mitigation gains
+
+**Status: descriptive sociolinguistic layer on the DECTE mitigation
+test slice.** Every headline-grouping subgroup with sufficient
+sample size shows a **negative delta EER** (mitigation v2 improved on
+baseline). The improvement magnitude is very uneven across subgroups
+— ranging from −5.00 pp (`recording_era = 2010-2011`) to −34.375 pp
+(`recording_era = 1990s`). **This is diagnostic, not a fairness audit**
+— with only 16 held-out speakers and 172 files, per-subgroup CIs would
+be very wide, so no causal or fairness claims are drawn.
+
+### Method
+- Reused two existing AASIST prediction CSVs only:
+    - `results/mitigation_v2/baseline_decte/detector_predictions.csv`
+      (baseline AuralGuard-AASIST on the DECTE mitigation test slice)
+    - `results/mitigation_v2/mitigated_decte/detector_predictions.csv`
+      (mitigation v2 fine-tune from Entry 7, same test slice)
+- **No rescoring, no retraining, no manifest changes.**
+- Joined baseline↔mitigated on `(audio_path, label)` with
+  `validate="one_to_one"` — guarantees both detectors were evaluated
+  on the same file set (172 files: 86 bonafide matched originals +
+  86 XTTS spoofs across 16 held-out speakers).
+- Grouped by `speaker_gender`, `speaker_age_group`,
+  `speaker_recording_era` for the headline main table.
+  `speaker_id` used only for the diagnostic appendix (always low-n at
+  16 speakers × ~5-6 files each).
+- Main-table threshold: subgroups need ≥ 10 bonafide **and** ≥ 10 spoof
+  samples. Groups below go to a low-n diagnostic table; groups below
+  5 per class get NaN metrics (undefined).
+- Per subgroup: baseline EER/AUC/accuracy/FAR/FRR, mitigated
+  EER/AUC/accuracy/FAR/FRR, and delta EER (mitigated − baseline in pp).
+- Metric functions reused from `src/evaluation/metrics.compute_metrics`.
+- `speaker_ses_class` intentionally excluded — for DECTE it is
+  essentially all `"unknown"` (Entry 1 caveat).
+- Reproducer: `python scripts/14_decte_subgroup_diagnostics.py`.
+
+### Result (citable text)
+
+> On a held-out DECTE mitigation test slice (16 speakers, 86 matched
+> bonafide originals + 86 XTTS v2 spoofs), the AuralGuard-AASIST
+> mitigation v2 fine-tune from Entry 7 achieved a negative delta EER
+> in every main-table subgroup (each subgroup with at least 10
+> bonafide and 10 spoof samples). The overall gain was −17.44 pp
+> (40.70% → 23.26%, matching Entry 7's headline). The largest
+> per-subgroup gain was −34.38 pp for the `1990s` recording-era
+> subgroup (40.63% → 6.25%) and the smallest gain was −5.00 pp for
+> the `2010-2011` recording-era subgroup (25.00% → 20.00%). Because
+> mitigation v2 was fine-tuned on DECTE speakers not present in this
+> test slice and gave positive gains everywhere with substantial
+> spread, this is best described as a *broad but uneven mitigation
+> benefit*. With only 16 test speakers per-subgroup CIs would be very
+> wide, so this analysis is reported as descriptive diagnostics only
+> and does not support formal fairness claims.
+
+### Overall reference row
+
+| Arm       | n_bonafide | n_spoof | EER (%) | AUC   |
+|-----------|-----------:|--------:|--------:|------:|
+| Baseline  | 86         | 86      | 40.698  | 0.653 |
+| Mitigated | 86         | 86      | 23.256  | 0.876 |
+| **Delta** | —          | —       | **−17.442 pp** | — |
+
+### Main table — main-table-eligible subgroups (≥ 10 per class)
+
+**Gender**:
+
+| Group value | n_bonafide | n_spoof | Baseline EER | Mitigated EER | Delta EER (pp) |
+|-------------|-----------:|--------:|-------------:|--------------:|---------------:|
+| female      | *≥ 10*     | *≥ 10*  | 30.769 %     | 24.359 %      | **−6.410**     |
+| male        | *≥ 10*     | *≥ 10*  | 38.462 %     | 11.538 %      | **−26.923**    |
+
+**Age group**:
+
+| Group value | n_bonafide | n_spoof | Baseline EER | Mitigated EER | Delta EER (pp) |
+|-------------|-----------:|--------:|-------------:|--------------:|---------------:|
+| 16-20       | *≥ 10*     | *≥ 10*  | 37.838 %     | 5.405 %       | **−32.432**    |
+| 21-30       | *≥ 10*     | *≥ 10*  | 66.667 %     | 33.333 %      | **−33.333**    |
+| 41-50       | *≥ 10*     | *≥ 10*  | 45.000 %     | 35.000 %      | **−10.000**    |
+
+**Recording era**:
+
+| Group value      | n_bonafide | n_spoof | Baseline EER | Mitigated EER | Delta EER (pp) |
+|------------------|-----------:|--------:|-------------:|--------------:|---------------:|
+| 1960s-1970s      | *≥ 10*     | *≥ 10*  | 68.750 %     | 47.917 %      | **−20.833**    |
+| 1990s            | *≥ 10*     | *≥ 10*  | 40.625 %     | 6.250 %       | **−34.375**    |
+| 2007-2008        | *≥ 10*     | *≥ 10*  | 20.000 %     | 5.000 %       | **−15.000**    |
+| 2010-2011        | *≥ 10*     | *≥ 10*  | 25.000 %     | 20.000 %      | **−5.000**     |
+
+Exact n_bonafide / n_spoof per subgroup are in the CSV
+(`results/subgroup_diagnostics/decte_subgroup_metrics.csv`).
+
+Descriptive extremes across the main table:
+- **Every** main-table subgroup delta EER is negative — no subgroup got
+  worse after mitigation v2 on this slice.
+- **Largest gain**: `speaker_recording_era = 1990s`, **−34.375 pp**
+  (40.625% → 6.250%).
+- **Smallest gain**: `speaker_recording_era = 2010-2011`, **−5.000 pp**
+  (25.000% → 20.000%).
+- **Overall gain** (all 172 files): **−17.442 pp** (matches Entry 7's
+  headline number).
+- **Wide spread across all three headline grouping columns** — gender
+  spread of ~20 pp (male vs female), age spread of ~23 pp, era spread
+  of ~29 pp.
+
+### Interpretation (diagnostic, not causal)
+
+- **Mitigation v2 improved every main-table subgroup on this slice.**
+  No subgroup went in the wrong direction. That is a directionally
+  encouraging result for the mitigation approach.
+- **The improvement size varied substantially by subgroup.** Delta EER
+  ranges from −5 pp (`2010-2011`) to −34 pp (`1990s`). The pattern
+  suggests uneven error concentration across metadata groups both
+  before and after mitigation.
+- **`recording_era` produced the widest spread** (~29 pp range in
+  delta EER). Given that DECTE spans multiple recording eras with
+  substantially different channel characteristics (analog reel-to-reel
+  in the 1960s–1970s vs digital in the 2000s), this is worth flagging
+  for the thesis narrative but not causally attributing to any single
+  factor without further audio-quality controls.
+- **Descriptive framing only.** With only 16 held-out speakers, per-
+  subgroup point estimates come from ~10–40 files each. A bootstrap
+  CI for any per-subgroup delta EER would be wide enough that most
+  of the between-group spread could sit inside sampling noise.
+  Downstream thesis text should describe these numbers as *where
+  errors concentrate on this slice*, not as evidence of detector
+  bias against any specific group.
+
+### Caveats
+
+- **Small held-out slice.** 16 speakers, 172 files total. Per-subgroup
+  n is ≤ 40 in most cases. Not enough for a formal fairness audit or
+  for tight per-subgroup CIs.
+- **Some metadata groups fall below the main-table threshold** (< 10
+  per class) and appear only in the low-n diagnostic table in the CSV.
+  These should not be used for headline claims.
+- **Do NOT use causal or fairness wording** ("biased against X",
+  "unfair to Y", "mitigation helped group X specifically") from this
+  table alone. Wording should stay descriptive: "error concentration
+  in group X", "delta magnitude ranked highest in Y", "worth flagging".
+- **The 1990s vs 2010-2011 spread does not by itself demonstrate a
+  channel effect.** DECTE eras also correlate with speaker
+  demographics and interview style; disentangling era from those
+  other factors would require an era-matched subgroup design (not in
+  scope for this entry).
+- **`speaker_ses_class` breakdown is absent** because DECTE's extractor
+  emits `"unknown"` for essentially all speakers on that field (an
+  Entry 1 caveat that carries through).
+
+### Reproducibility state at this entry
+
+- Script: `scripts/14_decte_subgroup_diagnostics.py` (~316 lines,
+  standalone, pandas + `src.evaluation.metrics` only).
+- Inputs (both gitignored, produced by Entry 7's Phase 2 reruns):
+  - `results/mitigation_v2/baseline_decte/detector_predictions.csv`
+  - `results/mitigation_v2/mitigated_decte/detector_predictions.csv`
+- Output (gitignored via `results/` rule):
+  - `results/subgroup_diagnostics/decte_subgroup_metrics.csv`
+  - Wide format: `grouping_variable, group_value, n_bonafide, n_spoof,
+    baseline_{eer,auc,accuracy,far,frr}, mitigated_{eer,auc,accuracy,
+    far,frr}, delta_eer_pp, below_n_threshold`.
+- Thresholds: main-table = ≥ 10 per class; metrics-undefined below 5
+  per class.
+
+### Next research step (queued, not yet started)
+
+Priority reordered given the measurement + statistics + diagnostic
+phases are now complete for the AASIST-vs-LFCC-LR × XTTS-vs-OpenVoice
+matrix:
+
+1. **Draft the thesis chapters.** With Entries 1–11 committed, every
+   headline claim (dialect/domain XTTS gap, generator-specific
+   OpenVoice reversal, mitigation v2 effect, subgroup diagnostics)
+   carries statistical support and reproducible scripts. The
+   measurement + statistics phases are effectively complete for a
+   bachelor-thesis scope.
+2. **Pre-picked target-set fix** for future paired XTTS-vs-OpenVoice
+   runs on the same corpus (Entry 5's 80/120 overlap caveat).
+   Code-only, no regeneration for existing tables. Nice-to-have.
+3. **LFCC-LR mitigation replication.** Retrain the LFCC-LR classifier
+   with the DECTE-adapted training subset and re-test on the DECTE
+   held-out slice. Would give Entry 7's mitigation the same cross-
+   architecture status that Entries 8 and 10 already give the
+   corpus/reversal gaps.
+
+---
+
+## Entry 12 — [DATE] — [next milestone]
 
 *(add here once available)*
