@@ -1,0 +1,141 @@
+% !TeX program = xelatex
+% !TeX encoding = UTF-8
+% !TeX spellcheck = en_US
+% !BIB program = biber
+%%
+%% Bachelor thesis main entry file.
+%% Adapted from JKU LaTeX template v2.2 (Michael Roland, INS/JKU, MPL 2.0).
+%% Template repository: https://github.com/michaelroland/jku-templates-report-latex
+%%
+%% NOTE: this skeleton was created by polish-pass step 6b; chapter files are
+%% currently empty stubs (\chapter{...}\label{...} only). Full Markdown
+%% chapter conversion is deferred to a later polish step.
+%%
+
+\documentclass[a4paper,oneside,10pt,ngerman,english]{scrbook}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[bathesis,fancyfonts]{jkureport}
+
+\usepackage{csquotes}
+\usepackage[backend=biber,citestyle=numeric,sortcites=true,maxcitenames=2,style=ACM-Reference-Format]{biblatex}
+\setcounter{biburlnumpenalty}{100}
+\setcounter{biburllcpenalty}{100}
+\setcounter{biburlucpenalty}{100}
+\usepackage{todonotes}
+\usepackage{import}
+\usepackage{amsfonts}
+\usepackage{subfigure}
+\usepackage{acronym}
+
+\addbibresource{references.bib}
+
+
+\begin{document}
+\frontmatter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Thesis metadata (title page)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Does Your Accent Make You Vulnerable? Dialect and Generator Effects in Audio Deepfake Detection}
+\titleshort{Dialect and Generator Effects in Audio Deepfake Detection}
+
+%% TODO: fill in the author's exact name, any \prefix{}/\suffix{}, and \matno{}
+\author{Firstname~Lastname\matno{TODO-STUDENT-NUMBER}}
+
+%% TODO: fill in supervisor's exact name with title
+\supervisor{\prefix{TODO-TITLE} Firstname~Lastname}
+
+%% TODO: fill in assistant supervisor, or delete this line if none
+%\assistantsupervisor{\prefix{TODO} Firstname~Lastname}
+
+%% TODO: confirm degree and degree-programme names match the JKU-registered strings
+\degree{Bachelor of Science}{Artificial Intelligence}
+
+%% TODO: confirm institute name matches the JKU-registered string
+\submissiondepartment{Institute of Computational Perception}
+
+%% TODO: submission date (YYYY-MM-DD); defaults to today if left commented
+%\date{TODO-YYYY-MM-DD}
+
+\keywords{audio deepfake detection, anti-spoofing, dialect, dialect / domain gap, generator-specific corpus interaction, DECTE, VCTK, XTTS v2, OpenVoice v2, AASIST, LFCC + LR, controlled adaptation, subgroup diagnostics, bootstrap confidence intervals}
+
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Abstract (English + German)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\import{./}{00-abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Acknowledgements (optional; enable if the thesis includes acknowledgements)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% TODO: decide whether to enable acknowledgements (see LATEX_MIGRATION_PLAN §9.2)
+%\import{./}{acknowledgements}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Table of contents, list of tables, list of figures, list of acronyms
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\cleardoubleoddpage
+\tableofcontents
+
+\cleardoubleoddpage
+\listoftables
+
+\cleardoubleoddpage
+\listoffigures
+
+\cleardoubleoddpage
+\import{./}{acronyms}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Main matter -- nine chapter stubs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\mainmatter
+
+\import{./}{01-introduction}
+\import{./}{02-background-related-work}
+\import{./}{03-data-and-methodology}
+\import{./}{04-detector-verification-and-setup}
+\import{./}{05-main-results}
+\import{./}{06-mitigation-experiment}
+\import{./}{07-subgroup-diagnostics}
+\import{./}{08-discussion-limitations}
+\import{./}{09-conclusion-future-work}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\cleardoubleoddpage
+\printbibliography
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+\import{./}{91-appendix-reproducibility}
+\import{./}{92-appendix-mitigation-parameters}
+\import{./}{93-appendix-vctk-slate}
+\import{./}{94-appendix-low-n-subgroups}
+\import{./}{95-appendix-spoof-generation-counts}
+
+
+\cleardoubleoddpage
+
+\end{document}
+\endinput

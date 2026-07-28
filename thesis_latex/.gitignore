@@ -1,0 +1,50 @@
+## LaTeX build artefacts (adapted from the JKU template's shipped .gitignore)
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.cut
+*.fdb_latexmk
+*.fls
+*.glo
+*.gls
+*.idx
+*.ilg
+*.ind
+*.log
+*.lof
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz*
+*.synctex(busy)
+*.thm
+*.toc
+*.vrb
+*.xdv
+.~*#
+*~
+
+## Compiled PDFs (skeleton compile output; commit the final PDF only when
+## intentionally releasing a version)
+/main-thesis.pdf
+/main-*.pdf
+
+## Guard against accidental inclusion of dataset / result / checkpoint / audio
+## artefacts inside the thesis directory. These paths should never appear here
+## in the first place -- the thesis distributes source, LaTeX, and figure PDFs
+## only -- but the guard is cheap and defends against a stray copy-paste.
+data/
+results/
+checkpoints/
+manifest*.jsonl
+*.wav
+*.flac
+*.mp3
+*.ogg
+
+## Figure-generation intermediates (if any)
+figures/*.svg
+figures/*.tmp

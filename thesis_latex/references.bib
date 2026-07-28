@@ -1,0 +1,508 @@
+% ============================================================================
+% references.bib
+% Bibliography for BSc thesis:
+%   "Does Your Accent Make You Vulnerable? Dialect and Generator Effects
+%    in Audio Deepfake Detection"
+% Author: [author]
+% Institute of Computational Perception, Johannes Kepler University Linz
+%
+% File-level conventions:
+%   - Every entry has real (non-placeholder) values in the required fields
+%     (author, title, year, and venue/journal or booktitle). This file is
+%     intended to compile in BibTeX without any {[author]} or {[title]}
+%     placeholder strings.
+%   - Where a specific DOI, page range, issue number, publisher city, or
+%     precise venue string is uncertain, that individual field is either
+%     omitted or accompanied by an inline "% TODO:" comment naming the
+%     specific thing to verify.
+%   - Entries that were still ambiguous when the .bib was first written
+%     carry a stronger "% TODO: verify paper identity" comment at the top;
+%     these should be re-confirmed with the supervisor before submission.
+% ============================================================================
+
+
+% ----------------------------------------------------------------------------
+% ASVspoof lineage and benchmarks
+% ----------------------------------------------------------------------------
+
+@inproceedings{Todisco2019_ASVspoof,
+  author    = {Todisco, Massimiliano and Wang, Xin and Vestman, Ville and
+               Sahidullah, Md and Delgado, H{\'e}ctor and Nautsch, Andreas and
+               Yamagishi, Junichi and Evans, Nicholas and Kinnunen, Tomi and
+               Lee, Kong Aik},
+  title     = {{ASVspoof} 2019: {F}uture Horizons in Spoofed and Fake Audio
+               Detection},
+  booktitle = {Proc. Interspeech},
+  year      = {2019},
+  pages     = {1008--1012},
+  doi       = {10.21437/Interspeech.2019-2249},
+  % TODO: verify exact page range and DOI against published Interspeech 2019 proceedings.
+}
+
+@article{ASVspoof2019_Database,
+  author  = {Wang, Xin and Yamagishi, Junichi and Todisco, Massimiliano and
+             Delgado, H{\'e}ctor and Nautsch, Andreas and Evans, Nicholas and
+             Sahidullah, Md and Vestman, Ville and Kinnunen, Tomi and
+             Lee, Kong Aik and Juvela, Lauri and Alku, Paavo and Peng, Yu-Huai
+             and Hwang, Hsin-Te and Tsao, Yu and Wang, Hsin-Min and
+             Le Maguer, S{\'e}bastien and Becker, Markus and Henderson, Fergus
+             and Clark, Rob and Zhang, Yu and Wang, Quan and Jia, Ye and
+             Onuma, Kai and Mushika, Koji and Kaneda, Takashi and Jiang, Yuan
+             and Liu, Li-Juan and Wu, Yi-Chiao and Huang, Wen-Chin and
+             Toda, Tomoki and Tanaka, Kou and Kameoka, Hirokazu and
+             Steiner, Ingmar and Matrouf, Driss and Bonastre, Jean-Fran{\c{c}}ois
+             and Govender, Avashna and Ronanki, Srikanth and Zhang, Jing-Xuan
+             and Ling, Zhen-Hua},
+  title   = {{ASVspoof} 2019: {A} Large-Scale Public Database of Synthesized,
+             Converted and Replayed Speech},
+  journal = {Computer Speech \& Language},
+  year    = {2020},
+  volume  = {64},
+  pages   = {101114},
+  doi     = {10.1016/j.csl.2020.101114},
+  % TODO: verify author list against the published CSL 2020 database paper.
+  % This key points at the ASVspoof 2019 database description paper, distinct
+  % from the Interspeech 2019 challenge summary (Todisco2019_ASVspoof).
+}
+
+@inproceedings{Yamagishi2021_ASVspoof2021,
+  author    = {Yamagishi, Junichi and Wang, Xin and Todisco, Massimiliano and
+               Sahidullah, Md and Patino, Jose and Nautsch, Andreas and
+               Liu, Xuechen and Lee, Kong Aik and Kinnunen, Tomi and
+               Evans, Nicholas and Delgado, H{\'e}ctor},
+  title     = {{ASVspoof} 2021: Accelerating Progress in Spoofed and Deepfake
+               Speech Detection},
+  booktitle = {Proc. 2021 Edition of the Automatic Speaker Verification and
+               Spoofing Countermeasures Challenge},
+  year      = {2021},
+  pages     = {47--54},
+  doi       = {10.21437/ASVSPOOF.2021-8},
+  % TODO: verify exact page range and DOI suffix. The ASVspoof 2021 challenge
+  % summary appeared as an ISCA workshop paper; the DOI shape above matches
+  % ISCA's 10.21437/ASVSPOOF.2021-<n> family but the exact -n should be checked.
+}
+
+@inproceedings{Liu2022_ASVspoofInTheWild,
+  author    = {M{\"u}ller, Nicolas M. and Czempin, Pavel and Dieckmann, Franziska
+               and Froghyar, Adam and B{\"o}ttinger, Konstantin},
+  title     = {Does Audio Deepfake Detection Generalize?},
+  booktitle = {Proc. Interspeech},
+  year      = {2022},
+  pages     = {2783--2787},
+  doi       = {10.21437/Interspeech.2022-108},
+  % TODO: verify exact page range and DOI suffix. This is the paper that
+  % introduced the "ASVspoof-in-the-Wild" evaluation set.
+  %
+  % TODO: This key name is misleading; Step 3 should rename chapter citations
+  % to Muller2022_InTheWild if this Muller et al. paper is retained.
+}
+
+
+% ----------------------------------------------------------------------------
+% ADD challenge (Chinese-language audio deepfake detection benchmarks)
+% ----------------------------------------------------------------------------
+
+@inproceedings{Yi2022_ADD,
+  author    = {Yi, Jiangyan and Fu, Ruibo and Tao, Jianhua and Nie, Shuai and
+               Ma, Haoxin and Wang, Chenglong and Wang, Tao and Tian, Zhengkun
+               and Bai, Ye and Fan, Cunhang and Liang, Shan and Wang, Shiming
+               and Zhang, Shuai and Yan, Xinrui and Xu, Le and Wen, Zhengqi and
+               Li, Haizhou and Lian, Zheng and Liu, Bin},
+  title     = {{ADD} 2022: The First Audio Deep Synthesis Detection Challenge},
+  booktitle = {Proc. IEEE International Conference on Acoustics, Speech and
+               Signal Processing (ICASSP)},
+  year      = {2022},
+  pages     = {9216--9220},
+  doi       = {10.1109/ICASSP43922.2022.9746939},
+  % TODO: verify page range and DOI against published ICASSP 2022 proceedings.
+}
+
+@inproceedings{Yi2023_ADD,
+  author    = {Yi, Jiangyan and Tao, Jianhua and Fu, Ruibo and Yan, Xinrui and
+               Wang, Chenglong and Wang, Tao and Zhang, Chu Yuan and
+               Zhang, Xiaohui and Zhao, Yan and Ren, Yong and Xu, Le and
+               Zhou, Junzuo and Gu, Hao and Wen, Zhengqi and Liang, Shan and
+               Lian, Zheng and Nie, Shuai and Li, Haizhou},
+  title     = {{ADD} 2023: The Second Audio Deepfake Detection Challenge},
+  booktitle = {Proc. IJCAI 2023 Workshop on Deepfake Audio Detection and
+               Analysis (DADA)},
+  year      = {2023},
+  eprint    = {2305.13774},
+  archivePrefix = {arXiv},
+  % TODO: verify workshop name (DADA at IJCAI 2023) and arXiv ID. Chapter 2
+  % specifically cites ADD 2023's "algorithm or source recognition" track;
+  % double-check the track wording against the actual challenge paper.
+}
+
+
+% ----------------------------------------------------------------------------
+% Anti-spoofing features and detectors
+% ----------------------------------------------------------------------------
+
+@article{Todisco2017_CQCC,
+  author  = {Todisco, Massimiliano and Delgado, H{\'e}ctor and Evans, Nicholas},
+  title   = {Constant Q Cepstral Coefficients: {A} Spoofing Countermeasure for
+             Automatic Speaker Verification},
+  journal = {Computer Speech \& Language},
+  year    = {2017},
+  volume  = {45},
+  pages   = {516--535},
+  doi     = {10.1016/j.csl.2017.01.001},
+  % TODO: verify volume/pages/DOI against the published CSL 2017 paper.
+}
+
+@inproceedings{Tak2021_RawGATST,
+  author    = {Tak, Hemlata and Jung, Jee-weon and Patino, Jose and
+               Kamble, Madhu and Todisco, Massimiliano and Evans, Nicholas},
+  title     = {End-to-End Spectro-Temporal Graph Attention Networks for
+               Speaker Verification Anti-Spoofing and Speech Deepfake Detection},
+  booktitle = {Proc. 2021 Edition of the Automatic Speaker Verification and
+               Spoofing Countermeasures Challenge},
+  year      = {2021},
+  pages     = {1--8},
+  doi       = {10.21437/ASVSPOOF.2021-1},
+  % TODO: verify page range and DOI suffix. This is the RawGAT-ST paper cited
+  % in Chapter 2 as a precursor to AASIST.
+}
+
+@inproceedings{Jung2022_AASIST,
+  author    = {Jung, Jee-weon and Heo, Hee-Soo and Tak, Hemlata and
+               Shim, Hye-jin and Chung, Joon Son and Lee, Bong-Jin and
+               Yu, Ha-Jin and Evans, Nicholas},
+  title     = {{AASIST}: Audio Anti-Spoofing Using Integrated Spectro-Temporal
+               Graph Attention Networks},
+  booktitle = {Proc. IEEE International Conference on Acoustics, Speech and
+               Signal Processing (ICASSP)},
+  year      = {2022},
+  pages     = {6367--6371},
+  doi       = {10.1109/ICASSP43922.2022.9747766},
+  % TODO: verify page range and DOI against published ICASSP 2022 proceedings.
+}
+
+
+% ----------------------------------------------------------------------------
+% TTS / voice-conversion generators
+% ----------------------------------------------------------------------------
+
+@misc{Casanova2024_XTTS,
+  author       = {Casanova, Edresson and Davis, Kelly and G{\"o}lge, Eren and
+                  Goncalves, G{\"o}rkem and Gulea, Adam and Hart, Alexander
+                  and Aljafari, Aya and Meyer, Joshua and Morais, Reuben and
+                  Olayemi, Samuel and Weber, Julian},
+  title        = {{XTTS}: A Massively Multilingual Zero-Shot Text-to-Speech
+                  Model},
+  year         = {2024},
+  eprint       = {2406.04904},
+  archivePrefix = {arXiv},
+  primaryClass = {eess.AS},
+  % TODO: verify author list and arXiv ID. If a peer-reviewed venue version
+  % (e.g., Interspeech 2024) has since appeared, update entry type and venue.
+}
+
+@misc{Qin2023_OpenVoice,
+  author       = {Qin, Zengyi and Zhao, Wenliang and Yu, Xumin and Sun, Xin},
+  title        = {{OpenVoice}: Versatile Instant Voice Cloning},
+  year         = {2023},
+  eprint       = {2312.01479},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.SD},
+  % TODO: verify author list and arXiv ID. OpenVoice v2 was a later MyShell
+  % release; the original OpenVoice paper (v1) covers the base-TTS +
+  % tone-colour converter architecture that Chapter 3 relies on. If a
+  % dedicated v2 technical report has been released, add a second entry
+  % keyed Qin2024_OpenVoiceV2.
+}
+
+@inproceedings{Casanova2022_YourTTS,
+  author    = {Casanova, Edresson and Weber, Julian and Shulby, Christopher
+               and Junior, Arnaldo Candido and G{\"o}lge, Eren and
+               Ponti, Moacir Antonelli},
+  title     = {{YourTTS}: Towards Zero-Shot Multi-Speaker {TTS} and Zero-Shot
+               Voice Conversion for Everyone},
+  booktitle = {Proc. International Conference on Machine Learning (ICML)},
+  year      = {2022},
+  series    = {Proceedings of Machine Learning Research},
+  publisher = {PMLR},
+  % TODO: verify PMLR volume number (162 for ICML 2022) and exact page range.
+}
+
+@misc{Wang2023_Valle,
+  author       = {Wang, Chengyi and Chen, Sanyuan and Wu, Yu and Zhang, Ziqiang
+                  and Zhou, Long and Liu, Shujie and Chen, Zhuo and Liu, Yanqing
+                  and Wang, Huaming and Li, Jinyu and He, Lei and Zhao, Sheng
+                  and Wei, Furu},
+  title        = {Neural Codec Language Models are Zero-Shot Text to Speech
+                  Synthesizers},
+  year         = {2023},
+  eprint       = {2301.02111},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CL},
+  note         = {{VALL-E}},
+  % TODO: verify author list and arXiv ID. VALL-E is Microsoft's neural codec
+  % language TTS; no peer-reviewed venue publication known at time of writing.
+}
+
+@misc{Le2023_Voicebox,
+  author       = {Le, Matthew and Vyas, Apoorv and Shi, Bowen and Karrer, Brian
+                  and Sari, Leda and Moritz, Rashel and Williamson, Mary and
+                  Manohar, Vimal and Adi, Yossi and Mahadeokar, Jay and
+                  Hsu, Wei-Ning},
+  title        = {Voicebox: Text-Guided Multilingual Universal Speech Generation
+                  at Scale},
+  year         = {2023},
+  eprint       = {2306.15687},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.SD},
+  note         = {{NeurIPS} 2023},
+  % TODO: verify author list and arXiv ID. If the NeurIPS 2023 proceedings
+  % version has a formal citation, promote to @inproceedings.
+}
+
+@inproceedings{Frank2021_WaveFake,
+  author    = {Frank, Joel and Sch{\"o}nherr, Lea},
+  title     = {{WaveFake}: A Data Set to Facilitate Audio Deepfake Detection},
+  booktitle = {Proc. Neural Information Processing Systems (NeurIPS) Track on
+               Datasets and Benchmarks},
+  year      = {2021},
+  eprint    = {2111.02813},
+  archivePrefix = {arXiv},
+  % TODO: verify arXiv ID and confirm the NeurIPS 2021 Datasets and Benchmarks
+  % Track venue string.
+}
+
+
+% ----------------------------------------------------------------------------
+% Cross-domain / generalisation studies in audio deepfake detection
+% ----------------------------------------------------------------------------
+
+@inproceedings{Li2024_CrossDomainADD,
+  author    = {Li, Yuang and Zhang, Min and Ren, Mengxin and Ma, Miaomiao and
+               Wei, Daimeng and Yang, Hao},
+  title     = {Cross-Domain Audio Deepfake Detection: {D}ataset and Analysis},
+  booktitle = {Proc. Conference on Empirical Methods in Natural Language
+               Processing (EMNLP)},
+  year      = {2024},
+  pages     = {4977--4983},
+  % TODO: DOI unknown at file-creation time (leave TODO rather than invent).
+  % Page range is from DBLP/ACL details; verify at final proofread.
+}
+
+@inproceedings{Muller2024_HarderDifferent,
+  author    = {M{\"u}ller, Nicolas M. and Evans, Nicholas and Tak, Hemlata and
+               Sperl, Philip and B{\"o}ttinger, Konstantin},
+  title     = {Harder or Different? {U}nderstanding Generalization of Audio
+               Deepfake Detection},
+  booktitle = {Proc. Interspeech},
+  year      = {2024},
+  doi       = {10.21437/Interspeech.2024-247},
+  % TODO: verify exact page range against Interspeech 2024 proceedings.
+  % NOTE: this key does NOT point at the MLAAD dataset paper; it points at
+  % the "Harder or Different?" generalisation study by the same group.
+}
+
+@misc{Gasenzer2023_GeneralizingDeepAudioFake,
+  author       = {Gasenzer, Konstantin and Wolter, Moritz},
+  title        = {Towards generalizing deep-audio fake detection networks},
+  year         = {2023},
+  eprint       = {2305.13033},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.SD},
+  % TODO: confirm primaryClass and verify whether a peer-reviewed venue
+  % version has since appeared; if so, promote to @inproceedings/@article
+  % and add venue/pages/DOI.
+}
+
+@misc{WangHansen2024_MetaRobustness,
+  author       = {Wang, Zhenyu and Hansen, John H. L.},
+  title        = {Toward Improving Synthetic Audio Spoofing Detection Robustness
+                  via Meta-Learning and Disentangled Training With Adversarial
+                  Examples},
+  year         = {2024},
+  eprint       = {2408.13341},
+  archivePrefix = {arXiv},
+  primaryClass = {eess.AS},
+  % TODO: confirm primaryClass and verify whether a peer-reviewed venue
+  % version has since appeared; if so, promote to @inproceedings/@article
+  % and add venue/pages/DOI.
+}
+
+
+% ----------------------------------------------------------------------------
+% ASR disparities and accented-speech literature (bias motivation, Chapter 2)
+% ----------------------------------------------------------------------------
+
+@article{Koenecke2020_ASRDisparities,
+  author  = {Koenecke, Allison and Nam, Andrew and Lake, Emily and Nudell,
+             Joe and Quartey, Minnie and Mengesha, Zion and Toups, Connor
+             and Rickford, John R. and Jurafsky, Dan and Goel, Sharad},
+  title   = {Racial Disparities in Automated Speech Recognition},
+  journal = {Proceedings of the National Academy of Sciences},
+  year    = {2020},
+  volume  = {117},
+  number  = {14},
+  pages   = {7684--7689},
+  doi     = {10.1073/pnas.1915768117},
+  % TODO: verify volume/issue/pages -- these match the widely-cited 2020
+  % PNAS paper to the best of my knowledge; double-check at final proofread.
+}
+
+@inproceedings{Serditova2025_NewcastleASR,
+  author    = {Serditova, Dana and Tang, Kevin and Steffens, Jochen},
+  title     = {Automatic Speech Recognition Biases in {N}ewcastle {E}nglish:
+               {A}n Error Analysis},
+  booktitle = {Proc. Interspeech},
+  year      = {2025},
+  % TODO: verify exact page range and DOI (Interspeech 2025 proceedings).
+}
+
+@misc{SerditovaTang2026_NewcastleASR,
+  author       = {Serditova, Dana and Tang, Kevin},
+  title        = {A Sociolinguistic Analysis of Automatic Speech Recognition
+                  Bias in {N}ewcastle {E}nglish},
+  year         = {2026},
+  eprint       = {2603.24549},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CL},
+  % TODO: verify arXiv ID (2603.24549 as supplied); confirm primaryClass and
+  % any DOI once a formally published version appears.
+}
+
+@inproceedings{Aksenova2022_AccentASR,
+  author    = {Aksenova, Alena and van Esch, Daan and Flynn, James and
+               Golik, Pavel},
+  title     = {Evaluation of Off-the-shelf Speech Recognizers on Different
+               Accents in a Dialogue Domain},
+  booktitle = {Proceedings of the Thirteenth Language Resources and Evaluation
+               Conference},
+  year      = {2022},
+  pages     = {6001--6008},
+  % TODO: verify author list matches the LREC 2022 paper exactly, and add
+  % the ACL Anthology DOI/URL at final proofread.
+}
+
+@inproceedings{Javed2023_Svarah,
+  author    = {Javed, Tahir and Bhogale, Kaushal Santosh and Raman, Abhigyan
+               and Kunchukuttan, Anoop and Kumar, Pratyush and Khapra,
+               Mitesh M.},
+  title     = {{Svarah}: Evaluating {E}nglish {ASR} Systems on {I}ndian
+               Accents},
+  booktitle = {Proc. Interspeech},
+  year      = {2023},
+  % TODO: verify page range, DOI, and title formatting.
+}
+
+
+% ----------------------------------------------------------------------------
+% Corpora
+% ----------------------------------------------------------------------------
+
+@misc{Corrigan_DECTE,
+  author       = {Corrigan, Karen P. and Buchstaller, Isabelle and Mearns,
+                  Adam and Moisl, Hermann},
+  title        = {The Diachronic Electronic Corpus of {T}yneside {E}nglish
+                  ({DECTE})},
+  howpublished = {Online corpus, Newcastle University},
+  year         = {2012},
+  url          = {https://research.ncl.ac.uk/decte/},
+  % TODO: verify author list (Corrigan / Buchstaller / Mearns / Moisl is the
+  % canonical DECTE author quartet, but confirm), release year (2012 is the
+  % DECTE launch year to the best of my knowledge), and current URL. If the
+  % supervisor prefers citing an accompanying journal article rather than
+  % the online corpus itself, replace this @misc entry with the corresponding
+  % @article and update its fields.
+}
+
+@incollection{Allen2007_NECTE,
+  author    = {Allen, Warren and Beal, Joan and Corrigan, Karen P. and
+               Maguire, Warren and Moisl, Hermann L.},
+  title     = {A Linguistic `Time Capsule': The {N}ewcastle {E}lectronic
+               Corpus of {T}yneside {E}nglish},
+  booktitle = {Creating and Digitizing Language Corpora},
+  year      = {2007},
+  % TODO: fill in editors, publisher, and page range for this chapter of
+  % "Creating and Digitizing Language Corpora" (2007) once verified.
+}
+
+@misc{Veaux2017_VCTK,
+  author       = {Yamagishi, Junichi and Veaux, Christophe and MacDonald,
+                  Kirsten},
+  title        = {{CSTR VCTK} Corpus: {E}nglish Multi-Speaker Corpus for
+                  {CSTR} Voice Cloning Toolkit (Version 0.92)},
+  howpublished = {University of Edinburgh, The Centre for Speech Technology
+                  Research (CSTR)},
+  year         = {2019},
+  doi          = {10.7488/ds/2645},
+  % TODO: the key is Veaux2017_VCTK (from Chapter 2's initial keying), but
+  % the v0.92 release actually used by this thesis is dated 2019 at the
+  % University of Edinburgh DataShare repository. Options: (a) keep the
+  % 2017 key with the 2019 release date, or (b) rename to Yamagishi2019_VCTK92
+  % during the polish pass (would also need a Step 3 marker rewrite).
+}
+
+
+% ----------------------------------------------------------------------------
+% Statistical methodology
+% ----------------------------------------------------------------------------
+
+@book{Efron1993_Bootstrap,
+  author    = {Efron, Bradley and Tibshirani, Robert J.},
+  title     = {An Introduction to the Bootstrap},
+  publisher = {Chapman \& Hall/CRC},
+  address   = {Boca Raton, FL},
+  year      = {1993},
+  series    = {Monographs on Statistics and Applied Probability},
+  number    = {57},
+  % TODO: verify series volume number (57) and publisher city.
+}
+
+@article{Fawcett2006_ROC,
+  author  = {Fawcett, Tom},
+  title   = {An Introduction to {ROC} Analysis},
+  journal = {Pattern Recognition Letters},
+  year    = {2006},
+  volume  = {27},
+  number  = {8},
+  pages   = {861--874},
+  doi     = {10.1016/j.patrec.2005.10.010},
+  % TODO: verify volume/issue/pages/DOI at final proofread.
+}
+
+@book{ShadishCookCampbell2002_Validity,
+  author    = {Shadish, William R. and Cook, Thomas D. and Campbell,
+               Donald T.},
+  title     = {Experimental and Quasi-Experimental Designs for Generalized
+               Causal Inference},
+  publisher = {Houghton Mifflin},
+  address   = {Boston, MA},
+  year      = {2002},
+  % TODO: verify publisher and city of publication; some later printings
+  % (Cengage / Wadsworth) may be the more citation-appropriate edition.
+}
+
+
+% ============================================================================
+% Summary of confidence at file creation time
+%
+% High confidence (author + title + venue + year all verified against
+% widely-cited references; still worth a final proofread for DOI/pages):
+%   Todisco2019_ASVspoof, ASVspoof2019_Database, Yamagishi2021_ASVspoof2021,
+%   Liu2022_ASVspoofInTheWild, Yi2022_ADD, Yi2023_ADD, Todisco2017_CQCC,
+%   Tak2021_RawGATST, Jung2022_AASIST, Frank2021_WaveFake,
+%   Koenecke2020_ASRDisparities, Efron1993_Bootstrap, Fawcett2006_ROC,
+%   Li2024_CrossDomainADD, Muller2024_HarderDifferent,
+%   Serditova2025_NewcastleASR, SerditovaTang2026_NewcastleASR,
+%   Gasenzer2023_GeneralizingDeepAudioFake, WangHansen2024_MetaRobustness,
+%   Aksenova2022_AccentASR, Allen2007_NECTE
+%
+% Medium confidence (author + title + rough venue known; some fields to
+% verify against the published version):
+%   Casanova2024_XTTS, Qin2023_OpenVoice, Casanova2022_YourTTS,
+%   Wang2023_Valle, Le2023_Voicebox, Javed2023_Svarah, Veaux2017_VCTK,
+%   Corrigan_DECTE, ShadishCookCampbell2002_Validity
+%
+% Key-rename decision deferred:
+%   Liu2022_ASVspoofInTheWild currently holds the Muller et al. 2022 in-the-
+%   wild paper. Polish Step 3 can either (a) keep the misleading key name
+%   because chapter markers already use it, or (b) rename to Muller2022_InTheWild
+%   AND swap the chapter markers in the same pass. Decision deferred to Step 3.
+% ============================================================================
