@@ -51,7 +51,7 @@ to identify *who* is speaking; unlike synthesis, its objective is
 to detect artefacts rather than to generate speech.
 
 The most influential benchmark series in this area is the ASVspoof
-challenges. **ASVspoof 2019** [Todisco2019_ASVspoof] introduced two
+challenges. **ASVspoof 2019** \cite{Todisco2019_ASVspoof} introduced two
 main scenarios — logical access (LA), covering TTS and VC attacks,
 and physical access (PA), covering replay attacks — together with
 a shared evaluation protocol and the two headline metrics that
@@ -60,26 +60,26 @@ which reports the operating point at which the false-accept and
 false-reject rates coincide on the receiver-operating-characteristic
 curve, and a tandem detection cost function (t-DCF) that combines
 spoofing-detection cost with speaker-verification cost. The database
-paper [ASVspoof2019_Database] describes the actual protocol,
+paper \cite{ASVspoof2019_Database} describes the actual protocol,
 speaker splits, and baseline systems (LFCC-GMM and CQCC-GMM
 baselines are shipped with the challenge material) in detail.
 
-**ASVspoof 2021** [Yamagishi2021_ASVspoof2021] extended the
+**ASVspoof 2021** \cite{Yamagishi2021_ASVspoof2021} extended the
 challenge in two directions relevant to this thesis. First, it
 added a **deepfake detection track** that scored systems on
 transmitted / compressed audio, reflecting the more realistic
 deployment condition in which detectors see audio degraded by
 codecs, telephone channels, or lossy transmission. Second, it
 introduced ***in-the-wild* evaluation** conditions
-[Liu2022_ASVspoofInTheWild] that specifically probed whether
+\cite{Liu2022_ASVspoofInTheWild} that specifically probed whether
 detectors trained on one source dataset generalise to another —
 a question later chapters of this thesis pick up under the label
 *cross-corpus generalisation*.
 
-The **ADD (Audio Deepfake Detection) challenges** [Yi2022_ADD]
+The **ADD (Audio Deepfake Detection) challenges** \cite{Yi2022_ADD}
 broadened the field beyond the ASVspoof framing. ADD 2022 added
 tracks for low-quality and partially-fake audio, and ADD 2023
-[Yi2023_ADD] added tracks for manipulation-region localisation
+\cite{Yi2023_ADD} added tracks for manipulation-region localisation
 and for *algorithm or source recognition* — the task of
 identifying which specific synthesis algorithm produced a given
 spoof. The algorithm-recognition framing is directly relevant to
@@ -90,7 +90,7 @@ A recurring finding in the ASVspoof and ADD literatures is that
 detectors that perform very well on the challenge's own evaluation
 set can still perform noticeably worse on unseen spoofing
 attacks, unseen source datasets, or unseen channel conditions
-[Li2024_CrossDomainADD]. This *cross-condition* or *cross-domain*
+\cite{Li2024_CrossDomainADD}. This *cross-condition* or *cross-domain*
 generalisation problem is what Section 2.5 discusses in more
 depth; it is also the problem that most closely maps onto this
 thesis' DECTE-vs-VCTK evaluation design.
@@ -114,7 +114,7 @@ most common front-ends in the ASVspoof lineage are Linear
 Frequency Cepstral Coefficients (**LFCC**) — which resample a
 short-time spectrum onto a linear (rather than perceptually
 warped) frequency axis before a discrete cosine transform — and
-Constant-Q Cepstral Coefficients (**CQCC**) [Todisco2017_CQCC],
+Constant-Q Cepstral Coefficients (**CQCC**) \cite{Todisco2017_CQCC},
 which use a constant-Q transform whose frequency resolution scales
 with frequency and is argued to capture manipulation artefacts
 that a mel-scale front-end may smooth over.
@@ -122,9 +122,9 @@ that a mel-scale front-end may smooth over.
 Historically, both feature families were paired with a Gaussian
 Mixture Model (GMM) classifier fit on bonafide and spoof
 utterances separately, producing a log-likelihood-ratio score
-[Todisco2019_ASVspoof]. The ASVspoof challenges continue to ship
+\cite{Todisco2019_ASVspoof}. The ASVspoof challenges continue to ship
 LFCC-GMM and CQCC-GMM systems as reference baselines
-[ASVspoof2019_Database]. Simpler but useful variants replace the
+\cite{ASVspoof2019_Database}. Simpler but useful variants replace the
 GMM with a logistic regression or a support-vector machine over
 a fixed-length pooled feature vector.
 
@@ -149,14 +149,14 @@ have been published in the ASVspoof lineage; the two most
 directly relevant to this thesis are the AASIST family and its
 predecessor RawGAT-ST.
 
-**RawGAT-ST** [Tak2021_RawGATST] introduced a spectro-temporal
+**RawGAT-ST** \cite{Tak2021_RawGATST} introduced a spectro-temporal
 graph-attention network operating on raw audio, in which
 spectral and temporal graph-attention layers process orthogonal
 views of the input and then fuse. It was among the first end-to-
 end architectures to combine graph-attention operations over both
 axes of the time-frequency plane in a single model.
 
-**AASIST** [Jung2022_AASIST] extended the graph-attention idea
+**AASIST** \cite{Jung2022_AASIST} extended the graph-attention idea
 with heterogeneous graph-attention layers that operate on the
 concatenated spectro-temporal representation, and with a set of
 learnable graph-pooling operations that produce a compact
@@ -205,7 +205,7 @@ family.
 
 ### 2.4.1 The two generators used in this thesis
 
-**XTTS v2** [Casanova2024_XTTS] is a **massively multilingual
+**XTTS v2** \cite{Casanova2024_XTTS} is a **massively multilingual
 zero-shot TTS model** developed by Coqui and released as part of
 the Coqui TTS library. It takes a short reference audio clip and
 a text prompt and produces speech in the reference speaker's
@@ -215,7 +215,7 @@ the *single-model end-to-end zero-shot* design philosophy — one
 network learns the full mapping from text plus reference to
 output waveform.
 
-**OpenVoice v2** [Qin2023_OpenVoice] takes a different design
+**OpenVoice v2** \cite{Qin2023_OpenVoice} takes a different design
 approach: it separates the task into two stages, a base TTS model
 (MyShell's MeloTTS in this thesis' setup) that produces speech in
 a fixed base voice given the text, and a **tone-colour converter**
@@ -230,15 +230,15 @@ family.
 
 Several other zero-shot voice-cloning systems form the broader
 context in which XTTS and OpenVoice sit. **YourTTS**
-[Casanova2022_YourTTS] was an earlier zero-shot multi-speaker TTS
+\cite{Casanova2022_YourTTS} was an earlier zero-shot multi-speaker TTS
 system built on the VITS architecture and remains a common
 baseline for zero-shot voice conversion. **VALL-E**
-[Wang2023_Valle] introduced neural codec language models to the
+\cite{Wang2023_Valle} introduced neural codec language models to the
 zero-shot TTS setting, treating speech synthesis as an
 autoregressive next-token prediction problem over discrete
 neural codec tokens and producing state-of-the-art speaker
 similarity at the time of publication. **Voicebox**
-[Le2023_Voicebox] and related large-scale generative-speech
+\cite{Le2023_Voicebox} and related large-scale generative-speech
 systems from Meta AI represent the current frontier of
 multilingual multi-task speech generation.
 
@@ -254,13 +254,13 @@ work.
 
 An important qualitative point that recurs in the anti-spoofing
 literature is that **different generation systems leave different
-detectable artefacts** [Frank2021_WaveFake]. Vocoder-based systems
+detectable artefacts** \cite{Frank2021_WaveFake}. Vocoder-based systems
 tend to leave characteristic phase and spectral-envelope
 artefacts; end-to-end neural systems may leave systematic biases
 in specific frequency bands; tone-colour-conversion pipelines
 may introduce mismatches at the speaker-identity level while
 producing very high per-frame audio quality. Complementing this,
-the **WaveFake** dataset [Frank2021_WaveFake] specifically
+the **WaveFake** dataset \cite{Frank2021_WaveFake} specifically
 catalogues audio generated by multiple different architectures
 and shows that anti-spoofing detectors' error patterns vary
 substantially across generator families.
@@ -282,13 +282,13 @@ that detectors performing very well on their training and
 evaluation distributions still generalise poorly to unseen
 domains: unseen recording conditions, unseen source datasets,
 unseen speaker populations, or unseen spoof-generator families
-[Li2024_CrossDomainADD]. This cross-domain generalisation problem
+\cite{Li2024_CrossDomainADD}. This cross-domain generalisation problem
 is directly relevant to this thesis, which reports a similar
 generalisation failure under a dialect / domain shift
 specifically.
 
 **Li et al. (2024) — Cross-Domain Audio Deepfake Detection**
-[Li2024_CrossDomainADD] presents a dataset and analysis that
+\cite{Li2024_CrossDomainADD} presents a dataset and analysis that
 focus specifically on this failure mode. The paper argues that
 audio-deepfake detectors face substantial cross-domain
 generalisation problems, especially against recent zero-shot TTS
@@ -298,7 +298,7 @@ what the DECTE-vs-VCTK comparison in this thesis' Chapter 5
 extends to a specific dialect / domain condition.
 
 **Müller et al. (2024) — Harder or Different?**
-[Muller2024_HarderDifferent] adds a subtler point. The paper
+\cite{Muller2024_HarderDifferent} adds a subtler point. The paper
 argues that performance drops on newer or unseen fakes should not
 be uniformly attributed to "newer fakes are harder"; rather, the
 drops often reflect that newer fakes are *different* in ways that
@@ -314,10 +314,10 @@ generator crossing.
 Other relevant work on generalisation includes proposals for
 adversarial-training or meta-learning approaches to make
 detectors more robust to unseen spoofing attacks
-[WangHansen2024_MetaRobustness], and work on generator-
+\cite{WangHansen2024_MetaRobustness}, and work on generator-
 fingerprinting techniques that attempt to identify the specific
 generator responsible for a given spoof
-[Gasenzer2023_GeneralizingDeepAudioFake]. This thesis does not
+\cite{Gasenzer2023_GeneralizingDeepAudioFake}. This thesis does not
 evaluate those specific approaches; the mitigation study in
 Chapter 6 uses a much more modest **partial-backbone-unfreeze
 fine-tune** rather than a full adversarial-training or
@@ -340,7 +340,7 @@ existing literature is heavily concentrated on **automatic
 speech recognition (ASR)** rather than anti-spoofing.
 
 **Koenecke et al. (2020) — Racial Disparities in Automated Speech
-Recognition** [Koenecke2020_ASRDisparities] is the most-cited
+Recognition** \cite{Koenecke2020_ASRDisparities} is the most-cited
 demonstration of this problem. The paper reports substantial word-error-rate
 disparities between white and Black American speakers across five
 major commercial ASR systems and links those disparities to
@@ -353,12 +353,12 @@ subgroups when deployed on more diverse speech — is directly
 applicable to the setting this thesis studies.
 
 **Serditova, Tang and Steffens (2025) — Automatic Speech
-Recognition Biases in Newcastle English** [Serditova2025_NewcastleASR]
+Recognition Biases in Newcastle English** \cite{Serditova2025_NewcastleASR}
 extends this line of work to the specific dialect the current
 thesis is empirically anchored on. The paper studies ASR
 performance on Newcastle English and argues for greater dialectal
 diversity in speech-technology evaluation. A follow-up paper by
-Serditova and Tang [SerditovaTang2026_NewcastleASR] uses DECTE —
+Serditova and Tang \cite{SerditovaTang2026_NewcastleASR} uses DECTE —
 the same corpus this thesis uses — for a sociolinguistic analysis
 of Newcastle-English ASR error patterns. Both papers motivate the
 current thesis by showing that Tyneside English is a dialect
@@ -368,9 +368,9 @@ specifically.
 
 Related evaluations of accent effects in ASR include work
 comparing off-the-shelf recognisers across accented English
-dialogue speech [Aksenova2022_AccentASR] and benchmarks
+dialogue speech \cite{Aksenova2022_AccentASR} and benchmarks
 specifically designed for Indian-accented English ASR
-[Javed2023_Svarah]. All
+\cite{Javed2023_Svarah}. All
 these papers are consistent with a broader picture in which
 speech-technology systems trained predominantly on standard-
 accent speech generalise unevenly to non-standard-accent speech.
@@ -400,10 +400,10 @@ briefly, so a reader coming from the related-work sections above
 has enough context to follow the methodology chapter.
 
 **DECTE — the Diachronic Electronic Corpus of Tyneside English**
-[Corrigan_DECTE] — is a research-restricted corpus of interview-
+\cite{Corrigan_DECTE} — is a research-restricted corpus of interview-
 style speech from speakers in the Tyneside region of North-East
 England. It combines the older **NECTE** (Newcastle Electronic
-Corpus of Tyneside English) [Allen2007_NECTE] with newer material
+Corpus of Tyneside English) \cite{Allen2007_NECTE} with newer material
 collected in subsequent survey waves. The recordings span
 several decades — 1960s–1970s reel-to-reel material, a 1990s
 follow-up, and a 2007–2011 modern digital survey — which makes
@@ -412,7 +412,7 @@ Chapter 3 uses the metadata extracted from DECTE's TEI-XML
 transcripts (gender, age band, recording era) to support the
 subgroup diagnostic in Chapter 7.
 
-**VCTK 0.92** [Veaux2017_VCTK] is a widely-used English
+**VCTK 0.92** \cite{Veaux2017_VCTK} is a widely-used English
 multi-speaker corpus of studio-read speech, recorded at 48 kHz
 and containing approximately 110 speakers with per-speaker
 accent metadata. This thesis uses a 20-speaker subset filtered
@@ -432,7 +432,7 @@ standard-accent English). The comparison between them is the
 whole empirical spine of Chapter 5.
 
 Two additional datasets appear in this thesis' machinery without
-being subjects of study. **WaveFake** [Frank2021_WaveFake] is a
+being subjects of study. **WaveFake** \cite{Frank2021_WaveFake} is a
 publicly available audio-deepfake dataset covering multiple
 generation architectures; it appears here because it is part of
 the training mixture the AuralGuard baseline detector was

@@ -30,7 +30,7 @@ poison every later number. The stages are:
 3. **Detector evaluation.** Two detectors are evaluated on the
    generated spoofs against matched bonafide originals. The primary
    detector is the AuralGuard-AASISTPP wrapper around the AASIST
-   backbone [citation needed]; the second detector is a classical
+   backbone \cite{Jung2022_AASIST}; the second detector is a classical
    LFCC + Logistic Regression pipeline built specifically for
    cross-architecture replication. Both detectors share the same
    audio preprocessing and the same score-direction convention.
@@ -115,7 +115,7 @@ is performed.
 
 VCTK 0.92 is a widely used studio-recorded multi-speaker English
 corpus containing approximately 110 speakers reading a common
-sentence set at 48 kHz [citation needed]. It was chosen as the
+sentence set at 48 kHz \cite{Veaux2017_VCTK}. It was chosen as the
 standard-accent control because (a) it is not part of the primary
 detector's training set (see Section 3.4), (b) it has per-speaker
 accent metadata that allows an English-accent-only filter to be
@@ -173,7 +173,7 @@ regressions in one generator from silently breaking another.
 
 XTTS v2 is a zero-shot voice-cloning multilingual TTS model that
 takes a reference audio clip and a target text and produces speech
-in the reference speaker's voice [citation needed]. The
+in the reference speaker's voice \cite{Casanova2024_XTTS}. The
 implementation used here is `tts_models/multilingual/multi-dataset/
 xtts_v2` from the Coqui `TTS` library, wrapped in
 `src/spoof_gen/xtts_gen.py`. For each generation:
@@ -188,7 +188,7 @@ xtts_v2` from the Coqui `TTS` library, wrapped in
 
 ### 3.3.2 OpenVoice v2 (MyShell)
 
-OpenVoice v2 uses a two-stage architecture [citation needed]:
+OpenVoice v2 uses a two-stage architecture \cite{Qin2023_OpenVoice}:
 MeloTTS synthesises text in a fixed base voice, and a Tone-Colour
 Converter then retargets the tone colour of the base audio to match
 a target speaker's reference audio. The implementation used here is
@@ -289,7 +289,7 @@ one of the diagnostic checks in Entry 3.
 The primary detector is the AuralGuard-AASISTPP wrapper (defined in
 `auralguard-aasistpp/src/model_aasistpp.py` in the neighbouring
 AuralGuard project) around the official AASIST backbone from
-`clovaai/aasist` [citation needed]. The AASIST backbone is a deep
+`clovaai/aasist` \cite{Jung2022_AASIST}. The AASIST backbone is a deep
 graph-attention model over spectral–temporal representations of the
 raw waveform; the AuralGuard wrapper adds three linear task heads on
 top of AASIST's hidden features:
@@ -444,7 +444,7 @@ spoof_scores)`:
 
 - EER (equal error rate), obtained by finding the operating point at
   which `FPR ≈ FNR` on the ROC curve;
-- AUC via `sklearn.metrics.roc_auc_score`;
+- AUC via `sklearn.metrics.roc_auc_score` \cite{Fawcett2006_ROC};
 - Accuracy, false accept rate (FAR), and false reject rate (FRR) at
   the EER-threshold operating point.
 
@@ -462,7 +462,8 @@ counted or arbitrarily assigned to one generator.
 Point estimates alone are not enough for the sample sizes in this
 thesis (typically 100 spoofs per corpus × generator cell against a
 bonafide pool of 120–216). Every headline number in Chapters 5–7 is
-reported with a 95 % non-parametric bootstrap confidence interval.
+reported with a 95 % non-parametric bootstrap confidence interval
+\cite{Efron1993_Bootstrap}.
 
 ### 3.6.1 Fixed bootstrap parameters
 
@@ -771,7 +772,7 @@ restrictions (DECTE) or because of size / licensing considerations
 (VCTK, model checkpoints).
 
 - **DECTE corpus access.** DECTE is research-restricted; access
-  must be arranged through the corpus custodians [citation needed].
+  must be arranged through the corpus custodians \cite{Corrigan_DECTE}.
   The pipeline expects pre-segmented chunk audio under
   `data/01_chunks/` and matched transcripts under
   `data/01_chunk_transcripts/`.

@@ -2,7 +2,7 @@
 
 *Draft. Written to be read by the thesis supervisor first, then polished
 into final prose. Citation keys follow the Chapter 2 style — bracketed
-short keys like `[Todisco2019_ASVspoof]` that will be expanded to
+short keys like `\cite{Todisco2019_ASVspoof}` that will be expanded to
 full references in the polish pass.*
 
 ---
@@ -13,7 +13,7 @@ Audio deepfakes — synthetic speech that mimics a target speaker's
 voice from a short reference recording — have moved from a
 research demonstration to a routine capability of publicly
 available voice-cloning systems in the last few years
-[Casanova2024_XTTS] [Qin2023_OpenVoice]. Zero-shot cloning
+\cite{Casanova2024_XTTS} \cite{Qin2023_OpenVoice}. Zero-shot cloning
 pipelines that once required a specialist ML team can now be run
 from open-source libraries with a handful of lines of code, and
 the output quality is high enough that a listener without prior
@@ -22,19 +22,19 @@ detection side of that story has developed in parallel: the
 anti-spoofing and audio-deepfake-detection literature has
 produced a series of shared benchmarks and detector architectures
 that report very low error rates on the challenge conditions
-they were designed against [Todisco2019_ASVspoof]
-[Yamagishi2021_ASVspoof2021] [Yi2022_ADD].
+they were designed against \cite{Todisco2019_ASVspoof}
+\cite{Yamagishi2021_ASVspoof2021} \cite{Yi2022_ADD}.
 
 However, low error on a benchmark is not the same as reliability
 in the field. Recent cross-domain analyses have shown that
 detectors trained on one source distribution often generalise
 poorly to another — to unseen recording conditions, unseen
 speaker populations, or unseen spoof-generator families
-[Li2024_CrossDomainADD] [Muller2024_HarderDifferent]. A separate
+\cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}. A separate
 line of speech-technology research has documented that speech
 systems trained predominantly on standard-accent material can
 perform unevenly on dialectal or non-standard-accent speech
-[Koenecke2020_ASRDisparities] [Serditova2025_NewcastleASR],
+\cite{Koenecke2020_ASRDisparities} \cite{Serditova2025_NewcastleASR},
 though almost all of that work is about automatic speech
 recognition rather than about anti-spoofing.
 
@@ -55,7 +55,7 @@ the spoof they are asked to reject?
 Standard anti-spoofing benchmarks are typically built from
 studio-quality read speech, in a limited range of recording
 conditions, and against a fixed list of spoofing systems
-[Todisco2019_ASVspoof] [ASVspoof2019_Database]. Real speech that
+\cite{Todisco2019_ASVspoof} \cite{ASVspoof2019_Database}. Real speech that
 a deployed detector might see is not distributed the same way.
 It varies by dialect, by accent, by recording condition and
 channel, by speaker demographics, and by the pragmatic style of
@@ -94,12 +94,12 @@ underlying material:
 - a **corpus comparison** between DECTE (Tyneside dialectal /
   interview-style English) and VCTK 0.92 (a standard-accent
   English control), holding the detector and generator fixed;
-- a **generator comparison** between XTTS v2 [Casanova2024_XTTS]
-  and OpenVoice v2 [Qin2023_OpenVoice] under identical
+- a **generator comparison** between XTTS v2 \cite{Casanova2024_XTTS}
+  and OpenVoice v2 \cite{Qin2023_OpenVoice} under identical
   evaluation conditions;
 - a **cross-detector replication** using a hand-crafted-feature
   LFCC + Logistic Regression classifier alongside the primary
-  AuralGuard-AASISTPP wrapper around AASIST [Jung2022_AASIST];
+  AuralGuard-AASISTPP wrapper around AASIST \cite{Jung2022_AASIST};
   and
 - a **controlled adaptation experiment** — mitigation v2, a
   partial-backbone fine-tune of the primary detector on a
@@ -149,7 +149,7 @@ verified in Chapter 4. In brief:
   represent two different design philosophies inside the
   contemporary zero-shot voice-cloning space.
 - **Two detectors.** A primary AuralGuard-AASISTPP wrapper
-  around the AASIST backbone [Jung2022_AASIST] and a secondary
+  around the AASIST backbone \cite{Jung2022_AASIST} and a secondary
   LFCC + Logistic Regression classifier are used together
   specifically so that a same-direction finding on both can rule
   out the interpretation that a given result is an
@@ -210,9 +210,9 @@ a standalone contribution.
 The thesis does not claim any of these as first-of-a-kind
 results. Cross-domain robustness for anti-spoofing has already
 been established in the recent literature
-[Li2024_CrossDomainADD] [Muller2024_HarderDifferent]; dialectal
+\cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}; dialectal
 speech-technology bias has already been documented for automatic
-speech recognition [Koenecke2020_ASRDisparities]. What this
+speech recognition \cite{Koenecke2020_ASRDisparities}. What this
 thesis contributes is the specific bridge between those two
 existing concerns, at the specific scope of the corpora,
 generators, and detectors described in Chapter 3.

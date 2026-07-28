@@ -250,7 +250,7 @@ claims this thesis therefore explicitly does not make.
 
 ## 8.7 Threats to validity
 
-Standard four-plus-one categories [citation needed], each
+Standard four-plus-one categories \cite{ShadishCookCampbell2002_Validity}, each
 grounded in a specific Chapter 5–7 caveat.
 
 ### 8.7.1 Construct validity

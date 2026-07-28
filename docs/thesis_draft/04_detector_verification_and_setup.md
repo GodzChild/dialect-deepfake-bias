@@ -47,7 +47,7 @@ DECTE / VCTK numbers were interpreted.
 ## 4.2 The original checkpoint-loading issue
 
 The primary detector used in this thesis is the AuralGuard-AASISTPP
-wrapper around the AASIST backbone [citation needed], described in
+wrapper around the AASIST backbone \cite{Jung2022_AASIST}, described in
 Chapter 3, Section 3.4.1. The pre-trained checkpoint
 `auralguard-aasistpp/results/final_accent_globe_wavefake_balanced_full/
 best.pt` stores 235 named tensors, all of which are namespaced under
@@ -137,7 +137,7 @@ convention
 
 > **higher score → more likely bonafide (real)**.
 
-This is the ASVspoof convention [citation needed] and it is the
+This is the ASVspoof convention \cite{Todisco2019_ASVspoof} and it is the
 convention every EER, AUC, and confidence interval in this thesis
 is computed under. Getting the direction wrong is a classic silent
 bug: EER and AUC still compute, but AUC drops below 0.5 and the
