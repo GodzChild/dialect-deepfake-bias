@@ -1,0 +1,303 @@
+# Chapter 9 — Conclusion and Future Work
+
+*Draft. Written to be read by the thesis supervisor first, then polished
+into final prose. No new results introduced; no new citations added.
+Every claim is a summary of a chapter already committed.*
+
+---
+
+## 9.1 Chapter overview
+
+This chapter closes the thesis. It summarises what was done, answers
+the four research questions from Chapter 1, restates the main
+contributions, records the practical implications for
+anti-spoofing evaluation, notes the limitations that already
+appear in Chapter 8, and lists the future-work directions that the
+findings of Chapters 5–7 most naturally invite.
+
+---
+
+## 9.2 Summary of the thesis
+
+The motivation for the thesis was that modern audio deepfake
+detectors, though reported to reach very low error rates on
+their own benchmark distributions, may not behave reliably under
+dialect- or domain-shifted input, or under different
+spoofing-generator systems than the ones they were designed and
+evaluated against. Dialect / accent-related reliability issues
+have already been documented for automatic speech recognition
+(Chapter 2, Section 2.6); this thesis asks whether analogous
+concerns can be measured for audio deepfake detection, and how
+those concerns interact with the choice of spoof generator.
+
+The study design combined four elements:
+
+- **Two speech corpora** — Tyneside dialectal DECTE and
+  loose-English-accent VCTK 0.92 as a standard-accent control
+  (Chapter 3, Section 3.2).
+- **Two spoof generators** — XTTS v2 (end-to-end zero-shot
+  cloning) and OpenVoice v2 (base TTS plus tone-colour
+  conversion) (Chapter 3, Section 3.3).
+- **Two detectors** — the AuralGuard-AASISTPP wrapper around
+  AASIST (primary; verified in Chapter 4), and a hand-crafted
+  LFCC + Logistic Regression classifier (secondary,
+  architecturally very different, used specifically for
+  cross-architecture replication; Chapter 3, Section 3.4).
+- **A controlled AASIST mitigation** — partial-backbone
+  fine-tuning on a leakage-safe DECTE speaker split, evaluated
+  on a held-out DECTE test slice and on a VCTK
+  out-of-training-domain guardrail (Chapter 6).
+- **A subgroup diagnostic layer** — descriptive per-metadata
+  view of the same mitigation on the DECTE test slice
+  (Chapter 7).
+
+Every headline quantity in the thesis was reported with a
+95 % non-parametric bootstrap confidence interval, computed
+under a single protocol (1000 iterations, seed 42; Chapter 3,
+Section 3.6).
+
+---
+
+## 9.3 Answers to research questions
+
+The four research questions from Chapter 1 are answered by the
+committed empirical chapters as follows.
+
+**RQ1 — Does dialectal / domain-shifted speech affect audio
+deepfake detection performance?**
+
+Yes, for XTTS v2. Under both the primary AuralGuard-AASISTPP
+detector and the secondary LFCC + Logistic Regression detector,
+the DECTE XTTS EER was substantially higher than the VCTK XTTS
+EER, and the DECTE-minus-VCTK gap 95 % bootstrap CI lay entirely
+above zero on both detectors. This is the *dialect / domain gap*
+result. It is framed as a "dialect / domain gap" rather than a
+"pure dialect gap" because DECTE and VCTK differ on multiple
+axes simultaneously (Chapter 8, Section 8.6).
+
+**RQ2 — Does the effect of dialect / domain shift interact with
+the choice of spoof generator?**
+
+Yes. Holding the detector, bonafide pool, audio preprocessing,
+and evaluation protocol fixed, swapping XTTS v2 for OpenVoice v2
+reversed the sign of the DECTE-vs-VCTK EER gap. For OpenVoice v2,
+VCTK was the harder corpus. Both detectors showed the reversal at
+95 %. This *generator-specific corpus interaction* rules out any
+reading of the RQ1 result as evidence that DECTE is uniformly
+harder for anti-spoofing than VCTK, and it is the strongest
+argument in the thesis against a single-number "harder corpus"
+narrative (Chapter 5, Sections 5.5 – 5.6; Chapter 8, Section 8.3).
+
+**RQ3 — Can a conservative, lightweight adaptation of the
+detector reduce the observed dialect / domain gap without
+regressing on out-of-training-domain speech?**
+
+Yes, for the DECTE XTTS setting on the primary detector.
+Mitigation v2 — a *controlled adaptation* consisting of
+partial-backbone unfreezing of the last heterogeneous-GAT stage
+of AASIST plus the three AuralGuard task heads (approximately
+10.5 % of the model's total parameters trainable) — significantly
+reduced the DECTE XTTS EER on the held-out DECTE test slice
+(paired-bootstrap CI on the delta entirely below zero), did not
+significantly regress on the VCTK XTTS guardrail (delta CI
+included zero), and passed the in-domain sanity check from
+Chapter 4 (Chapter 6, Sections 6.6 – 6.8). Chapter 7 added a
+descriptive per-subgroup view showing that every main-table
+subgroup on the held-out slice improved after mitigation, with
+substantial spread in improvement magnitude.
+
+**RQ4 — Do the main corpus-gap patterns persist across detector
+architectures?**
+
+Yes, for both directions. The DECTE > VCTK XTTS gap and the
+VCTK > DECTE OpenVoice reversal both reproduced under the
+LFCC + LR detector, with 95 % bootstrap CIs on their respective
+sides of zero (Chapter 5, Sections 5.4, 5.6). The
+*cross-detector replication* rules out the reading that either
+finding is a specific quirk of the AASIST graph-attention
+architecture.
+
+---
+
+## 9.4 Main contributions
+
+Restated from the writing plan; each is anchored in the
+committed chapters that produced it.
+
+1. **A DECTE–VCTK evaluation benchmark for dialect / domain
+   effects on audio deepfake detection.** A leakage-safe,
+   matched-N, bootstrap-supported protocol for evaluating an
+   anti-spoofing detector on Tyneside dialectal speech against a
+   standard-accent VCTK control, with per-cell 95 % CIs and
+   paired-original bonafide selection (Chapters 3, 5).
+2. **A cross-generator finding.** XTTS v2 shows a positive
+   DECTE − VCTK EER gap; OpenVoice v2 reverses the direction.
+   The two generators do not fail the detector the same way, and
+   the reversal cannot be explained as a dialect effect
+   (Chapter 5).
+3. **Cross-detector replication.** Both the XTTS gap and the
+   OpenVoice reversal reproduce on a hand-crafted-feature +
+   Logistic-Regression detector — an architecturally very
+   different second detector — with same-direction CIs. The
+   direction split by generator is therefore not specific to the
+   AASIST architecture (Chapter 5).
+4. **A statistically supported controlled adaptation.** A
+   conservative partial-backbone unfreeze of the AuralGuard-
+   AASISTPP detector significantly reduces held-out DECTE XTTS
+   EER without a statistically significant VCTK regression and
+   without failing the in-domain sanity check (Chapter 6).
+5. **Sociolinguistic subgroup diagnostics.** On the held-out
+   DECTE slice, mitigation v2 improves every main-table subgroup
+   (gender, age band, recording era), with substantial spread in
+   magnitude. Reported as descriptive diagnostics, not a formal
+   fairness audit (Chapter 7).
+
+The associated pipeline verification (Chapter 4), the
+merge-safe manifest / three-environment separation
+(Chapter 3, Section 3.9), and the commit-to-Entry
+traceability from Entry 1 through Entry 11 are treated as
+methodology and reproducibility infrastructure rather than as
+headline contributions.
+
+---
+
+## 9.5 Practical implications
+
+The four narrow takeaways for anti-spoofing evaluation practice
+from Chapter 8, Section 8.8, are worth restating briefly at
+the end of the thesis.
+
+- **Detectors should be evaluated on diverse real speech, not
+  only on the benchmark-standard speech they were tuned
+  against.** Strong in-domain performance did not guarantee
+  reliable performance under DECTE XTTS conditions.
+- **Generator-specific testing matters.** A single-generator
+  evaluation would not have surfaced the OpenVoice reversal
+  reported in Chapter 5. Any anti-spoofing benchmark that
+  reports one generator's error rate — even on a diverse
+  corpus — will underestimate the joint corpus × generator
+  interaction that determines real behaviour.
+- **Strong in-domain performance is not enough.** In-domain
+  sanity checks (Chapter 4) protect against loader / preprocessing
+  bugs but do not guarantee robustness under domain shift or
+  generator shift. They are necessary but not sufficient.
+- **Adaptation can help, but must be checked with guardrails.**
+  The mitigation in Chapter 6 satisfies its success criteria only
+  because both an out-of-training-domain guardrail (VCTK) and an
+  in-domain sanity guardrail were measured alongside the
+  target-corpus improvement. Mitigation studies that report only
+  the target-corpus improvement risk silently displacing errors
+  elsewhere.
+
+None of these takeaways constitute a deployment recommendation.
+They are process-level notes about how to evaluate anti-spoofing
+detectors more carefully than a single benchmark number.
+
+---
+
+## 9.6 Limitations
+
+Chapter 8 covers the limitations at length; this section restates
+them at conclusion-length granularity.
+
+- DECTE and VCTK differ on multiple axes at once — dialect,
+  channel, recording style, age distribution, transcript
+  pipeline — so results are best described as a *dialect /
+  domain gap* rather than a pure dialect effect.
+- Only two detectors were evaluated (the primary AASIST-family
+  detector and the secondary LFCC + LR baseline). Whether the
+  findings generalise to other detector families is not
+  established here.
+- Only two spoof generators were evaluated (XTTS v2 and
+  OpenVoice v2). The generator-specific corpus interaction may
+  or may not replicate under other zero-shot voice-cloning
+  systems.
+- The subgroup diagnostic in Chapter 7 is small-N (16 held-out
+  DECTE speakers, per-subgroup counts in the 10–40 range) and
+  does not carry per-subgroup confidence intervals. It is
+  diagnostic, not a formal fairness audit.
+- The mitigation is *AASIST-only* and *XTTS-only* by design; it
+  does not address the OpenVoice failure mode of Chapter 5, and
+  it was not replicated on the secondary detector.
+- The mitigated checkpoint is not a production-ready detector.
+  Residual EER on DECTE XTTS is still well above any operational
+  usability threshold, and further evaluation would be required
+  before any deployment claim could be made.
+
+---
+
+## 9.7 Future work
+
+The findings and limitations above naturally suggest several
+directions for follow-up work. In rough priority order:
+
+- **LFCC + LR mitigation replication.** Chapter 6's mitigation
+  was evaluated only on the primary AASIST detector. Repeating
+  the same mitigation protocol (on the same DECTE speaker split)
+  for the secondary LFCC + LR classifier would extend the
+  cross-detector replication story of Chapter 5 to the
+  mitigation story of Chapter 6.
+- **Speaker-block bootstrap or speaker-level confidence
+  intervals.** The bootstrap CIs used throughout Chapters 5–7
+  resample at the file level. At 16–20-speaker slice sizes, a
+  speaker-block bootstrap would produce wider and more honest
+  CIs and would let per-subgroup effects be reported with
+  proper uncertainty bounds.
+- **More spoof generators.** Extending the 2 × 2 corpus ×
+  generator design with additional recent voice-cloning systems
+  (for example RVC, StyleTTS 2, VALL-E-family systems, or
+  Voicebox-family systems) would test whether the
+  generator-specific corpus interaction observed for OpenVoice
+  v2 is unique to that system or a more general phenomenon.
+- **More dialect and accent corpora.** Extending the corpus
+  dimension beyond DECTE and VCTK — for example to Scottish,
+  Irish, Northern English, Indian English, or L2-English
+  speech — would let the "dialect / domain gap" language
+  narrow toward specific accent contributions rather than
+  bulk corpus differences.
+- **A pre-picked target-set generation protocol.** The
+  Chapter 5 VCTK generator subsets share 80 of 120 source
+  originals rather than all 100. A small change to the
+  generation pipeline that pre-selects target utterances once
+  per corpus (before either generator runs) would give
+  truly-paired XTTS-vs-OpenVoice comparisons and further
+  tighten the CI on generator-vs-generator differences.
+- **Human perceptual naturalness study.** This thesis reports
+  detector performance, not human-perceptual quality
+  (Chapter 8, Section 8.7.1). A companion human-listener
+  study would measure whether the OpenVoice failure mode
+  observed for the detector also corresponds to a specific
+  human-perceptual quality difference against DECTE and VCTK.
+- **Formal fairness audit under larger, balanced metadata.**
+  Chapter 7 was explicit that its per-subgroup view is
+  descriptive, not a fairness audit. A future study with a
+  demographically balanced evaluation corpus, per-subgroup
+  bootstrap CIs, and pre-specified fairness definitions could
+  make the fairness claims the current thesis deliberately
+  avoids.
+- **Robustness to compression, noise, and channel effects.**
+  All audio in this thesis is 16 kHz WAV or FLAC without
+  additional degradation. Extending evaluation to compressed
+  audio (MP3, Opus), telephone-band audio, ambient noise, and
+  social-media re-encoding transformations would move the
+  study closer to realistic deployment conditions.
+
+None of these directions are prerequisites for the current
+thesis' claims; they are extensions that would broaden the
+scope of the findings' external validity.
+
+---
+
+## 9.8 Final conclusion
+
+The results suggest that audio deepfake detector reliability
+depends jointly on corpus / domain, spoof generator, and
+detector architecture. Dialect / domain speech can expose
+weaknesses, but generator-specific interactions can change the
+direction of those weaknesses. Targeted adaptation can reduce
+one clear gap, but further evaluation is needed before such
+systems can be treated as robust in real-world settings.
+
+---
+
+*End of Chapter 9 draft.*
