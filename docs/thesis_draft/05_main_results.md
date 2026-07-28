@@ -36,11 +36,11 @@ descriptive of the results themselves; the framing of what these
 results mean for the thesis' broader questions is expanded in
 Chapter 8 (Discussion & Limitations).
 
-This chapter is the central evidence chapter of the thesis. Its
-purpose is not only to report detector error rates, but to show
-that the direction of the corpus gap depends on the spoof
-generator. Therefore, the chapter separates the XTTS and OpenVoice
-results before combining them in the final 2 × 2 table.
+This chapter carries the central evidence of the thesis. It does
+more than report detector error rates: it shows that the direction
+of the corpus gap depends on the spoof generator. That is why the
+XTTS and OpenVoice results are reported separately before being
+combined in the final 2 × 2 table.
 
 ---
 
@@ -112,11 +112,10 @@ intervals are:
 
 The DECTE-minus-VCTK gap is **+12.80 percentage points, with 95 %
 bootstrap CI [+6.13, +22.07] pp**. The full CI lies above zero.
-This is the load-bearing quantitative result behind RQ1: under a
-shared detector and a shared generator, the corpus difference
-between Tyneside DECTE and standard-accent VCTK produces a
-statistically supported difference in detector error rate at
-95 %.
+This is the primary quantitative result behind RQ1: with the
+detector and generator held fixed, the corpus difference between
+Tyneside DECTE and standard-accent VCTK produces a statistically
+supported difference in detector error rate at 95 %.
 
 Two things are worth flagging about the way this is stated:
 
@@ -207,7 +206,7 @@ The point estimates and 95 % bootstrap CIs are:
 The DECTE-minus-VCTK gap is **−26.74 percentage points, with 95 %
 bootstrap CI [−35.69, −18.26] pp**. The full CI lies below zero.
 
-This is the second load-bearing quantitative result of the
+This is the second central quantitative result of the
 chapter, and it goes in the opposite direction from Section 5.3.
 Under the same detector, the same bonafide pools, the same audio
 preprocessing, and the same evaluation protocol, OpenVoice v2
@@ -218,7 +217,7 @@ the opposite direction.
 
 Interpreted structurally, this rules out an explanation in which
 DECTE is uniformly "harder" than VCTK for anti-spoofing
-irrespective of what is being detected. If DECTE were uniformly
+regardless of what is being detected. If DECTE were uniformly
 harder, then holding the detector fixed and swapping the generator
 would preserve the sign of the gap — it would only shift its
 magnitude. The observed sign flip means the interaction between
@@ -231,7 +230,7 @@ explicitly because they might otherwise look like reporting errors:
 
 - **The very low AUC for VCTK OpenVoice (0.1643) should not be
   interpreted as a score-direction bug.** Chapter 4 verified the
-  score convention. Instead, this indicates strong mis-ranking:
+  score convention. Instead, this shows strong mis-ranking:
   many OpenVoice-spoofed VCTK samples received higher bonafide
   scores than the corresponding real samples.
 - **The two arms' bootstrap CIs do not overlap on the raw EER
@@ -317,7 +316,7 @@ Two structural properties of this table are worth naming:
   −42.62 pp, ~16 pp difference) than for XTTS (+12.80 vs
   +12.44 pp, ~0.4 pp difference). For the argument in this
   chapter, only the sign and the 95 %-CI-excludes-zero property
-  are load-bearing.
+  are central.
 
 ---
 
@@ -349,7 +348,7 @@ questions the chapter set out to address.
   headline findings of the chapter therefore do not depend on the
   specific AASIST architecture.
 
-Taken together, these three answers support the thesis' main
+Put together, these three answers back the thesis' main
 descriptive claim about detector behaviour: **detector reliability
 depends jointly on the corpus / domain of the input and on the
 generator that produced the spoof.** Neither factor alone

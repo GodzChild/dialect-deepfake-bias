@@ -19,12 +19,12 @@ findings of Chapters 5–7 most naturally invite.
 
 ## 9.2 Summary of the thesis
 
-The motivation for the thesis was that modern audio deepfake
-detectors, though reported to reach very low error rates on
-their own benchmark distributions, may not behave reliably under
-dialect- or domain-shifted input, or under different
-spoofing-generator systems than the ones they were designed and
-evaluated against. Dialect / accent-related reliability issues
+The thesis was motivated by a simple concern. Modern audio
+deepfake detectors report very low error rates on their own
+benchmark distributions, but may not behave as reliably on
+dialect- or domain-shifted input, or against spoofing-generator
+systems other than the ones they were designed and evaluated
+against. Dialect / accent-related reliability issues
 have already been documented for automatic speech recognition
 (Chapter 2, Section 2.6); this thesis asks whether analogous
 concerns can be measured for audio deepfake detection, and how
@@ -189,7 +189,7 @@ the end of the thesis.
   the target-corpus improvement risk silently displacing errors
   elsewhere.
 
-None of these takeaways constitute a deployment recommendation.
+None of these takeaways are a deployment recommendation.
 They are process-level notes about how to evaluate anti-spoofing
 detectors more carefully than a single benchmark number.
 
@@ -290,13 +290,13 @@ scope of the findings' external validity.
 
 ## 9.8 Final conclusion
 
-The results suggest that audio deepfake detector reliability
-depends jointly on corpus / domain, spoof generator, and
-detector architecture. Dialect / domain speech can expose
-weaknesses, but generator-specific interactions can change the
-direction of those weaknesses. Targeted adaptation can reduce
-one clear gap, but further evaluation is needed before such
-systems can be treated as robust in real-world settings.
+Taken as a whole, the results point to audio deepfake detector
+reliability depending jointly on corpus / domain, spoof generator,
+and detector architecture. Dialect / domain speech can expose
+weaknesses, but generator-specific interactions can flip the
+direction of those weaknesses. Targeted adaptation can shrink one
+clear gap, but more evaluation is needed before such systems can
+be treated as robust in real-world settings.
 
 ---
 

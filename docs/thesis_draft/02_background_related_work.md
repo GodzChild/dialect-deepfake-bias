@@ -1,10 +1,9 @@
 # Chapter 2 — Background and Related Work
 
 *Draft. Written to be read by the thesis supervisor first, then polished
-into final prose. Every paper-specific claim carries a `[citation
-needed]` placeholder; the working bibliography for this thesis is
-tracked separately and the correct reference will be slotted in
-during the final polish pass.*
+into final prose. Paper-specific claims are keyed to short citation
+keys (e.g. `\cite{Todisco2019_ASVspoof}`) that resolve against
+`references.bib`.*
 
 ---
 
@@ -84,12 +83,12 @@ and for *algorithm or source recognition* — the task of
 identifying which specific synthesis algorithm produced a given
 spoof. The algorithm-recognition framing is directly relevant to
 this thesis' RQ2, which asks whether the choice of spoof
-generator materially changes detector behaviour.
+generator clearly changes detector behaviour.
 
 A recurring finding in the ASVspoof and ADD literatures is that
-detectors that perform very well on the challenge's own evaluation
-set can still perform noticeably worse on unseen spoofing
-attacks, unseen source datasets, or unseen channel conditions
+detectors doing very well on the challenge's own evaluation set
+can still slip noticeably on unseen spoofing attacks, unseen
+source datasets, or unseen channel conditions
 \cite{Li2024_CrossDomainADD}. This *cross-condition* or *cross-domain*
 generalisation problem is what Section 2.5 discusses in more
 depth; it is also the problem that most closely maps onto this
@@ -446,8 +445,8 @@ DECTE material.
 
 ## 2.8 Research gap
 
-Combining the four background sections above, the specific gap
-this thesis addresses can be stated concisely.
+Taken together, the four background sections above let the
+specific gap this thesis addresses be stated concisely.
 
 Existing audio-deepfake work has studied:
 
@@ -466,9 +465,9 @@ documented that ASR systems can perform unevenly across
 dialects and demographic subgroups (Koenecke et al.;
 Serditova / Tang; accent-ASR benchmarks).
 
-What has not been deeply examined is the intersection of these
+What has not been closely examined is the intersection of these
 two literatures: **dialect / domain speech as a reliability
-factor specifically for audio deepfake detection**. This thesis
+factor for audio deepfake detection specifically**. This thesis
 addresses that gap in two connected ways.
 
 First, it evaluates whether the well-documented ASR-side pattern
@@ -499,9 +498,9 @@ cross-domain robustness as an anti-spoofing problem — the
 Cross-Domain ADD and Harder or Different papers already do that
 — and it does not claim to be the first to identify dialectal
 speech-technology bias — the ASR-bias literature does that.
-What it contributes is the specific bridge between those two
-existing concerns, at the specific scope of the corpora,
-generators, and detectors described in Chapter 3.
+What it adds is the bridge between those two existing concerns,
+within the scope of the corpora, generators, and detectors
+described in Chapter 3.
 
 ---
 

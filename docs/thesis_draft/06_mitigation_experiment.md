@@ -18,7 +18,7 @@ descriptive: it measured what happens without any intervention.
 This chapter asks a different question. Given the XTTS
 dialect / domain gap of Chapter 5, is that gap something the
 detector can be *adapted* to reduce, or is it a fixed property of
-the detector–corpus combination? Concretely, can a small,
+the detector–corpus combination? Specifically, can a small,
 controlled adaptation of the primary detector shrink the DECTE
 XTTS EER on a held-out DECTE test slice without hurting its
 out-of-training-domain performance on VCTK?
@@ -178,7 +178,7 @@ split, same hyperparameters, same early-stopping criterion — but
 adds a targeted increase in trainable capacity through
 *partial-backbone unfreezing*.
 
-Instead of freezing the entire AASIST backbone, v2 additionally
+Instead of freezing the entire AASIST backbone, v2 also
 un-freezes the five modules corresponding to the *final*
 heterogeneous graph-attention (H-GAT) stage of the AASIST
 backbone plus its two associated pooling layers and its
@@ -195,12 +195,12 @@ All five modules feed the concatenated pooled features that the
 (and the two auxiliary heads). Chapter 3, Section 3.4.1 documents
 that the wrapper reads `result[0]` (the last-hidden features)
 from the AASIST backbone, so these five modules are the last
-part of the backbone that materially affects what the wrapper's
+part of the backbone that clearly affects what the wrapper's
 binary head sees. Everything upstream of them — the raw-waveform
 SincConv front-end, the encoder blocks, the first-GAT stage, and
 the first heterogeneous GAT stage — is left frozen.
 
-Concretely, at the start of the v2 training run, the fine-tuning
+Specifically, at the start of the v2 training run, the fine-tuning
 script reports:
 
 - **31,372 trainable parameters**, and
@@ -362,7 +362,7 @@ budget the fine-tune was allowed to move (~ 10.5 % of the model).
 This reduces the concern that the DECTE improvement in Section 6.6
 came at the cost of catastrophic forgetting. In combination with
 the VCTK guardrail of Section 6.7, the picture is that the
-mitigation shifted the model's DECTE XTTS behaviour materially
+mitigation shifted the model's DECTE XTTS behaviour noticeably
 while leaving both a same-generator out-of-training-domain slice
 (VCTK XTTS) and the original training-distribution validation
 slice essentially intact.
@@ -399,7 +399,7 @@ training-distribution validation set, the mitigated checkpoint
 retained PASS status under the verification threshold from
 Chapter 4.
 
-Taken together, these results support the RQ3 claim that **a
+Put together, these results back the RQ3 claim that **a
 conservative, lightweight adaptation of the detector can reduce
 the observed dialect / domain XTTS gap without regressing on
 the out-of-training-domain data slice tested**. In particular,
@@ -428,14 +428,14 @@ Three things this chapter deliberately does **not** claim:
   diagnostic evidence, not as a fairness audit or a demographic-
   bias remedy.
 
-The role of Chapter 6 in the thesis' overall argument is
-therefore modest: it shows that the DECTE XTTS gap of Chapter 5
-is at least partially *reducible* by a controlled adaptation of
-the primary detector, under conditions that also protect against
-the two most likely artefacts (in-training-domain forgetting and
-out-of-training-domain regression). It does not attempt to close
-the gap entirely, and it does not attempt to demonstrate the
-same for OpenVoice.
+Chapter 6's role in the thesis' overall argument is therefore
+modest: it shows that the DECTE XTTS gap of Chapter 5 is at
+least partly *reducible* by a controlled adaptation of the
+primary detector, under conditions that also protect against
+the two most likely artefacts — in-training-domain forgetting
+and out-of-training-domain regression. It does not try to close
+the gap entirely, and it does not try to show the same for
+OpenVoice.
 
 ---
 
@@ -473,7 +473,7 @@ Chapter 5-scope limitations.
   order of ± 10 pp on each individual arm. The DECTE
   improvement CI ([−28.49, −9.30] pp) is entirely below zero,
   but the width is substantial. A larger held-out DECTE test
-  slice would materially tighten this CI.
+  slice would noticeably tighten this CI.
 - **Not a production-ready detector.** The mitigated v2
   checkpoint achieves 23.26 % EER on DECTE XTTS and 19.17 %
   on VCTK XTTS. Both remain far above the training-distribution

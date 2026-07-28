@@ -16,13 +16,13 @@ detector's behaviour on specific audio*. If the detector is not the
 one it is stated to be, or if the score it produces is not what the
 metric functions think it is, then every EER, AUC, and confidence
 interval derived from it is meaningless. Detector verification is
-therefore not a formality: it is a load-bearing precondition for
-the entire empirical part of the thesis.
+not a formality here — it is a requirement for everything else
+in the empirical part of the thesis.
 
-Two failure modes are especially insidious for anti-spoofing
-evaluation, because they can be silent — the pipeline appears to
-run to completion and produces plausible-looking numbers even
-though the underlying detector is broken:
+Two failure modes are especially dangerous here, because they
+can be silent — the pipeline runs to completion and produces
+plausible-looking numbers even though the underlying detector is
+broken:
 
 1. **A checkpoint that fails to load correctly** but does not raise
    an error. PyTorch's `load_state_dict(state, strict=False)`
@@ -218,7 +218,7 @@ loader really does put the trained weights in the right places and
 the score direction really does match the metric convention, then
 scoring the corrected pipeline on the checkpoint's own training-
 distribution validation set should reproduce the training-time
-validation EER. This is the load-bearing test.
+validation EER. This is the central test.
 
 ### 4.6.1 Reference validation set
 
@@ -297,7 +297,7 @@ archived in `results/indomain_sanity_metrics.csv`.
 Once the corrected pipeline is shown to reproduce the training-
 time validation performance on the training-distribution
 validation set, the interpretation of the downstream DECTE / VCTK
-numbers changes materially. Before the sanity check, an elevated
+numbers changes noticeably. Before the sanity check, an elevated
 EER on DECTE would be indistinguishable from a bug (as the
 0.32-AUC run in Section 4.2 illustrates). After the sanity check,
 an elevated EER on DECTE cannot be a bug of the same kind: the
@@ -415,7 +415,7 @@ has several limits worth flagging up front.
 - **No formal float / dtype audit.** All scoring is done in
   `float32` audio → `float32` features → `float64` probability.
   The occasional `numpy` warning about mixed precision has been
-  eyeballed and is not load-bearing, but a full numerical audit
+  eyeballed and is not central, but a full numerical audit
   of the pipeline is not part of this thesis.
 - **Verification does not address the audio-quality confound.**
   Even a perfectly-loaded detector will react differently to

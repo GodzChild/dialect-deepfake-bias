@@ -167,7 +167,7 @@ DECTE test slice: `female` and `male`. (The `mixed` and
 | male | 26 | 26 | 38.46 | 11.54 | **−26.92** |
 
 Both subgroups improved after mitigation, and the improvement
-size differed materially between them (−6.41 pp for female, −26.92
+size differed clearly between them (−6.41 pp for female, −26.92
 pp for male). The baseline EER was also different across the two
 subgroups on this slice: the detector's baseline errors were more
 concentrated on the male-labelled files than on the female-labelled
@@ -257,7 +257,7 @@ noticeably higher on the older eras (`1960s-1970s` at 68.75 %,
 `2010-2011` at 25.00 %). The mitigation reduced this baseline
 spread substantially — after mitigation, the `1990s` and
 `2007-2008` eras are both in the single digits, while the
-`1960s-1970s` era remains materially higher (47.92 %).
+`1960s-1970s` era remains clearly higher (47.92 %).
 
 A cautious reading of this table: on this 16-speaker slice, the
 recording-era axis is where the largest per-subgroup differences
@@ -342,15 +342,15 @@ Sections 7.5–7.8:
   statistically supported overall improvement, this rules out one
   concerning scenario — that the overall improvement was driven by
   large gains in one or two subgroups while other subgroups got
-  materially worse.
+  clearly worse.
 - **The size of the improvement was uneven across metadata
   subgroups.** The spread from −5.00 pp to −34.38 pp across the
   main-table recording-era rows, and the spread from −6.41 pp to
   −26.92 pp across the two gender rows, is substantial. The
   overall −17.44 pp average hides this spread.
 
-Together, these two observations support one cautious diagnostic
-conclusion for the chapter:
+Between them, these two observations support one cautious
+diagnostic conclusion for the chapter:
 
 > **Error concentration and mitigation benefit were not uniform
 > across DECTE metadata groups on the 16-speaker held-out test
@@ -437,13 +437,12 @@ Chapter 6 limitations.
   meaning. None of these are provided in this chapter, and the
   chapter therefore explicitly does not make fairness claims.
 
-The role of Chapter 7 in the thesis' overall argument is
-therefore modest: it complements Chapter 6's overall mitigation
-result with a subgroup-level view, shows that the improvement
-was directionally uniform but magnitudinally uneven, and flags
-where a follow-up study might look. It is not the last word on
-detector fairness for dialectal speech, and it is not intended
-to be.
+Chapter 7's role in the thesis' overall argument is therefore
+modest: it complements Chapter 6's overall mitigation result
+with a subgroup-level view, shows that the improvement was
+directionally uniform but magnitudinally uneven, and flags where
+a follow-up study might look. It is not the last word on detector
+fairness for dialectal speech, and it is not meant to be.
 
 ---
 

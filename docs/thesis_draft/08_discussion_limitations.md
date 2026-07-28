@@ -103,7 +103,7 @@ not claim the OpenVoice reversal generalises to every anti-spoofing
 detector or every recording condition. Different detectors trained
 on different data may exhibit very different patterns. What this
 thesis establishes is that under the two detectors and two corpora
-tested, generator choice materially changes not only the size of
+tested, generator choice clearly changes not only the size of
 the corpus gap but its sign.
 
 ---
@@ -294,7 +294,7 @@ bonafide speech during earlier training, but not to the held-out
 DECTE XTTS spoof condition evaluated in the mitigation
 experiment. Therefore, the mitigation result should be
 interpreted as adaptation under partial corpus familiarity,
-not as performance on a completely unseen corpus. Concretely,
+not as performance on a completely unseen corpus. In detail,
 the AuralGuard training CSV contains approximately 8,057 DECTE
 rows (Chapter 3, Section 3.4.2 filter accounting); the 16
 DECTE speakers held out for the mitigation test slice were
@@ -406,7 +406,7 @@ practice, following from the four main findings above.
   mitigation study that reports only its target-corpus
   improvement risks silently displacing errors elsewhere.
 
-None of these takeaways constitute a deployment recommendation.
+None of these takeaways are a deployment recommendation.
 They are process-level notes about how to evaluate anti-spoofing
 detectors more carefully than a single benchmark number.
 
@@ -414,9 +414,9 @@ detectors more carefully than a single benchmark number.
 
 ## 8.9 What this thesis does not claim
 
-Five explicit non-claims. Each corresponds to a claim shape a
-reader might infer from the results but that the evidence does
-not support at the strength required.
+Five explicit non-claims. Each corresponds to a claim a reader
+might infer from the results but that the evidence does not
+support at the strength required.
 
 - **This thesis does not prove that dialect alone causes detector
   failure.** DECTE and VCTK differ on five simultaneous axes
@@ -447,10 +447,10 @@ not support at the strength required.
   application-specific cost models, and ongoing monitoring
   against evolving generator technology.
 
-Each of these non-claims is a way of naming a stronger claim the
-evidence *does not* support — so that a downstream reader who
-generalises past the thesis' scope is doing so on their own
-authority, not on the thesis' authority.
+Each of these non-claims names a stronger claim the evidence
+*does not* support — so a downstream reader who generalises
+past the thesis' scope does so on their own authority, not on
+the thesis'.
 
 ---
 

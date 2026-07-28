@@ -64,8 +64,8 @@ rather than sampling-noise intervals.
 ### 3.2.1 DECTE — Diachronic Electronic Corpus of Tyneside English
 
 DECTE is a research-restricted corpus of interview-style speech from
-speakers in the Tyneside region of North-East England [citation
-needed]. It spans three recording eras (1960s–1970s reel-to-reel
+speakers in the Tyneside region of North-East England
+\cite{Corrigan_DECTE}. It spans three recording eras (1960s–1970s reel-to-reel
 material, a 1990s follow-up survey, and a 2007–2011 modern digital
 survey), and the interview genre keeps the acoustic and pragmatic
 style of the recordings quite different from studio-read speech.
@@ -397,7 +397,7 @@ The two detectors differ on almost every axis that could matter:
 A finding that holds on *both* detectors is much less likely to be
 an architecture-specific artefact than a finding that appears on only
 one. This is why cross-detector replication (Chapter 5, Section 5.5)
-is a load-bearing part of the thesis argument.
+is a central part of the thesis argument.
 
 ---
 
@@ -698,11 +698,10 @@ prose (Chapter 7) and by the diagnostic-notes block printed by
 
 ## 3.9 Reproducibility notes
 
-Reproducibility is treated as a first-class property of the
-experimental design rather than as an afterthought. The choices
-below are what make it possible for another researcher to re-run
-any headline number in this thesis from scratch with the committed
-code.
+Reproducibility was built into the experimental design from the
+start, not added on afterwards. The choices below are what let
+another researcher re-run any headline number in this thesis from
+scratch using the committed code.
 
 ### 3.9.1 Environment separation
 

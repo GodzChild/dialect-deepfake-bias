@@ -17,7 +17,7 @@ available voice-cloning systems in the last few years
 pipelines that once required a specialist ML team can now be run
 from open-source libraries with a handful of lines of code, and
 the output quality is high enough that a listener without prior
-context can plausibly mistake it for genuine speech. The
+context could mistake it for genuine speech. The
 detection side of that story has developed in parallel: the
 anti-spoofing and audio-deepfake-detection literature has
 produced a series of shared benchmarks and detector architectures
@@ -38,15 +38,14 @@ perform unevenly on dialectal or non-standard-accent speech
 though almost all of that work is about automatic speech
 recognition rather than about anti-spoofing.
 
-Putting those two literatures next to each other raises a
-natural question that this thesis is built around: if
-anti-spoofing detectors are already known to generalise poorly
-across source datasets in the abstract, and if speech systems
-are already known to behave unevenly across accents in
-transcription tasks, how do audio deepfake detectors behave
-specifically on dialectal / interview-style real speech — and
-does the answer depend on which voice-cloning generator produced
-the spoof they are asked to reject?
+Putting those two literatures next to each other raises the
+question this thesis is built around: anti-spoofing detectors
+already generalise poorly across source datasets in the abstract,
+and speech systems already behave unevenly across accents in
+transcription tasks, but how do audio deepfake detectors behave
+on dialectal, interview-style real speech — and does the answer
+depend on which voice-cloning generator produced the spoof they
+are asked to reject?
 
 ---
 
@@ -75,9 +74,9 @@ corpora used here differ on several axes at once — dialect,
 recording style, channel quality, speaker demographics — the
 observed effect is described throughout the thesis as a
 **dialect / domain gap** rather than as a "pure dialect bias".
-That phrasing is a deliberate discipline: the evidence in this
-thesis supports the former, not the latter, and Chapter 8
-explains at length why.
+The phrasing is deliberate: the evidence in this thesis
+supports the former, not the latter, and Chapter 8 explains
+why in detail.
 
 ---
 
@@ -88,7 +87,7 @@ and generator choice affect an audio anti-spoofing detector's
 error behaviour, and to test whether a small controlled
 adaptation of the detector can reduce the clearest observed gap.
 
-Concretely, the thesis reports a four-part study on the same
+In practice, the thesis reports a four-part study on the same
 underlying material:
 
 - a **corpus comparison** between DECTE (Tyneside dialectal /
@@ -213,9 +212,9 @@ been established in the recent literature
 \cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}; dialectal
 speech-technology bias has already been documented for automatic
 speech recognition \cite{Koenecke2020_ASRDisparities}. What this
-thesis contributes is the specific bridge between those two
-existing concerns, at the specific scope of the corpora,
-generators, and detectors described in Chapter 3.
+thesis adds is the bridge between those two existing
+concerns, within the scope of the corpora, generators, and
+detectors described in Chapter 3.
 
 ---
 
@@ -254,10 +253,10 @@ results in Chapters 5–7 knows what the thesis is *not* claiming.
   noise, social-media re-encoding), and it does not calibrate to
   application-specific cost models.
 
-Each non-claim corresponds to a claim shape the evidence does
-*not* support at the strength required. A reader who would like
-to generalise past the thesis' scope is doing so on their own
-authority, not on the thesis' authority.
+Each non-claim corresponds to a claim the evidence does *not*
+support at the strength required. A reader who wants to
+generalise past the thesis' scope does so on their own
+authority, not on the thesis'.
 
 ---
 
