@@ -194,10 +194,9 @@ thesis is:
   evaluation time).
 
 Sharing preprocessing between the two detectors is what lets the
-cross-architecture replication in Chapter 5 (Sections 5.5, and the
-cross-detector OpenVoice reversal) be interpreted as an
-architecture-level comparison rather than a preprocessing-level
-comparison. If the two detectors saw different audio, any
+cross-architecture replication in Chapter 5 (Sections 5.4 and 5.6)
+be interpreted as an architecture-level comparison rather than a
+preprocessing-level comparison. If the two detectors saw different audio, any
 similarity or difference between them could reflect the audio
 pipeline rather than the model.
 
