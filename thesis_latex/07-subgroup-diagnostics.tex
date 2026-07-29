@@ -2,4 +2,512 @@
 \chapter{Subgroup Diagnostics}
 \label{chap:subgroup-diagnostics}
 
-%% TODO: migrate from docs/thesis_draft/07_subgroup_diagnostics.md
+%% Draft preamble note (kept in source for reference; not rendered):
+%% Written to be read by the thesis supervisor first, then polished into
+%% final prose. All quantitative claims trace back to a specific Entry in
+%% docs/THESIS_FINDINGS_LOG.md and to a specific committed script under
+%% scripts/.
+
+
+\section{Chapter overview}
+\label{sec:subgroup-overview}
+
+Chapter~\ref{chap:mitigation} established that mitigation v2 reduced the AASIST
+detector's DECTE XTTS EER on a held-out DECTE test slice by
+$-17.44$\,pp, with a 95\,\% paired-bootstrap CI of $[-28.49, -9.30]$\,pp,
+and did so without a statistically significant regression on the
+VCTK XTTS guardrail. That result was reported as a \emph{single overall
+number} for the mitigation effect.
+
+This chapter asks a narrower question. The overall $-17.44$\,pp
+improvement is an average across every audio file in the held-out
+DECTE test slice. That average could correspond to a uniform
+per-subgroup improvement, or it could correspond to some subgroups
+improving substantially while others barely move. If the underlying
+distribution of baseline errors was itself uneven --- for example,
+concentrated in a specific age band or recording era --- then a
+subgroup-level view is what makes that visible.
+
+The chapter therefore reports a \textbf{subgroup-level diagnostic view}
+of the mitigation effect on the same 172-file DECTE XTTS test
+slice, broken down by three per-speaker metadata columns:
+\texttt{speaker\_gender}, \texttt{speaker\_age\_group}, and \texttt{speaker\_recording\_era}.
+It does \emph{not} attempt a formal fairness audit, and it does not
+compute per-subgroup bootstrap confidence intervals.
+Section~\ref{sec:subgroup-limitations} discusses why the sample size makes those stronger
+statistical claims out of scope.
+
+
+\section{Why subgroup diagnostics were included}
+\label{sec:subgroup-rationale}
+
+The thesis is framed around dialect / domain effects. Chapters~\ref{chap:main-results}
+and~\ref{chap:mitigation} both treat DECTE as a whole --- a single dialectal / domain-%
+shifted test condition. Corpus-level metrics on DECTE are the
+correct unit of analysis for the RQ1, RQ2, RQ3, RQ4 arguments
+those chapters make.
+
+But corpus-level metrics can also hide uneven error
+concentration. A single overall EER of, say, 40\,\% on 172 files
+can arise from many combinations of per-subgroup EERs: it could
+be roughly 40\,\% everywhere, or it could be, say, 60\,\% on one
+subgroup and 25\,\% on another. The two situations look identical
+at the corpus level but suggest very different pictures of what
+the detector is actually doing.
+
+DECTE metadata gives three coarse metadata axes along which such
+concentration can be described:
+
+\begin{itemize}
+    \item \textbf{Gender} (\texttt{speaker\_gender}) --- recorded per speaker in the
+        DECTE speaker-info files (Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-corpora-decte}).
+    \item \textbf{Age band} (\texttt{speaker\_age\_group}) --- recorded per speaker in
+        10-year bins (16--20, 21--30, ..., 81--90).
+    \item \textbf{Recording era} (\texttt{speaker\_recording\_era}) --- the DECTE
+        interview period the speaker was recorded in (1960s--1970s,
+        1990s, 2007--2008, 2008--2009, 2010--2011).
+\end{itemize}
+
+Reporting per-subgroup EER for both the baseline and the
+mitigated detector, on the same file set, lets a reader see
+\emph{where the improvement lands} and \emph{where baseline errors were
+concentrated}. That is diagnostic information. It is not evidence
+of causal fairness or unfairness, and this chapter does not
+claim to be one.
+
+Two things this chapter deliberately does \textbf{not} do:
+
+\begin{itemize}
+    \item It does not fit a subgroup-conditional model of detector
+        behaviour. Every reported number is a plain per-subgroup EER,
+        computed via the same \texttt{compute\_metrics} function used elsewhere
+        in the thesis (Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-evaluation-protocol}).
+    \item It does not attempt to attribute causation to gender, age, or
+        recording era. The reported differences are descriptive
+        properties of the detector's error distribution on this
+        specific held-out slice; they are not evidence that any given
+        metadata axis \emph{caused} the errors.
+\end{itemize}
+
+
+\section{Diagnostic protocol}
+\label{sec:subgroup-protocol}
+
+The diagnostic follows the protocol laid out in Chapter~\ref{chap:data-methodology},
+Section~\ref{sec:methodology-subgroups}. The salient points are:
+
+\begin{itemize}
+    \item \textbf{Inputs (existing predictions only).} The baseline and
+        mitigated v2 detector prediction CSVs from Chapter~\ref{chap:mitigation} are
+        reused: \texttt{results/mitigation\_v2/baseline\_decte/detector\_predictions.csv}
+        and \texttt{results/mitigation\_v2/mitigated\_decte/detector\_predictions.csv}.
+        No file is rescored; no detector is
+        reloaded; no manifest is modified.
+    \item \textbf{Paired join.} The two prediction CSVs are joined on
+        \texttt{(audio\_path, label)} with \texttt{validate="one\_to\_one"} --- a join
+        that fails loudly if the two files disagree on which audio
+        files were evaluated. This guarantees the subgroup diagnostic
+        compares baseline and mitigated numbers over the same file
+        set.
+    \item \textbf{Matched rows.} The join produces \textbf{172 matched rows} total:
+        \textbf{86 bonafide} matched originals and \textbf{86 XTTS spoof}
+        files. This is the same file set that Chapter~\ref{chap:mitigation}, Section~\ref{sec:mitigation-decte-result}
+        reports the overall mitigation delta on.
+    \item \textbf{Groupings.} Three headline grouping columns are used for
+        the main table: \texttt{speaker\_gender}, \texttt{speaker\_age\_group},
+        \texttt{speaker\_recording\_era}. \texttt{speaker\_id} is reported only as a
+        diagnostic appendix (see Section~\ref{sec:subgroup-low-n}). \texttt{speaker\_ses\_class} is
+        omitted because for DECTE this field is essentially all
+        \texttt{"unknown"} (Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-corpora-decte} caveat).
+    \item \textbf{Main-table threshold.} A subgroup enters the main table
+        only if it has at least \textbf{10 bonafide} and at least \textbf{10
+        spoof} files in the joined slice. Below that, the subgroup is
+        reported as a low-n diagnostic entry and is not used for any
+        headline claim in the chapter (Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-subgroups-threshold}).
+    \item \textbf{Skipped values.} The values \texttt{unknown}, \texttt{mixed}, \texttt{fill\_in},
+        \texttt{""}, and \texttt{nan} are skipped for the headline grouping columns
+        because they represent missing metadata rather than a real
+        subgroup.
+    \item \textbf{No per-subgroup bootstrap CIs.} With $N \leq 40$ files per
+        subgroup, bootstrap CIs on per-subgroup EER would be wide
+        enough that most between-group deltas would sit inside sampling
+        noise. This chapter therefore reports point estimates only, and
+        the wording throughout is descriptive rather than
+        statistical-comparative (see Section~\ref{sec:subgroup-interpretation} and Section~\ref{sec:subgroup-limitations}).
+\end{itemize}
+
+The full per-subgroup CSV (including the low-n table and the
+per-speaker appendix) is written by
+\texttt{scripts/14\_decte\_subgroup\_diagnostics.py} to
+\texttt{results/subgroup\_diagnostics/decte\_subgroup\_metrics.csv}.
+
+
+\section{Overall reference result}
+\label{sec:subgroup-overall}
+
+Before the per-subgroup breakdown, the overall (paired,
+across-all-172-files) result on the joined slice reproduces
+Chapter~\ref{chap:mitigation}'s mitigation number as expected:
+
+\begin{table}[t]
+\centering
+\caption{Overall DECTE XTTS held-out slice: baseline, mitigated v2, and paired delta on the joined slice.}
+\label{tab:subgroup-overall}
+\begin{tabularx}{\linewidth}{X r r r}
+\toprule
+\textbf{Arm} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{EER (\%)} \\
+\midrule
+Baseline & 86 & 86 & 40.70 \\
+Mitigated v2 & 86 & 86 & 23.26 \\
+\textbf{Delta (mitigated $-$ baseline)} & --- & --- & $\mathbf{-17.44}$\,\textbf{pp} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This matches the Chapter~\ref{chap:mitigation} headline delta on the same file set
+and confirms that the subgroup diagnostic is being computed on
+the same joined slice, not on a subtly different subset. The
+95\,\% paired-bootstrap CI on this overall delta --- $[-28.49, -9.30]$\,pp
+--- is reported in Chapter~\ref{chap:mitigation} and is not repeated in the
+per-subgroup tables below, where no per-subgroup CI is claimed.
+
+
+\section{Gender subgroup results}
+\label{sec:subgroup-gender}
+
+Two gender subgroups meet the main-table threshold on the joined
+DECTE test slice: \texttt{female} and \texttt{male}. (The \texttt{mixed} and
+\texttt{unknown} values are skipped per Section~\ref{sec:subgroup-protocol}.)
+
+\begin{table}[t]
+\centering
+\caption{Gender subgroup diagnostics on the joined DECTE XTTS held-out slice. Descriptive only, no per-subgroup CIs.}
+\label{tab:subgroup-gender}
+\begin{tabularx}{\linewidth}{X r r r r r}
+\toprule
+\textbf{Group value} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Baseline EER (\%)} & \textbf{Mitigated v2 EER (\%)} & \textbf{Delta (pp)} \\
+\midrule
+female & 39 & 39 & 30.77 & 24.36 & $-6.41$ \\
+male   & 26 & 26 & 38.46 & 11.54 & $\mathbf{-26.92}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Both subgroups improved after mitigation, and the improvement
+size differed clearly between them ($-6.41$\,pp for female, $-26.92$\,pp
+for male). The baseline EER was also different across the two
+subgroups on this slice: the detector's baseline errors were more
+concentrated on the male-labelled files than on the female-labelled
+files.
+
+\textbf{No fairness claim} is made from these two numbers. In particular:
+
+\begin{itemize}
+    \item The male-vs-female baseline gap ($\sim$7.7\,pp) and the difference in
+        per-subgroup mitigation delta ($\sim$20.5\,pp) are point-estimate
+        differences on subgroups with fewer than 40 files each. Bootstrap
+        CIs on either quantity would be wide.
+    \item The DECTE test slice is a 16-speaker held-out slice; the gender
+        distribution within it is what the deterministic 82 $\rightarrow$ 16 speaker
+        split of Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-split} produced, not a demographically
+        representative sample of Tyneside speakers in general.
+    \item The mitigation was DECTE-and-XTTS-scoped (Chapter~\ref{chap:mitigation}); nothing in
+        this thesis has evaluated whether the same gender pattern
+        reproduces under different generators, different detectors, or
+        larger DECTE slices.
+\end{itemize}
+
+The pattern is worth reporting as \emph{descriptive error concentration}
+that mitigation v2 reduced by different amounts across the two
+subgroups. It is not evidence that the detector is (or is not)
+``biased against'' either subgroup --- the phrasing to avoid is named
+explicitly in Section~\ref{sec:subgroup-interpretation}.
+
+
+\section{Age-group subgroup results}
+\label{sec:subgroup-age}
+
+Three age-band subgroups meet the main-table threshold on the
+joined slice: \texttt{16-20}, \texttt{21-30}, and \texttt{41-50}. (Other age bands
+either had fewer than 10 files per class after the split or were
+labelled \texttt{mixed} / \texttt{unknown} and skipped per Section~\ref{sec:subgroup-protocol}.)
+
+\begin{table}[t]
+\centering
+\caption{Age-band subgroup diagnostics on the joined DECTE XTTS held-out slice. Descriptive only, no per-subgroup CIs.}
+\label{tab:subgroup-age}
+\begin{tabularx}{\linewidth}{X r r r r r}
+\toprule
+\textbf{Group value} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Baseline EER (\%)} & \textbf{Mitigated v2 EER (\%)} & \textbf{Delta (pp)} \\
+\midrule
+16-20 & 37 & 37 & 37.84 & 5.41  & $\mathbf{-32.43}$ \\
+21-30 & 15 & 15 & 66.67 & 33.33 & $\mathbf{-33.33}$ \\
+41-50 & 10 & 10 & 45.00 & 35.00 & $-10.00$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Every main-table age band improved. The largest improvements landed
+on the youngest two bands (\texttt{16-20} and \texttt{21-30}, both around $-32$\,pp)
+and the smallest on \texttt{41-50} ($-10$\,pp). The baseline EER pattern
+across age bands is not monotonic on this slice --- \texttt{21-30} had the
+highest baseline EER (66.67\,\%), while \texttt{16-20} and \texttt{41-50} were
+lower --- so the pattern of improvement does not simply follow the
+pattern of baseline errors.
+
+The descriptive reading of this table is that \textbf{baseline errors on
+this slice were concentrated differently across age bands, and
+mitigation v2 reduced errors in all main-table age bands but by
+substantially different amounts}. That is all this table is
+evidence for.
+
+Small sample sizes prevent any stronger subgroup claim. The
+per-band file counts are all in the 10--40 range; even a
+double-figure per-band delta could sit inside sampling noise under
+a per-subgroup bootstrap. The observations above should be read as
+diagnostic starting points for future larger-slice studies (see
+Section~\ref{sec:subgroup-limitations}), not as conclusions about how the AASIST detector
+behaves on any specific age band in general.
+
+
+\section{Recording-era subgroup results}
+\label{sec:subgroup-recording-era}
+
+Four recording-era subgroups meet the main-table threshold on the
+joined slice: \texttt{1960s-1970s}, \texttt{1990s}, \texttt{2007-2008}, and
+\texttt{2010-2011}. (The \texttt{2008-2009} era and the \texttt{mixed} / \texttt{unknown}
+labels either fell below the threshold or were skipped per
+Section~\ref{sec:subgroup-protocol}.)
+
+\begin{table}[t]
+\centering
+\caption{Recording-era subgroup diagnostics on the joined DECTE XTTS held-out slice. Descriptive only, no per-subgroup CIs.}
+\label{tab:subgroup-recording-era}
+\begin{tabularx}{\linewidth}{X r r r r r}
+\toprule
+\textbf{Group value} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Baseline EER (\%)} & \textbf{Mitigated v2 EER (\%)} & \textbf{Delta (pp)} \\
+\midrule
+1960s-1970s & 24 & 24 & 68.75 & 47.92 & $-20.83$ \\
+1990s       & 32 & 32 & 40.63 & 6.25  & $\mathbf{-34.38}$ \\
+2007-2008   & 10 & 10 & 20.00 & 5.00  & $-15.00$ \\
+2010-2011   & 20 & 20 & 25.00 & 20.00 & $-5.00$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Every main-table recording era improved. The largest improvement
+was on the \texttt{1990s} era ($-34.38$\,pp, the largest per-subgroup delta
+in the entire chapter); the smallest was on the \texttt{2010-2011} era
+($-5.00$\,pp, the smallest per-subgroup delta). Baseline EER was
+noticeably higher on the older eras (\texttt{1960s-1970s} at 68.75\,\%,
+\texttt{1990s} at 40.63\,\%) than on the newer ones (\texttt{2007-2008} at 20.00\,\%,
+\texttt{2010-2011} at 25.00\,\%). The mitigation reduced this baseline
+spread substantially --- after mitigation, the \texttt{1990s} and
+\texttt{2007-2008} eras are both in the single digits, while the
+\texttt{1960s-1970s} era remains clearly higher (47.92\,\%).
+
+A cautious reading of this table: on this 16-speaker slice, the
+recording-era axis is where the largest per-subgroup differences
+appear both at baseline and in mitigation delta. The most likely
+substantive interpretation is \emph{not} that the calendar year of the
+recording is doing the work directly --- it is that recording era
+in DECTE is confounded with channel characteristics (analog reel-%
+to-reel in the 1960s-1970s vs digital in the 2000s+), interview
+technology, and the speaker demographics of each survey wave. The
+observed spread in per-era baseline EER and per-era mitigation
+delta could therefore reflect any combination of channel, speaker
+population, and time-period effects. Attributing it to time
+period alone would over-interpret the data. Chapter~\ref{chap:discussion} revisits
+this confound at greater length.
+
+
+\section{Summary table}
+\label{sec:subgroup-summary}
+
+Consolidating Sections~\ref{sec:subgroup-overall}--\ref{sec:subgroup-recording-era} into a single view of the DECTE
+subgroup diagnostic:
+
+\begin{table}[t]
+\centering
+\caption{Combined subgroup diagnostic summary on the joined DECTE XTTS held-out slice. All EER values are in \%; deltas are in pp. Descriptive only, no per-subgroup CIs.}
+\label{tab:subgroup-summary}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}l l r r r r r X@{}}
+\toprule
+\textbf{Grouping variable} & \textbf{Group} & \textbf{$n_\text{bon}$} & \textbf{$n_\text{spf}$} & \textbf{Baseline} & \textbf{Mitigated v2} & \textbf{Delta} & \textbf{Interpretation} \\
+\midrule
+overall               & ALL         & 86 & 86 & 40.70 & 23.26 & $-17.44$          & Same as Chapter~\ref{chap:mitigation} headline; reproduces on the joined slice \\
+speaker\_gender        & female      & 39 & 39 & 30.77 & 24.36 & $-6.41$           & Improved; smaller per-subgroup improvement \\
+speaker\_gender        & male        & 26 & 26 & 38.46 & 11.54 & $-26.92$          & Improved; larger per-subgroup improvement \\
+speaker\_age\_group     & 16-20       & 37 & 37 & 37.84 & 5.41  & $-32.43$          & Improved substantially \\
+speaker\_age\_group     & 21-30       & 15 & 15 & 66.67 & 33.33 & $-33.33$          & Improved substantially; highest baseline EER \\
+speaker\_age\_group     & 41-50       & 10 & 10 & 45.00 & 35.00 & $-10.00$          & Improved less than the younger bands \\
+speaker\_recording\_era & 1960s-1970s & 24 & 24 & 68.75 & 47.92 & $-20.83$          & Improved; still highest post-mitigation EER on the slice \\
+speaker\_recording\_era & 1990s       & 32 & 32 & 40.63 & 6.25  & $\mathbf{-34.38}$ & Largest per-subgroup improvement in the chapter \\
+speaker\_recording\_era & 2007-2008   & 10 & 10 & 20.00 & 5.00  & $-15.00$          & Improved \\
+speaker\_recording\_era & 2010-2011   & 20 & 20 & 25.00 & 20.00 & $\mathbf{-5.00}$  & Smallest per-subgroup improvement in the chapter \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The full per-subgroup CSV --- including the low-n rows and the
+per-speaker breakdown not shown here --- is archived at
+\texttt{results/subgroup\_diagnostics/decte\_subgroup\_metrics.csv}. Two
+headline observations from the table above:
+
+\begin{itemize}
+    \item \textbf{Every main-table subgroup improved.} No main-table row has a
+        positive delta on this slice. In that limited sense the
+        mitigation was uniformly beneficial across the three metadata
+        axes reported here.
+    \item \textbf{The size of the improvement was uneven.} Per-subgroup deltas
+        span $-5.00$\,pp (\texttt{2010-2011}) to $-34.38$\,pp (\texttt{1990s}), a spread of
+        about 29\,pp. The uniformity of the \emph{direction} of the mitigation
+        should not be over-read as uniformity of \emph{magnitude}.
+\end{itemize}
+
+
+\section{Low-n appendix note}
+\label{sec:subgroup-low-n}
+
+The main-table threshold of at least 10 bonafide and at least 10
+spoof samples excludes a small number of DECTE metadata subgroups
+whose per-class counts on the joined slice fell below the
+threshold. Those subgroups are still written to the CSV output for
+transparency, but are flagged as \texttt{below\_n\_threshold = True} and
+are not used for any claim in this chapter.
+
+\texttt{speaker\_id} is treated as a diagnostic appendix column rather
+than a headline grouping. With 16 held-out speakers producing
+approximately 5--6 files each, every per-speaker row would be low-n
+by construction; per-speaker EER on that few files is not a
+meaningful quantity. The per-speaker breakdown is written to the
+same CSV for auditability (so a reader can see which specific
+speaker any given per-subgroup number is driven by) but is not
+reproduced in the body of the thesis. If the final thesis
+version includes a separate appendix for reproducibility material,
+the per-speaker rows and the low-n metadata rows would live there.
+
+
+\section{Interpretation}
+\label{sec:subgroup-interpretation}
+
+Two summary statements are supported by the tables in
+Sections~\ref{sec:subgroup-gender}--\ref{sec:subgroup-summary}:
+
+\begin{itemize}
+    \item \textbf{Mitigation v2 improved every main-table subgroup on the
+        joined DECTE test slice.} No main-table row went in the wrong
+        direction. Given that Chapter~\ref{chap:mitigation} already established a
+        statistically supported overall improvement, this rules out one
+        concerning scenario --- that the overall improvement was driven by
+        large gains in one or two subgroups while other subgroups got
+        clearly worse.
+    \item \textbf{The size of the improvement was uneven across metadata
+        subgroups.} The spread from $-5.00$\,pp to $-34.38$\,pp across the
+        main-table recording-era rows, and the spread from $-6.41$\,pp to
+        $-26.92$\,pp across the two gender rows, is substantial. The
+        overall $-17.44$\,pp average hides this spread.
+\end{itemize}
+
+Between them, these two observations support one cautious
+diagnostic conclusion for the chapter:
+
+\begin{quote}
+\textbf{Error concentration and mitigation benefit were not uniform
+across DECTE metadata groups on the 16-speaker held-out test
+slice.}
+\end{quote}
+
+That is all the chapter is evidence for. Three claims that
+Section~\ref{sec:subgroup-limitations}'s limitations rule out, and which are also flagged
+here explicitly:
+
+\begin{itemize}
+    \item \textbf{Do NOT write} \emph{``the detector is biased against group X.''}
+        Fairness claims of that shape require additional axes of
+        evidence (deployment context, per-subgroup CIs, harm analysis,
+        human-in-the-loop error costs) that this chapter does not
+        provide.
+    \item \textbf{Do NOT write} \emph{``the mitigation fixed fairness.''} The chapter
+        reports descriptive per-subgroup EER changes on one held-out
+        slice. It does not measure fairness in any formal sense (see
+        Section~\ref{sec:subgroup-limitations}).
+    \item \textbf{Do NOT write} \emph{``gender / age / era caused the errors.''}
+        The per-subgroup EER is a property of the detector's behaviour
+        on the labelled subset of the slice, not a causal
+        attribution to the labelled attribute.
+\end{itemize}
+
+The chapter's wording --- \emph{``subgroup diagnostics''}, \emph{``error
+concentration''}, \emph{``uneven mitigation gains''} --- is chosen to
+communicate exactly the descriptive claim above without inviting
+the causal readings that would go beyond the evidence.
+
+
+\section{Limitations}
+\label{sec:subgroup-limitations}
+
+Seven limitations narrow the reading of the Chapter~\ref{chap:subgroup-diagnostics} tables.
+Chapter~\ref{chap:discussion} discusses several of these alongside the Chapter~\ref{chap:main-results} and
+Chapter~\ref{chap:mitigation} limitations.
+
+\begin{itemize}
+    \item \textbf{Only 16 held-out DECTE speakers.} The joined slice covers 16
+        speakers total. Per-subgroup speaker counts are consequently in
+        the low single digits (for example, \texttt{41-50} is driven by a
+        small number of the 16 test speakers). This limits how much a
+        per-subgroup number can generalise.
+    \item \textbf{Small per-subgroup file counts.} Every main-table subgroup
+        has n between $\sim$10 and $\sim$40 files per class. A per-subgroup
+        bootstrap CI on any single per-subgroup delta would be wide
+        enough that many of the reported between-group differences
+        would sit inside sampling noise. No such CIs are computed in
+        this chapter; readers should not treat the per-subgroup point
+        estimates as statistically comparable to each other.
+    \item \textbf{Metadata categories are coarse.} Age bands are 10-year bins;
+        gender is binary (\texttt{female} / \texttt{male}) plus a skipped \texttt{mixed};
+        recording era is a categorical bucket per DECTE survey wave.
+        Finer or richer metadata (dialect region within Tyneside,
+        educational attainment, interview topic, background noise
+        level) is not available for this analysis.
+    \item \textbf{DECTE metadata may mix speakers per audio stem.} DECTE audio
+        chunks are per-interview rather than per-speaker; where
+        interviews contain multiple speakers, per-file metadata is
+        collapsed to the interview level via the file-level metadata
+        bridge described in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-corpora-decte} (\texttt{"mixed"} when
+        interview speakers disagree, \texttt{"unknown"} when missing). Any
+        subgroup number reported here is therefore an interview-level
+        proxy, not a strict per-speaker measurement.
+    \item \textbf{Recording era is confounded with channel and recording
+        conditions.} DECTE eras also correlate with audio-capture
+        technology (analog reel-to-reel vs digital), interview format,
+        and speaker demographics of each survey wave. The observed
+        spread in per-era baseline EER and per-era mitigation delta
+        cannot be attributed to time period alone. Section~\ref{sec:subgroup-recording-era} already
+        notes this in the descriptive interpretation.
+    \item \textbf{No per-subgroup bootstrap CIs.} The chapter deliberately
+        does not attach per-subgroup statistical intervals to the
+        reported point estimates, because the per-subgroup sample
+        sizes are too small for those intervals to be tight enough to
+        support statistical claims. The overall paired-bootstrap CI
+        (from Chapter~\ref{chap:mitigation}) still applies to the overall delta; no
+        equivalent per-subgroup claim is made.
+    \item \textbf{Descriptive only, not a formal fairness audit.} A formal
+        fairness audit would require, at minimum: pre-specified
+        fairness definitions (equalised odds, demographic parity,
+        calibration), a demographically balanced evaluation set with
+        larger per-subgroup counts, per-subgroup CIs on each fairness
+        quantity, and --- for actionable claims --- an explicit deployment
+        context in which the fairness definitions have operational
+        meaning. None of these are provided in this chapter, and the
+        chapter therefore explicitly does not make fairness claims.
+\end{itemize}
+
+Chapter~\ref{chap:subgroup-diagnostics}'s role in the thesis' overall argument is therefore
+modest: it complements Chapter~\ref{chap:mitigation}'s overall mitigation result
+with a subgroup-level view, shows that the improvement was
+directionally uniform but magnitudinally uneven, and flags where
+a follow-up study might look. It is not the last word on detector
+fairness for dialectal speech, and it is not meant to be.
