@@ -2,4 +2,553 @@
 \chapter{Mitigation Experiment}
 \label{chap:mitigation}
 
-%% TODO: migrate from docs/thesis_draft/06_mitigation_experiment.md
+%% Draft preamble note (kept in source for reference; not rendered):
+%% Written to be read by the thesis supervisor first, then polished into
+%% final prose. All quantitative claims trace back to a specific Entry in
+%% docs/THESIS_FINDINGS_LOG.md and to a specific committed script under
+%% scripts/.
+
+
+\section{Chapter overview}
+\label{sec:mitigation-overview}
+
+Chapter~\ref{chap:main-results} established two headline results with 95\,\% bootstrap
+support: XTTS v2 produces a positive DECTE-vs-VCTK EER gap (DECTE
+harder) on both detectors tested, and OpenVoice v2 produces a
+negative gap (VCTK harder) on both detectors. Chapter~\ref{chap:main-results} was
+descriptive: it measured what happens without any intervention.
+
+This chapter asks a different question. Given the XTTS
+dialect / domain gap of Chapter~\ref{chap:main-results}, is that gap something the
+detector can be \emph{adapted} to reduce, or is it a fixed property of
+the detector--corpus combination? Specifically, can a small,
+controlled adaptation of the primary detector shrink the DECTE
+XTTS EER on a held-out DECTE test slice without hurting its
+out-of-training-domain performance on VCTK?
+
+This chapter mainly answers \textbf{RQ3} from the writing plan
+(\emph{``Can a conservative, lightweight adaptation of the detector
+reduce the observed dialect / domain gap without regressing on
+out-of-training-domain speech?''}). It does not attempt to solve
+audio-deepfake detection in general, and it does not evaluate
+the OpenVoice failure mode of Chapter~\ref{chap:main-results} (the mitigation is
+scoped to DECTE XTTS by design --- see Section~\ref{sec:mitigation-limitations}).
+
+Two versions of the mitigation are reported. The first (v1) is
+included briefly as motivation for the design change that
+produced the second (v2); the headline result of the chapter is
+the v2 result reported in Sections~\ref{sec:mitigation-decte-result},~\ref{sec:mitigation-vctk-guardrail}, and~\ref{sec:mitigation-indomain-sanity}.
+
+
+\section{Why mitigation was needed}
+\label{sec:mitigation-motivation}
+
+The Chapter~\ref{chap:main-results} result that most invites a mitigation attempt is the
+XTTS row of the main 2 by 2 table. Under both the primary detector
+(AuralGuard-AASISTPP) and the secondary detector (LFCC + LR), the
+DECTE XTTS EER was substantially above the VCTK XTTS EER, and the
+DECTE-minus-VCTK gap CI lay entirely above zero on both detectors.
+That is a well-supported gap in the \emph{bad} direction: dialectal /
+interview-style speech is harder for the detector to correctly
+classify than standard-accent studio speech is, and the effect
+size is roughly comparable across two very different detector
+architectures.
+
+The mitigation experiment is therefore scoped to the DECTE XTTS
+setting for three reasons:
+
+\begin{itemize}
+    \item It is the setting where the gap is clearest across the two
+        detectors --- an intervention that helps here should be measurable.
+    \item It is the setting the thesis' original research question was
+        framed around (\emph{``Does your accent make you vulnerable?''}). If a
+        small adaptation can meaningfully reduce the XTTS DECTE gap,
+        that is directly interpretable evidence for RQ3.
+    \item The OpenVoice reversal (VCTK is \emph{harder} than DECTE for that
+        generator) is a different failure mode and would need a
+        different intervention design. Chapter~\ref{chap:mitigation} deliberately leaves
+        it out of scope; Chapter~\ref{chap:discussion} discusses this as a limitation.
+\end{itemize}
+
+The chapter's goal is a controlled adaptation, not a new
+detector. The baseline AuralGuard-AASISTPP checkpoint verified
+in Chapter~\ref{chap:detector-verification} remains the reference point; the mitigation
+produces a fine-tuned checkpoint that inherits from it, and every
+before / after comparison is against the same checkpoint under
+identical evaluation conditions. Nothing in this chapter proposes
+a deployment-grade detector.
+
+
+\section{Leakage-safe mitigation split}
+\label{sec:mitigation-split}
+
+Producing a defensible before / after comparison requires the
+mitigation to be trained on data that has zero speaker overlap
+with the data it is later evaluated on. Without this, an
+apparent ``mitigation improvement'' could be nothing more than the
+adapted model recognising speakers it saw at fine-tune time. The
+mitigation split (introduced in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-split}) enforces
+this:
+
+\begin{itemize}
+    \item \textbf{82 eligible speakers} --- the intersection of the DECTE
+        speakers who have valid bonafide utterances and the DECTE
+        speakers who have at least one successful XTTS spoof in the
+        DECTE manifest.
+    \item \textbf{52 training speakers} --- used for the mitigation fine-tune.
+    \item \textbf{14 validation speakers} --- used for early stopping and
+        best-checkpoint selection during the fine-tune.
+    \item \textbf{16 test speakers} --- held out entirely from fine-tuning and
+        used only to evaluate the fine-tuned checkpoint against the
+        baseline checkpoint.
+\end{itemize}
+
+The partition is deterministic (seed 42, \texttt{numpy.random.default\_rng.permutation}
+over the alphabetically sorted eligible speaker
+list), so it can be regenerated at will. A leakage-check step in
+\texttt{scripts/09\_build\_mitigation\_csvs.py} verifies that the three
+resulting speaker sets are disjoint at the speaker level \emph{and}
+that the resulting file sets are disjoint at the audio-file
+level, and aborts before writing any outputs if either check
+fails. This eliminates the most likely category of silent
+leakage bug.
+
+Applied to the DECTE spoof manifest, the 16-speaker held-out
+test set produced a paired evaluation slice of:
+
+\begin{itemize}
+    \item \textbf{86 matched bonafide originals} (each an actual DECTE audio
+        clip used as the source of a spoof), and
+    \item \textbf{86 XTTS v2 spoofs} produced from those same originals.
+\end{itemize}
+
+The bonafide side comes from the \texttt{source\_audio\_path} field
+introduced in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-evaluation-protocol}; the spoof side is drawn
+from the corresponding \texttt{output\_path} field. Every bonafide file
+is paired with exactly one spoof file, and every spoof was
+generated with reference audio from the same speaker (though not
+from the same utterance --- reference audio and target audio are
+disjoint by construction; see Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-generators-protocol}).
+
+Both the baseline detector and the mitigated detector are
+evaluated on this same 172-file slice, so the before / after
+comparison in the rest of the chapter is a within-file paired
+comparison in the sense of Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap-flavours} (paired
+within-file bootstrap).
+
+
+\section{Mitigation v1 as motivation}
+\label{sec:mitigation-v1}
+
+An initial mitigation attempt (v1) was tried with the entire
+AASIST backbone frozen and only the three AuralGuard task heads
+(\texttt{binary\_head}, \texttt{attack\_head}, \texttt{explanation\_head} --- see Chapter~\ref{chap:data-methodology},
+Section~\ref{sec:methodology-detectors-aasist}) left trainable. The rationale was minimal-capacity:
+if changing only the linear heads on top of a frozen feature
+extractor is enough to shrink the DECTE XTTS gap, then no deeper
+adaptation is needed. Head-only fine-tuning has approximately 1,600
+trainable parameters, so catastrophic forgetting of the backbone
+is impossible by construction.
+
+The v1 result on the held-out DECTE test slice was:
+
+\begin{itemize}
+    \item Baseline DECTE XTTS EER: \textbf{40.70\,\%}
+    \item v1 mitigated DECTE XTTS EER: \textbf{36.05\,\%}
+    \item Delta (v1 mitigated $-$ baseline): $\mathbf{-4.65}$\,\textbf{pp}
+    \item 95\,\% paired bootstrap CI on the delta: $\mathbf{[-12.79, +2.91]}$\,\textbf{pp}
+\end{itemize}
+
+The point-estimate direction is favourable --- the mitigated
+detector is numerically better than the baseline on the DECTE
+XTTS slice --- but the 95\,\% CI on the delta crosses zero. In the
+verdict language of Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap-verdict} this is
+\emph{not statistically distinguishable at 95\,\%}, i.e. the delta could
+plausibly be zero (or slightly positive) under the sampling
+distribution of a 172-file slice.
+
+The v1 outcome is therefore reported here as \textbf{suggestive but
+not statistically confirmed}. It is not by itself an argument
+that ``mitigation works'' or ``mitigation doesn't work'' --- it is an
+argument that head-only capacity is not enough to establish that
+mitigation works on this slice at this sample size. The v2 design
+described in the next section was the response to this
+observation.
+
+Detailed v1 evaluation numbers (accuracy, FAR, FRR, VCTK
+guardrail) are recorded in the mitigation-v1 predecessor entry
+and are not repeated here.
+
+
+\section{Mitigation v2 design}
+\label{sec:mitigation-v2-design}
+
+The v2 design keeps almost everything about v1 --- same
+initialisation from the baseline checkpoint, same training data
+split, same hyperparameters, same early-stopping criterion --- but
+adds a targeted increase in trainable capacity through
+\emph{partial-backbone unfreezing}.
+
+Instead of freezing the entire AASIST backbone, v2 also
+un-freezes the five modules corresponding to the \emph{final}
+heterogeneous graph-attention (H-GAT) stage of the AASIST
+backbone plus its two associated pooling layers and its
+learnable master token:
+
+\begin{itemize}
+    \item \texttt{HtrgGAT\_layer\_ST21}
+    \item \texttt{HtrgGAT\_layer\_ST22}
+    \item \texttt{pool\_hS2}
+    \item \texttt{pool\_hT2}
+    \item \texttt{master2}
+\end{itemize}
+
+All five modules feed the concatenated pooled features that the
+\texttt{AuralGuardAASISTPP} wrapper uses as input to its \texttt{binary\_head}
+(and the two auxiliary heads). Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-detectors-aasist} documents
+that the wrapper reads \texttt{result[0]} (the last-hidden features)
+from the AASIST backbone, so these five modules are the last
+part of the backbone that clearly affects what the wrapper's
+binary head sees. Everything upstream of them --- the raw-waveform
+SincConv front-end, the encoder blocks, the first-GAT stage, and
+the first heterogeneous GAT stage --- is left frozen.
+
+Specifically, at the start of the v2 training run, the fine-tuning
+script reports:
+
+\begin{itemize}
+    \item \textbf{31,372 trainable parameters}, and
+    \item \textbf{268,104 frozen parameters}.
+\end{itemize}
+
+That is, only about 10.5\,\% of the model's total parameters are
+adapted. All other AASIST parameters retain their baseline
+checkpoint values exactly.
+
+The rationale for this specific unfreezing pattern is documented
+in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-config}:
+
+\begin{itemize}
+    \item Choosing the \emph{final} backbone stage rather than any earlier
+        stage keeps the model's learned low-level and mid-level
+        acoustic representations intact. Only the top-of-backbone
+        view --- the graph-attention interactions between spectral and
+        temporal pooled representations --- is allowed to shift.
+    \item Choosing the second heterogeneous GAT stage (\texttt{ST21}, \texttt{ST22})
+        rather than the first (\texttt{ST11}, \texttt{ST12}) keeps the shift as close
+        as possible to the classifier heads without touching them
+        purely: the heads themselves also update, but the features
+        they consume are still 90\,\% determined by the frozen upstream
+        stack.
+    \item Adding \texttt{master2} to the unfrozen set is because that master
+        token is the input to the second H-GAT stage and cannot
+        usefully move separately from it.
+\end{itemize}
+
+Training hyperparameters, unchanged from v1: 5 epochs, batch
+size 4, learning rate $3 \times 10^{-5}$, \texttt{num\_workers = 0}, single GPU.
+The best checkpoint is selected on validation-set EER over the
+five epochs and saved as \texttt{checkpoints/mitigation\_v2\_partial\_unfreeze/best.pt}.
+The full training command and the
+\texttt{--unfreeze-modules} flag added to \texttt{<AURALGUARD\_ROOT>/src/train.py}
+for this purpose are documented in Chapter~\ref{chap:data-methodology},
+Section~\ref{sec:methodology-mitigation-config}.
+
+Everything about v2 is therefore a \emph{controlled adaptation} rather
+than a re-training. The pre-existing checkpoint is the starting
+point; only $\sim$10.5\,\% of the parameters are allowed to move; and
+the movement is confined to the top of the feature extractor
+plus the task heads.
+
+
+\section{DECTE mitigation result}
+\label{sec:mitigation-decte-result}
+
+Evaluating the v2 mitigated checkpoint on the 172-file held-out
+DECTE test slice (Section~\ref{sec:mitigation-split}) and comparing it against the
+baseline checkpoint on the same slice produced the primary
+result of this chapter.
+
+\begin{table}[t]
+\centering
+\caption{DECTE XTTS held-out test slice: baseline vs mitigation v2 EER.}
+\label{tab:mitigation-decte-v2}
+\begin{tabularx}{\linewidth}{X l r r r}
+\toprule
+\textbf{Arm} & \textbf{Detector} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{EER (\%)} \\
+\midrule
+Baseline     & AASIST & 86 & 86 & \textbf{40.70} \\
+Mitigated v2 & AASIST & 86 & 86 & \textbf{23.26} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Delta EER (mitigated v2 $-$ baseline) on the DECTE XTTS test slice:
+
+\begin{itemize}
+    \item \textbf{Point estimate}: $-17.44$\,pp
+    \item \textbf{95\,\% paired bootstrap CI}: $\mathbf{[-28.49, -9.30]}$\,\textbf{pp}
+\end{itemize}
+
+The full delta CI lies below zero. In the verdict language of
+Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap-verdict}, this is a \textbf{statistically supported
+improvement at 95\,\%} --- the sampling distribution of the delta
+under the resampling protocol used throughout the thesis does
+not include zero at the 95\,\% level.
+
+Two additional points about how to read this result:
+
+\begin{itemize}
+    \item The 172 test files are drawn from \textbf{16 speakers not seen at
+        fine-tuning time}. The improvement therefore cannot be
+        attributed to the mitigated detector recognising specific
+        speakers from its training set. The paired-bootstrap CI is a
+        within-file paired quantity (same files under both
+        checkpoints; see Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap-flavours}), so it isolates the
+        effect of the fine-tune from the noise of which files happen
+        to be resampled.
+    \item The v2 improvement ($-17.44$\,pp) is nearly four times the v1
+        improvement ($-4.65$\,pp), and unlike v1 the CI does not include
+        zero. The design change between v1 and v2 (adding $\sim$30,000
+        backbone parameters to the $\sim$1,600 head parameters) closed the
+        statistical-support gap without changing anything else.
+\end{itemize}
+
+Reproducer: \texttt{scripts/03\_run\_detectors.py} on both the baseline
+config and \texttt{configs/detectors\_mitigated\_v2.yaml}, evaluated on
+\texttt{data/generated\_spoofs/manifest\_mitigation\_test.jsonl}, then
+\texttt{scripts/10\_bootstrap\_mitigation\_effect.py} for the paired-%
+bootstrap CI. Details are in Entry 7 of the findings log.
+
+
+\section{VCTK guardrail result}
+\label{sec:mitigation-vctk-guardrail}
+
+A DECTE-only improvement is not by itself evidence of a \emph{useful}
+mitigation. If the mitigated detector improves on DECTE by
+sacrificing its performance on out-of-training-domain speech,
+the net contribution is neutral or negative --- the model has
+just moved its errors elsewhere. To rule this out, the same v2
+checkpoint was also evaluated on the VCTK XTTS manifest from
+Chapter~\ref{chap:main-results} (which contains no DECTE speakers by construction and
+was not touched at fine-tune time).
+
+\begin{table}[t]
+\centering
+\caption{VCTK XTTS guardrail: baseline vs mitigation v2 EER.}
+\label{tab:mitigation-vctk-guardrail}
+\begin{tabularx}{\linewidth}{X l r r r}
+\toprule
+\textbf{Arm} & \textbf{Detector} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{EER (\%)} \\
+\midrule
+Baseline     & AASIST & 120 & 100 & \textbf{21.83} \\
+Mitigated v2 & AASIST & 120 & 100 & \textbf{19.17} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Delta EER (mitigated v2 $-$ baseline) on the VCTK XTTS guardrail:
+
+\begin{itemize}
+    \item \textbf{Point estimate}: $-2.67$\,pp
+    \item \textbf{95\,\% paired bootstrap CI}: $\mathbf{[-5.42, +3.17]}$\,\textbf{pp}
+\end{itemize}
+
+The 95\,\% CI includes zero --- the change in VCTK XTTS EER between
+the baseline and the v2 mitigated detector is not statistically
+distinguishable from zero at 95\,\%. Because the direction the
+guardrail is protecting against is \emph{worsening} on VCTK (a
+positive delta), the fact that the CI's upper bound is $+3.17$\,pp
+is the relevant number: the mitigation cannot be statistically
+argued to have \emph{hurt} VCTK performance at 95\,\%.
+
+In the verdict language of Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap-verdict} this is
+\textbf{no statistically significant VCTK regression}. The mitigation
+does not appear to have simply displaced errors from DECTE onto
+VCTK.
+
+Reproducer: same as Section~\ref{sec:mitigation-decte-result}, evaluated on
+\texttt{data/generated\_spoofs\_vctk/manifest.jsonl} under both configs.
+
+
+\section{In-domain sanity check after mitigation}
+\label{sec:mitigation-indomain-sanity}
+
+The two evaluations above (Sections~\ref{sec:mitigation-decte-result} and~\ref{sec:mitigation-vctk-guardrail}) both live inside
+the DECTE / VCTK evaluation slice used elsewhere in the thesis.
+A separate risk with any fine-tune is that it may catastrophically
+forget the \emph{training} distribution the baseline was optimised on
+--- that is, the mitigated detector may become better at DECTE
+XTTS but simultaneously become substantially worse at the
+ASVspoof / WaveFake / GLOBE / EdAcc / EnglishDialects mixture
+the baseline was originally trained against.
+
+The in-domain sanity check of Chapter~\ref{chap:detector-verification}, Section~\ref{sec:detector-verification-indomain} is exactly
+the right instrument for this. The mitigated v2 checkpoint was
+scored on the AuralGuard-original validation set (9,514 files
+across the six source datasets) using the same script that
+verified the baseline in Chapter~\ref{chap:detector-verification}.
+
+\begin{itemize}
+    \item \textbf{Mitigated v2 in-domain sanity EER}: \textbf{2.50\,\%}
+    \item \textbf{Verdict} against the $\leq$ 5\,\% PASS threshold from Chapter~\ref{chap:detector-verification},
+        Section~\ref{sec:detector-verification-indomain-thresholds}: \textbf{PASS}
+\end{itemize}
+
+The baseline's in-domain sanity EER was 1.71\,\% (Chapter~\ref{chap:detector-verification},
+Section~\ref{sec:detector-verification-indomain-verdict}). The mitigated v2 checkpoint is therefore
+approximately 0.8\,pp worse than the baseline on the training-%
+distribution validation set, which is small relative to the
+verification threshold and consistent with the small parameter
+budget the fine-tune was allowed to move ($\sim$10.5\,\% of the model).
+
+This reduces the concern that the DECTE improvement in Section~\ref{sec:mitigation-decte-result}
+came at the cost of catastrophic forgetting. In combination with
+the VCTK guardrail of Section~\ref{sec:mitigation-vctk-guardrail}, the picture is that the
+mitigation shifted the model's DECTE XTTS behaviour noticeably
+while leaving both a same-generator out-of-training-domain slice
+(VCTK XTTS) and the original training-distribution validation
+slice essentially intact.
+
+
+\section{Summary table}
+\label{sec:mitigation-summary-table}
+
+Sections~\ref{sec:mitigation-decte-result},~\ref{sec:mitigation-vctk-guardrail}, and~\ref{sec:mitigation-indomain-sanity} collected into one compact view of
+the mitigation experiment:
+
+\begin{table}[t]
+\centering
+\caption{Compact summary of mitigation v2 across the three evaluation settings. All EER and delta values are in \%. Delta CIs are 95\,\% paired bootstrap intervals in pp.}
+\label{tab:mitigation-summary}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}X r r r l X@{}}
+\toprule
+\textbf{Setting} & \textbf{Baseline} & \textbf{Mitigated v2} & \textbf{Delta} & \textbf{95\,\% CI} & \textbf{Interpretation} \\
+\midrule
+DECTE XTTS held-out (86 + 86) & 40.70 & 23.26 & $\mathbf{-17.44}$ & $\mathbf{[-28.49, -9.30]}$ & Statistically supported improvement at 95\,\% \\
+VCTK XTTS guardrail (120 + 100) & 21.83 & 19.17 & $-2.67$ & $[-5.42, +3.17]$ & No significant regression at 95\,\% \\
+In-domain sanity (AuralGuard val) & 1.71 & 2.50 & $+0.79$ & --- & Still PASS under $\leq$ 5\,\% threshold from Chapter~\ref{chap:detector-verification} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The DECTE improvement CI is fully below zero; the VCTK guardrail
+CI includes zero; the in-domain sanity result stays inside the
+PASS band. These three conditions together are what the writing
+plan calls the \emph{success criteria} for a mitigation experiment
+under RQ3, and they are all satisfied for v2.
+
+
+\section{Interpretation}
+\label{sec:mitigation-interpretation}
+
+The v2 mitigation reduced the DECTE XTTS EER on a leakage-safe
+held-out test slice, and the improvement was statistically
+supported at 95\,\%. On the same detector, on an out-of-training-%
+domain guardrail (VCTK XTTS), no statistically significant
+regression was observed. On the baseline detector's original
+training-distribution validation set, the mitigated checkpoint
+retained PASS status under the verification threshold from
+Chapter~\ref{chap:detector-verification}.
+
+Put together, these results back the RQ3 claim that \textbf{a
+conservative, lightweight adaptation of the detector can reduce
+the observed dialect / domain XTTS gap without regressing on
+the out-of-training-domain data slice tested}. In particular,
+they are consistent with the interpretation that some of the
+DECTE XTTS gap observed in Chapter~\ref{chap:main-results} was \emph{not} an intrinsic
+property of the AASIST architecture but was addressable by
+allowing the top of its feature extractor to shift under
+DECTE-adapted data.
+
+Three things this chapter deliberately does \textbf{not} claim:
+
+\begin{itemize}
+    \item It does not claim to solve audio deepfake detection generally.
+        A $\sim$17\,pp EER reduction on a 172-file DECTE slice under one
+        detector, one generator, one dialect, and one adaptation
+        design is a scoped result. The residual DECTE XTTS EER
+        (23.26\,\%) is still far above the training-distribution EER of
+        1.71\,\% and remains unusable for deployment.
+    \item It does not claim that the mitigation is \emph{architecture-invariant}.
+        Only the AASIST detector was fine-tuned; the LFCC + LR
+        detector was not. Whether the same partial-unfreeze idea
+        transfers to other detector families is out of scope for this
+        chapter and is queued for future work.
+    \item It does not claim the mitigation is a fairness fix. The
+        descriptive per-subgroup breakdown of the mitigation effect
+        is the subject of Chapter~\ref{chap:subgroup-diagnostics}; that chapter treats it as
+        diagnostic evidence, not as a fairness audit or a demographic-%
+        bias remedy.
+\end{itemize}
+
+Chapter~\ref{chap:mitigation}'s role in the thesis' overall argument is therefore
+modest: it shows that the DECTE XTTS gap of Chapter~\ref{chap:main-results} is at
+least partly \emph{reducible} by a controlled adaptation of the
+primary detector, under conditions that also protect against
+the two most likely artefacts --- in-training-domain forgetting
+and out-of-training-domain regression. It does not try to close
+the gap entirely, and it does not try to show the same for
+OpenVoice.
+
+
+\section{Limitations}
+\label{sec:mitigation-limitations}
+
+Five limitations narrow the scope of the mitigation claims in
+this chapter. Chapter~\ref{chap:discussion} revisits them alongside the
+Chapter~\ref{chap:main-results}-scope limitations.
+
+\begin{itemize}
+    \item \textbf{Single detector.} The mitigation was designed for and
+        evaluated on the AuralGuard-AASISTPP architecture only. The
+        LFCC + LR detector used in Chapter~\ref{chap:main-results} as a cross-architecture
+        replication check is \emph{not} fine-tuned here. Whether the
+        DECTE XTTS gap the LFCC + LR detector shows can be closed by
+        an analogous adaptation is queued as future work --- no claim
+        is made in this chapter about detector-family invariance of
+        the mitigation.
+    \item \textbf{Single generator.} The mitigation was scoped to the DECTE
+        XTTS setting, the setting where Chapter~\ref{chap:main-results} established a
+        positive DECTE-vs-VCTK gap. The OpenVoice reversal of
+        Chapter~\ref{chap:main-results} (VCTK harder than DECTE) is a different failure
+        mode and would need a different intervention design; nothing
+        here transfers automatically to OpenVoice.
+    \item \textbf{DECTE and VCTK differ on multiple axes at once.} The
+        Chapter~\ref{chap:main-results} limitation applies verbatim: DECTE and VCTK
+        differ in dialect, recording style, channel quality, age
+        distribution, and transcript pipeline. The mitigation's
+        DECTE improvement is best read as \emph{dialect / domain-gap
+        reduction} rather than a pure \emph{dialect adaptation}. Which
+        of these axes the fine-tune actually adapted to (dialect
+        specifically? channel quality? interview-style prosody?) is
+        not answered by the experiment as designed.
+    \item \textbf{Small held-out test slice.} The 172-file test slice
+        (86 + 86 across 16 speakers) produces bootstrap CIs on the
+        order of $\pm 10$\,pp on each individual arm. The DECTE
+        improvement CI ($[-28.49, -9.30]$\,pp) is entirely below zero,
+        but the width is substantial. A larger held-out DECTE test
+        slice would noticeably tighten this CI.
+    \item \textbf{Not a production-ready detector.} The mitigated v2
+        checkpoint achieves 23.26\,\% EER on DECTE XTTS and 19.17\,\%
+        on VCTK XTTS. Both remain far above the training-distribution
+        EER ($\sim$1.71\,\%). Chapter~\ref{chap:mitigation} documents an \emph{adaptation experiment}
+        under RQ3, not a deployment-grade anti-spoofing detector.
+        Using the mitigated checkpoint in a real anti-spoofing
+        deployment is out of scope for this thesis, and no such use
+        is claimed.
+\end{itemize}
+
+None of these limitations invalidate the qualitative claim in
+Section~\ref{sec:mitigation-interpretation}: the DECTE XTTS gap is at least partially
+reducible under a small controlled adaptation of the AASIST
+architecture, with no statistically significant VCTK regression
+and no failure of the in-domain sanity check. What they
+constrain is how \emph{strongly} that claim can be phrased in the
+thesis' broader argument --- \emph{``targeted adaptation of the final
+feature stage plus the task heads can reduce the DECTE XTTS
+gap for the AASIST detector on this held-out test slice''}, not
+\emph{``the mitigation eliminates detector bias against dialectal
+speech''}.
