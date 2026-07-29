@@ -2,4 +2,455 @@
 \chapter{Detector Verification and Experimental Setup}
 \label{chap:detector-verification}
 
-%% TODO: migrate from docs/thesis_draft/04_detector_verification_and_setup.md
+%% Draft preamble note (kept in source for reference; not rendered):
+%% Written to be read by the thesis supervisor first, then polished into
+%% final prose. All quantitative claims trace back to a specific Entry in
+%% docs/THESIS_FINDINGS_LOG.md and to a specific committed script under
+%% scripts/.
+
+
+\section{Why detector verification was necessary}
+\label{sec:detector-verification-overview}
+
+Every downstream claim in this thesis --- the DECTE-vs-VCTK corpus
+gaps in Chapter~\ref{chap:main-results}, the mitigation effect in Chapter~\ref{chap:mitigation}, and the
+subgroup diagnostics in Chapter~\ref{chap:subgroup-diagnostics} --- is a claim \emph{about a specific
+detector's behaviour on specific audio}. If the detector is not the
+one it is stated to be, or if the score it produces is not what the
+metric functions think it is, then every EER, AUC, and confidence
+interval derived from it is meaningless. Detector verification is
+not a formality here --- it is a requirement for everything else
+in the empirical part of the thesis.
+
+Two failure modes are especially dangerous here, because they
+can be silent --- the pipeline runs to completion and produces
+plausible-looking numbers even though the underlying detector is
+broken:
+
+\begin{enumerate}
+    \item \textbf{A checkpoint that fails to load correctly} but does not raise
+        an error. PyTorch's \texttt{load\_state\_dict(state, strict=False)}
+        silently ignores unmatched keys. If the checkpoint keys do not
+        match the model class, \texttt{strict=False} can load \emph{zero} trained
+        tensors while returning normally, leaving the model running at
+        its random initialisation.
+    \item \textbf{A score-direction mismatch.} If the detector's score is
+        interpreted as ``higher = more likely fake'' while the metric
+        functions expect ``higher = more likely bonafide'', the AUC and
+        EER will still compute --- but the AUC will drop below 0.5 and
+        the reported EER will be far from the model's true performance.
+\end{enumerate}
+
+Both failure modes were encountered during the early phase of this
+work (Entry 1). This chapter documents how each was diagnosed,
+what the correction consisted of, and how the corrected pipeline
+was validated against an independent reference before any
+DECTE / VCTK numbers were interpreted.
+
+
+\section{The original checkpoint-loading issue}
+\label{sec:detector-verification-loader-bug}
+
+The primary detector used in this thesis is the AuralGuard-AASISTPP
+wrapper around the AASIST backbone \cite{Jung2022_AASIST}, described in
+Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-detectors-aasist}. The pre-trained checkpoint
+\texttt{<AURALGUARD\_ROOT>/results/final\_accent\_globe\_wavefake\_balanced\_full/best.pt}
+stores 235 named tensors, all of which are namespaced under
+the \texttt{AuralGuardAASISTPP} module structure --- for example
+\texttt{backbone.encoder.0.0.conv1.weight}, \texttt{binary\_head.weight},
+\texttt{attack\_head.bias}, and so on.
+
+The original implementation of \texttt{AASISTDetector.load()} in
+\texttt{src/evaluation/detectors.py} (before this thesis' correction)
+constructed a \emph{raw} AASIST model class from the official
+\texttt{clovaai/aasist} repository, whose parameter names have no
+\texttt{backbone.} prefix (for example \texttt{encoder.0.0.conv1.weight} rather
+than \texttt{backbone.encoder.0.0.conv1.weight}). It then called
+\texttt{load\_state\_dict(state, strict=False)} on this raw model. Because
+\texttt{strict=False} treats unmatched keys as a warning rather than an
+error, the load returned normally, but every single one of the
+235 checkpoint tensors was silently discarded --- none of them
+matched the model's namespaced expectations.
+
+The consequence was a model in its random initialisation. Because
+AASIST's forward path terminates in a bounded softmax, a random-%
+init model does not produce \emph{nonsense} output; it produces
+\emph{near-constant} output. In the first DECTE / VCTK evaluation, the
+detector's score across 667 files ranged only over about 0.001
+around a mean of roughly 0.436 (Entry 1 diagnostic prints in
+\texttt{scripts/03\_run\_detectors.py}). Because bonafide and spoof scores
+were essentially identical, the resulting AUC came out well below
+0.5. The pipeline itself was working --- reading audio, computing
+softmax, writing metrics --- but the model driving it was untrained.
+
+Two specific diagnostics made the fault visible:
+
+\begin{itemize}
+    \item \textbf{A per-file score-span check} printed inside
+        \texttt{scripts/03\_run\_detectors.py}. A span of 0.001 across hundreds of
+        files is not compatible with any working discriminative model on
+        a mixed bonafide/spoof set. The check now aborts with a warning
+        if the span is below \texttt{1e-3}.
+    \item \textbf{A parameter-load audit} run against a fresh construction of
+        the raw AASIST model, which reported \texttt{missing\_keys=211} and
+        \texttt{unexpected\_keys=235} --- that is, 235 checkpoint keys had no home
+        in the raw model, and 211 model parameters were left at their
+        random initialisation. This is a strict-mode-only diagnostic; it
+        is invisible when \texttt{strict=False} is used silently.
+\end{itemize}
+
+
+\section{The corrected AuralGuard-wrapper loading}
+\label{sec:detector-verification-checkpoint}
+
+The corrected \texttt{AASISTDetector.load()} reflects the actual structure
+of the checkpoint: the trained weights belong to the wrapper, not
+to the raw backbone. The correction has three parts:
+
+\begin{enumerate}
+    \item \textbf{Instantiate the raw AASIST backbone with no checkpoint.} The
+        backbone provides the untrained scaffold that the wrapper's
+        trained parameters expect to sit on top of.
+    \item \textbf{Wrap it with \texttt{AuralGuardAASISTPP(backbone, feature\_dim=160)}.}
+        The wrapper adds the three trained linear task heads
+        (\texttt{binary\_head}, \texttt{attack\_head}, \texttt{explanation\_head}) alongside the
+        backbone, matching the checkpoint's namespacing exactly.
+    \item \textbf{Load the full checkpoint into the wrapper with
+        \texttt{strict=True}.} Because every checkpoint key now has a
+        corresponding model parameter, \texttt{strict=True} succeeds and \emph{any}
+        remaining mismatch (for example, from a future architecture
+        change) would raise a loud \texttt{RuntimeError} rather than silently
+        discarding weights.
+\end{enumerate}
+
+This three-line change --- construct-wrap-load-strict --- is the
+minimum correction that guarantees the trained parameters are the
+ones actually used at inference time. Deferring the \texttt{strict=True}
+requirement to the wrapper (rather than the raw backbone) is what
+makes it work: the wrapper's parameter set is designed to be a
+bit-for-bit match to the checkpoint.
+
+The full patched loader is in \texttt{src/evaluation/detectors.py}. It is
+called by every downstream script in this thesis
+(\texttt{scripts/03\_run\_detectors.py}, \texttt{scripts/06\_indomain\_sanity\_check.py},
+and the two mitigation-evaluation runs), so a single correct load
+propagates to every DECTE / VCTK / mitigation number.
+
+
+\section{Score direction convention}
+\label{sec:detector-verification-score-direction}
+
+Metric functions in \texttt{src/evaluation/metrics.py} --- \texttt{compute\_eer},
+\texttt{compute\_metrics}, \texttt{roc\_auc\_score} via scikit-learn --- all assume the
+convention
+
+\begin{quote}
+\textbf{higher score $\rightarrow$ more likely bonafide (real)}.
+\end{quote}
+
+This is the ASVspoof convention \cite{Todisco2019_ASVspoof} and it is the
+convention every EER, AUC, and confidence interval in this thesis
+is computed under. Getting the direction wrong is a classic silent
+bug: EER and AUC still compute, but AUC drops below 0.5 and the
+reported error rate goes toward the opposite of the model's true
+performance.
+
+The AuralGuard wrapper's \texttt{binary\_head} is trained under the
+\emph{opposite} convention: \texttt{class 0 = REAL}, \texttt{class 1 = FAKE}. The
+official inference reference in \texttt{<AURALGUARD\_ROOT>/src/infer.py}
+takes \texttt{torch.softmax(outputs["binary\_logits"], dim=-1)[0, 1]}
+(the fake probability) as its primary output. The thesis's detector
+wrapper therefore computes:
+
+\begin{verbatim}
+score = torch.softmax(outputs["binary_logits"], dim=-1)[0, 0]
+\end{verbatim}
+
+taking \textbf{class 0 = real (bonafide)} to match the metric functions'
+``higher = bonafide'' convention. Explicitly written in the
+\texttt{AASISTDetector.score()} implementation.
+
+The AuralGuard training CSVs used for the mitigation fine-tune
+(Chapter~\ref{chap:mitigation}) preserve the AuralGuard convention --- \texttt{binary\_label = 0}
+for bonafide, \texttt{binary\_label = 1} for spoof --- so the training path
+is unchanged. The convention flip happens only at score time, when
+the wrapper's output is fed into the metric functions.
+
+For the second detector (LFCC + Logistic Regression), the same
+``higher = bonafide'' convention is enforced at score time by taking
+\texttt{predict\_proba(...)[:, bon\_col]} where \texttt{bon\_col = model.classes\_.index(0)}
+(\texttt{sklearn} sorts classes ascending, so class 0 =
+bonafide sits at column index 0). A run-time assertion in
+\texttt{scripts/11\_lfcc\_lr\_second\_detector.py} verifies \texttt{model.classes\_ == [0, 1]}
+before scoring --- if \texttt{sklearn} ever changes its class-%
+ordering convention, the assertion will fire loudly rather than
+silently emitting flipped scores.
+
+
+\section{Shared audio preprocessing}
+\label{sec:detector-verification-preprocessing}
+
+Both detectors use the same audio preprocessing at score time ---
+this is a deliberate methodology choice discussed in Chapter~\ref{chap:data-methodology},
+Section~\ref{sec:methodology-detectors}. In summary, every file scored by any detector in this
+thesis is:
+
+\begin{itemize}
+    \item read with \texttt{soundfile.read(..., dtype="float32", always\_2d=True)}
+        (bypassing torchaudio's optional torchcodec
+        backend for portability);
+    \item averaged across channels to mono;
+    \item resampled to 16\,kHz if needed;
+    \item deterministically zero-padded or truncated to exactly 4.0 seconds
+        (64,000 samples), starting from position 0 (no random crop at
+        evaluation time).
+\end{itemize}
+
+Sharing preprocessing between the two detectors is what lets the
+cross-architecture replication in Chapter~\ref{chap:main-results} (Sections~5.4 and~5.6)
+be interpreted as an architecture-level comparison rather than a
+preprocessing-level comparison. If the two detectors saw different audio, any
+similarity or difference between them could reflect the audio
+pipeline rather than the model.
+
+The 4-second window matches the training-time preprocessing of the
+baseline AuralGuard checkpoint (recorded in the checkpoint's \texttt{args}
+metadata as \texttt{duration\_sec: 4.0, sample\_rate: 16000}) and is
+therefore not a free parameter --- it is fixed by the pre-trained
+model.
+
+
+\section{The in-domain sanity check}
+\label{sec:detector-verification-indomain}
+
+The correction described in Sections~\ref{sec:detector-verification-checkpoint} and~\ref{sec:detector-verification-score-direction} is \emph{plausible}
+(the load succeeds, the score direction is documented) but not
+\emph{sufficient} --- a stronger validation is required. If the corrected
+loader really does put the trained weights in the right places and
+the score direction really does match the metric convention, then
+scoring the corrected pipeline on the checkpoint's own training-%
+distribution validation set should reproduce the training-time
+validation EER. This is the central test.
+
+\subsection{Reference validation set}
+\label{sec:detector-verification-indomain-refset}
+
+The reference set is the AuralGuard-original validation CSV
+\texttt{<AURALGUARD\_ROOT>/data/metadata/val\_final\_accent\_globe\_wavefake\_balanced.csv},
+containing \textbf{9,514 rows}: 4,757 bonafide and 4,757
+spoof (\texttt{tts\_vc}), drawn from six source datasets: ASVspoof2019\_LA
+(6,775 rows), DECTE (1,014), WaveFake (530), EdAcc (500),
+EnglishDialects (495), and GLOBE (200). This is the same
+distribution the checkpoint's own training run selected \texttt{best.pt}
+against, so the training-time recorded EER is a \emph{definition} of
+what the correctly-loaded model should reproduce.
+
+The AuralGuard CSV uses the opposite label convention
+(\texttt{binary\_label = 0} bonafide, \texttt{binary\_label = 1} spoof); the sanity-%
+check script translates this internally before feeding the metric
+functions.
+
+\subsection{Sanity-check protocol}
+\label{sec:detector-verification-indomain-protocol}
+
+\texttt{scripts/06\_indomain\_sanity\_check.py} implements the check. Two
+modes are supported:
+
+\begin{itemize}
+    \item \textbf{Sanity subsample} (default): 500 files per class (1,000
+        total), stratified across the six source datasets by seed 42.
+        Fast ($\sim$1 minute) and used as a first pass.
+    \item \textbf{Full validation set}: all 9,514 files. Longer wall time
+        ($\sim$8 minutes on GPU) and used to lock the final verdict.
+\end{itemize}
+
+For each file, the script resolves the audio path (either absolute
+or relative to the AuralGuard project root, handling all three
+path formats present in the CSV), scores it with the corrected
+\texttt{AASISTDetector}, and accumulates the scores into per-class arrays.
+The metric functions from \texttt{src/evaluation/metrics.py} then produce
+EER, AUC, accuracy, FAR, and FRR --- the same metric functions used
+for every DECTE / VCTK number in later chapters.
+
+\subsection{Sanity-check verdict thresholds}
+\label{sec:detector-verification-indomain-thresholds}
+
+The script encodes explicit thresholds for the verdict, so the
+check is a pass/fail gate rather than a subjective judgement:
+
+\begin{itemize}
+    \item \textbf{PASS}: overall EER $\leq$ 5\,\%. The corrected loader is consistent
+        with the training-time behaviour.
+    \item \textbf{PARTIAL}: 5\,\% $<$ EER $\leq$ 15\,\%. Detector discriminates but not as
+        well as its training-time metrics would suggest. Some drift
+        remains --- worth investigating preprocessing / audio decoding
+        before publishing downstream numbers.
+    \item \textbf{FAIL}: EER $>$ 15\,\%. Detector fails on its own in-domain
+        validation set. DECTE / VCTK numbers under this checkpoint
+        cannot be interpreted as domain-transfer difficulty; the
+        pipeline is broken and must be fixed first.
+\end{itemize}
+
+The 5\,\% threshold is deliberately loose. A perfectly-loaded
+detector should reproduce its training-time EER to within
+fractions of a percentage point; a 5\,\% ceiling therefore has
+significant headroom for benign preprocessing or numerical drift.
+Any DECTE / VCTK number in later chapters is contingent on this
+threshold having been met.
+
+\subsection{Verdict}
+\label{sec:detector-verification-indomain-verdict}
+
+Both the sanity subsample and the full validation set were
+scored with the corrected loader. Both runs returned \textbf{PASS}.
+The full in-domain sanity check achieved \textbf{1.71\,\% EER}, which
+was close to the checkpoint's saved validation result and passed
+the predefined $\leq$ 5\,\% verification threshold. The overall AUC was
+near-perfect. The per-dataset breakdown and the exact sanity-%
+subsample numbers are logged in Entry 3 of the findings log and
+archived in \texttt{results/indomain\_sanity\_metrics.csv}.
+
+
+\section{Why the DECTE / VCTK results can be interpreted after verification}
+\label{sec:detector-verification-interpretation}
+
+Once the corrected pipeline is shown to reproduce the training-%
+time validation performance on the training-distribution
+validation set, the interpretation of the downstream DECTE / VCTK
+numbers changes noticeably. Before the sanity check, an elevated
+EER on DECTE would be indistinguishable from a bug (as the
+0.32-AUC run in Section~\ref{sec:detector-verification-loader-bug} illustrates). After the sanity check,
+an elevated EER on DECTE cannot be a bug of the same kind: the
+same code path, the same audio pipeline, and the same score-%
+direction convention already work on 9,514 files from the
+training distribution. Any elevated EER on DECTE (or VCTK) must
+therefore reflect a genuine domain-transfer difficulty rather than
+a residual pipeline failure.
+
+This does not automatically make the DECTE / VCTK numbers correct
+in every respect. Two orthogonal risks remain:
+
+\begin{itemize}
+    \item \textbf{Sample-size uncertainty.} Even a correctly-loaded detector,
+        scored on a small held-out slice, produces point estimates with
+        wide bootstrap CIs. This is addressed by attaching 95\,\% non-%
+        parametric bootstrap CIs to every headline number, as described
+        in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap}.
+    \item \textbf{Interpretational scope.} The verified detector is one
+        detector (AuralGuard-AASISTPP). Whether any given DECTE / VCTK
+        effect is architecture-specific is a separate question,
+        addressed by the cross-architecture LFCC + LR replication
+        in Chapter~\ref{chap:main-results}.
+\end{itemize}
+
+Neither of these risks reduces to a hidden pipeline bug once the
+sanity check has passed. That is what the check is for.
+
+
+\section{LFCC + Logistic Regression baseline setup}
+\label{sec:detector-verification-lfcc}
+
+The second detector used in this thesis is a hand-crafted-feature
++ linear-classifier baseline. Its architecture and training
+procedure are described in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-detectors-lfcc-lr}, and are not
+repeated here. This section covers only the aspects that are
+specific to how the LFCC + LR detector itself is \emph{verified} to
+be behaving as expected.
+
+Unlike the primary AASIST detector, the LFCC + LR classifier has
+no pre-existing checkpoint against which to verify --- it is fit
+from scratch inside this project on the leakage-filtered
+AuralGuard training CSV. There is therefore no equivalent of the
+in-domain sanity check in Section~\ref{sec:detector-verification-indomain}: no external reference EER
+exists to reproduce.
+
+Instead, three verification points are enforced at fit time and
+at score time:
+
+\begin{itemize}
+    \item \textbf{Class ordering.} After the pipeline is fit,
+        \texttt{model.named\_steps["lr"].classes\_} is printed. The expected
+        value is \texttt{[0 1]}, which locks \texttt{predict\_proba[:, 0]} as the
+        bonafide probability. If a future version of scikit-learn ever
+        changed class-sorting behaviour, the printed value would change,
+        and the fixed \texttt{bon\_col = 0} assumption in the scoring path
+        would then need to be re-checked.
+    \item \textbf{Path resolution and existence pre-check.} Every training
+        audio path is resolved to an absolute path (the AuralGuard CSV
+        uses paths relative to the AuralGuard project root, not the
+        dialect-deepfake-bias repo root) and checked for existence
+        before feature extraction begins. If more than 5\,\% of training
+        paths cannot be resolved, the script aborts with a clear error
+        rather than silently proceeding with a partial training set.
+        On the actual data, 80 of $\sim$33,700 paths (0.24\,\%) were missing
+        --- well below the abort threshold and reported in the run log
+        for transparency.
+    \item \textbf{Leakage filter accounting.} The 16 DECTE test speakers held
+        out for the mitigation and evaluation slices are filtered from
+        the AuralGuard training CSV before feature extraction. The
+        script prints the number of rows removed and the per-speaker
+        removal counts, so leakage protection is externally auditable.
+        In the actual run, 1,445 rows were removed and DECTE rows
+        dropped from 8,057 to 6,612.
+\end{itemize}
+
+These checks do not certify the LFCC + LR classifier as a
+deployment-grade detector --- it is not one, and the thesis does
+not claim it to be one. They certify only that the classifier is
+being fit and scored as documented. Its role in the thesis is
+to answer the cross-architecture-replication question
+(Chapter~\ref{chap:main-results}, Section~5.5), and that role requires only that the
+classifier be \emph{itself}, not that it be \emph{good in absolute terms}.
+
+
+\section{Limitations of detector verification}
+\label{sec:detector-verification-limitations}
+
+Even with the loader fix, the score-direction fix, and the passing
+in-domain sanity check, the detector verification in this chapter
+has several limits worth flagging up front.
+
+\begin{itemize}
+    \item \textbf{Verification is against a single reference set.} The
+        in-domain sanity check reproduces the checkpoint's training-%
+        distribution EER on the checkpoint's own validation split. If
+        the training-distribution split itself has an unrepresentative
+        slice (for example, if its DECTE rows happen to be easier than
+        DECTE in general), the sanity check would still pass and
+        downstream DECTE EER would look worse for reasons not caught by
+        the check. Chapter~\ref{chap:discussion} discusses the closely related in-training
+        DECTE-exposure caveat.
+    \item \textbf{Verification confirms the loader, not the model.} The sanity
+        check ensures that the trained parameters are loaded and scored
+        correctly. It does not (and cannot) validate that the AASIST
+        architecture itself is a good choice for anti-spoofing on
+        dialectal speech. Whether a different anti-spoofing model would
+        produce very different DECTE / VCTK numbers is a separate
+        research question, only partly addressed by the LFCC + LR
+        cross-architecture check in Chapter~\ref{chap:main-results}.
+    \item \textbf{No score-direction sanity check for LFCC + LR beyond the
+        class-ordering assertion.} The class-ordering assertion
+        (\texttt{model.classes\_ == [0, 1]}) guarantees the correct column
+        index. It does not guarantee that scikit-learn's
+        \texttt{predict\_proba} is monotonic in the same direction as the
+        underlying logistic regression's coefficient (this is a hard
+        invariant of \texttt{sklearn} and would only fail as a library bug),
+        but it is worth naming as an unproven invariant rather than a
+        verified property of this thesis.
+    \item \textbf{No formal float / dtype audit.} All scoring is done in
+        \texttt{float32} audio $\rightarrow$ \texttt{float32} features $\rightarrow$ \texttt{float64} probability.
+        The occasional \texttt{numpy} warning about mixed precision has been
+        eyeballed and is not central, but a full numerical audit
+        of the pipeline is not part of this thesis.
+    \item \textbf{Verification does not address the audio-quality confound.}
+        Even a perfectly-loaded detector will react differently to
+        16-kHz down-mixed VCTK (originally 48\,kHz) than to native
+        16-kHz DECTE chunks. The audio pipeline is the same for both,
+        but the input distributions genuinely differ in bandwidth and
+        channel characteristics. This is discussed in the DECTE /
+        VCTK caveats in Chapter~\ref{chap:data-methodology} and revisited in Chapter~\ref{chap:discussion}.
+\end{itemize}
+
+None of these limits invalidate the verification. Together with
+the passing in-domain sanity check, they set the scope inside
+which the DECTE / VCTK claims in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics} are made.
