@@ -373,6 +373,56 @@ headline observations from the table above:
         should not be over-read as uniformity of \emph{magnitude}.
 \end{itemize}
 
+Figure~\ref{fig:subgroup-mitigation-delta} visualises the same
+per-subgroup deltas. The \emph{Diagnostic only} label on the figure
+surface repeats the wording contract stated throughout this
+chapter and in Section~\ref{sec:subgroup-interpretation}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=10cm,
+    xbar,
+    bar width=8pt,
+    xlabel={Delta EER (pp) --- mitigated v2 $-$ baseline},
+    symbolic y coords={Overall,female,male,16-20,21-30,41-50,1960s-1970s,1990s,2007-2008,2010-2011},
+    ytick=data,
+    y dir=reverse,
+    xmin=-40, xmax=6,
+    nodes near coords,
+    every node near coord/.append style={font=\scriptsize},
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+    grid=major, grid style={dashed, gray!30},
+]
+\draw[thick, black!60, dashed] (axis cs:0,Overall) -- (axis cs:0,2010-2011);
+\addplot[fill=gray!60, draw=black] coordinates {
+    (-17.44,Overall)
+    (-6.41,female)
+    (-26.92,male)
+    (-32.43,16-20)
+    (-33.33,21-30)
+    (-10.00,41-50)
+    (-20.83,1960s-1970s)
+    (-34.38,1990s)
+    (-15.00,2007-2008)
+    (-5.00,2010-2011)
+};
+\node[anchor=south east,
+      font=\scriptsize\bfseries,
+      fill=white, draw=black!40,
+      inner sep=3pt,
+      rounded corners=1pt]
+     at (rel axis cs:0.98, 0.02)
+     {Diagnostic only; not a fairness audit.};
+\end{axis}
+\end{tikzpicture}
+\caption{Mitigation v2 EER change across DECTE subgroup diagnostics. Negative values indicate lower EER after mitigation. Per-subgroup counts are small (10--40 files per class); no per-subgroup confidence intervals are computed. Descriptive only.}
+\label{fig:subgroup-mitigation-delta}
+\end{figure}
+
 
 \section{Low-n appendix note}
 \label{sec:subgroup-low-n}

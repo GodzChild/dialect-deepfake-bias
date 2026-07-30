@@ -366,6 +366,49 @@ LFCC + LR & OpenVoice v2  & 38.21 [33.17, 43.53] & 80.83 [76.33, 87.25] & $\math
 \end{tabularx}
 \end{table}
 
+Figure~\ref{fig:gap-direction-forest} visualises the same four gap CIs
+as a forest plot; the reference line at zero makes the sign split
+between the two generators (XTTS positive; OpenVoice negative)
+immediately visible.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.88\linewidth,
+    height=6.5cm,
+    xlabel={DECTE $-$ VCTK EER gap (percentage points)},
+    ytick={1,2,3,4},
+    yticklabels={AASIST + XTTS,
+                 LFCC + LR + XTTS,
+                 AASIST + OpenVoice,
+                 LFCC + LR + OpenVoice},
+    y dir=reverse,
+    ymin=0.5, ymax=4.5,
+    xmin=-60, xmax=30,
+    grid=major, grid style={dashed, gray!30},
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+]
+\draw[thick, black!60, dashed] (axis cs:0,0.5) -- (axis cs:0,4.5);
+\addplot+[
+    only marks,
+    mark=*, mark size=2.5pt,
+    error bars/.cd,
+    x dir=both, x explicit,
+    error bar style={line width=1pt},
+] coordinates {
+    (12.80, 1) +- (9.27, 6.67)
+    (12.44, 2) +- (9.32, 10.48)
+    (-26.74, 3) +- (8.48, 8.95)
+    (-42.62, 4) +- (6.98, 8.16)
+};
+\end{axis}
+\end{tikzpicture}
+\caption{DECTE $-$ VCTK EER gaps by generator and detector. Error bars show 95\,\% bootstrap confidence intervals. Positive values mean DECTE is harder than VCTK; negative values mean VCTK is harder. The dashed vertical line marks zero. Both XTTS rows lie entirely above zero (dialect / domain gap); both OpenVoice rows lie entirely below zero (generator-specific corpus interaction).}
+\label{fig:gap-direction-forest}
+\end{figure}
+
 Two structural properties of this table are worth naming:
 
 \begin{itemize}

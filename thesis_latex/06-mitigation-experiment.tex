@@ -463,6 +463,43 @@ PASS band. These three conditions together are what the writing
 plan calls the \emph{success criteria} for a mitigation experiment
 under RQ3, and they are all satisfied for v2.
 
+Figure~\ref{fig:mitigation-effect} visualises the baseline and
+mitigated EER on the two evaluation slices. The DECTE bar drop is
+the statistically supported improvement (delta $-17.44$\,pp,
+95\,\% CI $[-28.49, -9.30]$); the VCTK bar drop is the guardrail
+check (delta $-2.67$\,pp, 95\,\% CI $[-5.42, +3.17]$), which
+does not clear zero and is reported only as ``no clear regression''.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=6.5cm,
+    ybar,
+    bar width=18pt,
+    symbolic x coords={DECTE XTTS,VCTK XTTS},
+    xtick=data,
+    ylabel={EER (\%)},
+    ymin=0, ymax=50,
+    enlarge x limits=0.4,
+    legend pos=north east,
+    legend style={font=\footnotesize},
+    nodes near coords,
+    every node near coord/.append style={font=\footnotesize},
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+    grid=major, grid style={dashed, gray!30},
+]
+\addplot[fill=gray!40, draw=black] coordinates {(DECTE XTTS,40.70) (VCTK XTTS,21.83)};
+\addplot[fill=black!80, draw=black] coordinates {(DECTE XTTS,23.26) (VCTK XTTS,19.17)};
+\legend{Baseline, Mitigated v2}
+\end{axis}
+\end{tikzpicture}
+\caption{Baseline and mitigation v2 EER on DECTE XTTS and VCTK XTTS. The DECTE change is a statistically supported improvement (delta $-17.44$\,pp, 95\,\% CI $[-28.49, -9.30]$); the VCTK change is a guardrail check with no statistically significant regression (delta $-2.67$\,pp, 95\,\% CI $[-5.42, +3.17]$).}
+\label{fig:mitigation-effect}
+\end{figure}
+
 
 \section{Interpretation}
 \label{sec:mitigation-interpretation}

@@ -62,6 +62,35 @@ both detector configurations. This is what makes the bootstrap
 confidence intervals interpretable as detector-effect intervals
 rather than sampling-noise intervals.
 
+Figure~\ref{fig:experimental-design-overview} sketches the five stages
+in one view.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+    node distance=0.55cm and 0.55cm,
+    every node/.style={draw, rectangle, rounded corners=2pt,
+        minimum height=1.0cm, align=center,
+        font=\footnotesize, inner sep=4pt},
+    arr/.style={-{Latex[length=2mm]}, thick},
+]
+    \node (corp) [text width=2.1cm] {\textbf{Corpora}\\DECTE\\VCTK 0.92};
+    \node (gen)  [right=of corp, text width=2.1cm] {\textbf{Generators}\\XTTS v2\\OpenVoice v2};
+    \node (det)  [right=of gen,  text width=2.1cm] {\textbf{Detectors}\\AASIST\\LFCC + LR};
+    \node (eval) [right=of det,  text width=2.4cm] {\textbf{Evaluation}\\EER, AUC\\95\,\% bootstrap CI};
+    \node (mit)  [below=of eval, text width=2.4cm] {\textbf{Mitigation v2}\\partial-backbone\\fine-tune};
+    \node (diag) [left=of mit,   text width=2.4cm] {\textbf{Subgroup}\\\textbf{diagnostics}\\descriptive only};
+
+    \draw[arr] (corp) -- (gen);
+    \draw[arr] (gen)  -- (det);
+    \draw[arr] (det)  -- (eval);
+    \draw[arr] (eval) -- (mit);
+    \draw[arr] (mit)  -- (diag);
+\end{tikzpicture}
+\caption{Experimental design overview of the corpus, generator, detector, mitigation, and diagnostic stages.}
+\label{fig:experimental-design-overview}
+\end{figure}
+
 
 \section{Corpora}
 \label{sec:methodology-corpora}
