@@ -2,5 +2,71 @@
 \chapter{Reproducibility Index}
 \label{app:reproducibility}
 
-%% TODO: commit-hash to findings-log Entry to primary script mapping
-%% See docs/THESIS_ASSEMBLY_PLAN.md Section 6 (Appendix A).
+This appendix maps the main empirical findings of the thesis to
+the numbered entries in the project's findings log
+(\texttt{docs/THESIS\_FINDINGS\_LOG.md}), the primary script that
+produced each finding, and the body-chapter section(s) that cite
+the result. Every quantitative claim in Chapters~\ref{chap:detector-verification}--\ref{chap:subgroup-diagnostics} traces
+back to exactly one Entry in Table~\ref{tab:appendix-reproducibility-index}.
+
+All scripts named below live under \texttt{scripts/} in the
+project repository. The primary output artefact for every
+detector-scoring Entry is a prediction CSV under \texttt{results/},
+and for every bootstrap Entry a delta / CI CSV alongside; the CSV
+paths themselves are gitignored and are recorded in the findings
+log per Entry rather than repeated here.
+
+\begin{table}[t]
+\centering
+\caption{Reproducibility index for the main empirical findings.}
+\label{tab:appendix-reproducibility-index}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}c X l l@{}}
+\toprule
+\textbf{Entry} & \textbf{Purpose} & \textbf{Main script} & \textbf{Chapter} \\
+\midrule
+1  & Phase 2 DECTE baseline; detector loader fix                    & \texttt{03\_run\_detectors.py}                & Ch~\ref{chap:detector-verification} \\
+2  & Balanced DECTE XTTS vs OpenVoice comparison ($N = 100$)        & \texttt{04\_balanced\_generator\_comparison.py} & Ch~\ref{chap:main-results} \\
+3  & In-domain sanity check on AuralGuard validation set            & \texttt{06\_indomain\_sanity\_check.py}       & Ch~\ref{chap:detector-verification} \\
+4  & VCTK OpenVoice matched-control result                          & \texttt{03\_run\_detectors.py}                & Ch~\ref{chap:main-results} \\
+5  & VCTK XTTS matched-control and 2$\times$2 corpus $\times$ generator table & \texttt{03\_run\_detectors.py}                & Ch~\ref{chap:main-results} \\
+6  & Bootstrap 95\,\% CIs for XTTS corpus gap and VCTK generator gap & \texttt{06\_bootstrap\_xtts\_corpus\_gap.py}   & Ch~\ref{chap:main-results} \\
+7  & Mitigation v2 partial-unfreeze result on held-out DECTE slice  & \texttt{10\_bootstrap\_mitigation\_effect.py}  & Ch~\ref{chap:mitigation} \\
+8  & LFCC + LR second-detector replication of the XTTS corpus gap   & \texttt{11\_lfcc\_lr\_second\_detector.py}     & Ch~\ref{chap:main-results} \\
+9  & AASIST OpenVoice corpus-gap reversal (bootstrap CI)            & \texttt{12\_bootstrap\_openvoice\_corpus\_gap.py} & Ch~\ref{chap:main-results} \\
+10 & LFCC + LR replication of the OpenVoice corpus-gap reversal     & \texttt{13\_lfcc\_lr\_openvoice\_corpus\_gap.py} & Ch~\ref{chap:main-results} \\
+11 & DECTE subgroup diagnostics on the mitigation held-out slice    & \texttt{14\_decte\_subgroup\_diagnostics.py}   & Ch~\ref{chap:subgroup-diagnostics} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Environments.}
+Three Conda environments are used, each self-contained
+(Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-repro-envs}):
+\texttt{dialectbias} for data preparation, detector loading, scoring,
+LFCC + LR training, and bootstrap analyses; \texttt{spoofgen} for
+XTTS v2 spoof generation; and \texttt{openvoice} for OpenVoice v2
+spoof generation. The three environments do not share dependencies
+so that a version bump in one generator cannot silently affect the
+other or the detector-side evaluation.
+
+\paragraph{External resources.}
+Four external artefacts are required to reproduce the full pipeline
+end-to-end and are not distributed with this repository
+(Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-repro-external}):
+DECTE corpus access (research-restricted; arrange through the
+corpus custodians), VCTK 0.92 (public download), the
+AuralGuard-AASISTPP baseline checkpoint (from the neighbouring
+AuralGuard project), and the two spoof generator checkpoints
+(XTTS v2 auto-downloaded by the Coqui TTS library; OpenVoice v2
+requires manually placing the tone-colour converter and
+base-speaker embeddings).
+
+\paragraph{Commit traceability.}
+Each Entry in \texttt{docs/THESIS\_FINDINGS\_LOG.md} corresponds to
+a specific commit on the \texttt{main} branch of the project
+repository. The findings log records the commit hash alongside
+each Entry; the mapping is not repeated here to avoid duplication
+and to keep the appendix stable against future rebases of the
+history.

@@ -1,7 +1,54 @@
 \cleardoubleoddpage
-\chapter{Low-N Subgroup Diagnostic Table}
+\chapter{Low-N Subgroup Diagnostic Notes}
 \label{app:low-n-subgroups}
 
-%% TODO: subgroups excluded from Chapter 7's main table because n<10 per class.
-%% Diagnostic-only view. See docs/THESIS_ASSEMBLY_PLAN.md Section 6 (Appendix D)
-%% and findings-log Entry 11.
+\textbf{Diagnostic only, not a fairness audit.} This appendix
+extends Chapter~\ref{chap:subgroup-diagnostics} with the DECTE subgroup rows that
+did not meet the main-table sample-size threshold and were therefore
+excluded from the headline subgroup tables. The same wording contract
+as Chapter~\ref{chap:subgroup-diagnostics} applies to every row listed here:
+these are descriptive point-estimates on very small sub-slices, they
+carry no per-subgroup confidence interval, and they are not evidence
+for or against any fairness claim.
+
+Chapter~\ref{chap:subgroup-diagnostics}, Section~\ref{sec:subgroup-protocol} sets the main-table
+threshold at \textbf{at least 10 bonafide and at least 10 spoof files}
+per subgroup on the joined DECTE XTTS held-out slice. Subgroups
+below that threshold are computed and written to the CSV output
+(\texttt{results/}\allowbreak\texttt{subgroup\_diagnostics/}\allowbreak\texttt{decte\_subgroup\_metrics.csv})
+but flagged as \texttt{below\_n\_threshold = True} so that they cannot
+enter the chapter's headline claims. Table~\ref{tab:appendix-low-n-subgroups}
+records the low-N rows for the two age bands that surfaced in the
+joined slice.
+
+\begin{table}[t]
+\centering
+\caption{Low-N subgroup rows excluded from Chapter~\ref{chap:subgroup-diagnostics} headline subgroup tables.}
+\label{tab:appendix-low-n-subgroups}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\linewidth}{@{}l l r r X@{}}
+\toprule
+\textbf{Metadata field} & \textbf{Group} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Reason not used as headline evidence} \\
+\midrule
+\texttt{speaker\_age\_group} & 17--20 & 4 & 4 & Both counts below the 10-per-class main-table threshold; no per-subgroup CI computed \\
+\texttt{speaker\_age\_group} & 61--70 & 2 & 2 & Both counts below the 10-per-class main-table threshold; no per-subgroup CI computed \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+These rows are reported for transparency only: they let a reader
+verify that Chapter~\ref{chap:subgroup-diagnostics}'s main-table exclusions were the
+result of a fixed pre-registered threshold rather than a
+post-hoc filter. No per-subgroup confidence intervals were computed
+for any of these rows, and the small per-class counts make even
+point-estimate delta EER values statistically uninformative on their
+own. Consistent with the wording contract in Chapter~\ref{chap:subgroup-diagnostics},
+Section~\ref{sec:subgroup-interpretation}, no statement in the thesis attributes
+detector behaviour to any of the excluded subgroups, and neither
+this appendix nor the CSV output supports fairness-style claims of
+the form ``the detector is biased against group X''.
+
+The full CSV (including the per-speaker breakdown noted in
+Chapter~\ref{chap:subgroup-diagnostics}, Section~\ref{sec:subgroup-low-n}) is the source of record for
+these numbers.

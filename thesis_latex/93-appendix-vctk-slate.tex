@@ -1,6 +1,78 @@
 \cleardoubleoddpage
-\chapter{VCTK 20-Speaker Slate Composition}
+\chapter{VCTK Control Slate}
 \label{app:vctk-slate}
 
-%% TODO: per-speaker table (gender, age band, accent, region, utterances used).
-%% See docs/THESIS_ASSEMBLY_PLAN.md Section 6 (Appendix C) and findings-log Entry 5.
+VCTK 0.92 is used throughout this thesis as the standard-accent
+English control corpus against which DECTE dialectal / interview-%
+style speech is compared (Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-corpora-vctk}).
+The selection was deterministic: after the layout-verification and
+loose-English-accent filter described in Section~\ref{sec:methodology-corpora-vctk},
+33 VCTK speakers were eligible, of which the alphabetically first
+20 with at least 8 usable utterances each formed the slate. This
+appendix records those 20 speaker identifiers and the aggregate
+composition already summarised in the main text.
+
+\begin{table}[t]
+\centering
+\caption{VCTK speaker slate used for matched-control generation.}
+\label{tab:appendix-vctk-speaker-slate}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+\toprule
+\textbf{Speaker ID} & \textbf{Slate role} & \textbf{Notes} \\
+\midrule
+\texttt{p225} & Control speaker &  \\
+\texttt{p226} & Control speaker &  \\
+\texttt{p227} & Control speaker &  \\
+\texttt{p228} & Control speaker &  \\
+\texttt{p229} & Control speaker &  \\
+\texttt{p230} & Control speaker &  \\
+\texttt{p231} & Control speaker &  \\
+\texttt{p232} & Control speaker &  \\
+\texttt{p233} & Control speaker &  \\
+\texttt{p236} & Control speaker &  \\
+\texttt{p239} & Control speaker &  \\
+\texttt{p240} & Control speaker &  \\
+\texttt{p243} & Control speaker &  \\
+\texttt{p244} & Control speaker &  \\
+\texttt{p250} & Control speaker &  \\
+\texttt{p254} & Control speaker &  \\
+\texttt{p256} & Control speaker &  \\
+\texttt{p257} & Control speaker &  \\
+\texttt{p258} & Control speaker &  \\
+\texttt{p259} & Control speaker &  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The full per-speaker VCTK metadata (per-speaker gender, age band,
+region within the loose-English filter, and utterance identifiers)
+lives in the VCTK 0.92 distribution's \texttt{speaker-info.txt}, which
+is not redistributed with this repository. Per the assembly plan's
+scope, the appendix records the selected speaker identifiers only
+and defers per-speaker metadata to the VCTK distribution itself.
+
+\paragraph{Aggregate composition (already documented in the main text).}
+The 20-speaker slate has the following aggregate properties, as
+reported in the findings log:
+
+\begin{itemize}
+    \item \textbf{Total speakers:} 20.
+    \item \textbf{Region:} 13 southern (Southern England / London /
+        Surrey / SE England / SW England) and 7 non-southern
+        (Manchester, Cumbria, Stockton-on-Tees, Birmingham,
+        Nottingham, Staffordshire). No speaker is from Newcastle;
+        there is no direct region overlap with DECTE.
+    \item \textbf{Gender:} 11 female / 9 male at the speaker level.
+    \item \textbf{Age band:} 19 of 20 in the 21--30 band; one in
+        31--40. This concentration is one of the axes on which
+        DECTE and VCTK differ simultaneously and is one of the
+        reasons the observed DECTE-vs-VCTK gap is reported as a
+        \emph{dialect / domain gap} rather than a pure dialect
+        gap (Chapter~\ref{chap:discussion}, Section~\ref{sec:discussion-wording-contract}).
+    \item \textbf{Spoof coverage:} 100 XTTS v2 and 100 OpenVoice v2
+        spoofs, all generated from utterances drawn from the same
+        20-speaker slate (per-cell breakdown in
+        Appendix~\ref{app:spoof-generation-counts}).
+\end{itemize}

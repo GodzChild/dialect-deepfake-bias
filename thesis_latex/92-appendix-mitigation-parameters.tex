@@ -1,6 +1,59 @@
 \cleardoubleoddpage
-\chapter{Mitigation v2 Trainable-Parameter Breakdown}
+\chapter{Mitigation Parameter Details}
 \label{app:mitigation-parameters}
 
-%% TODO: ~31,372 trainable / ~268,104 frozen parameter breakdown per module.
-%% See docs/THESIS_ASSEMBLY_PLAN.md Section 6 (Appendix B) and findings-log Entry 7.
+Mitigation v2 (Chapter~\ref{chap:mitigation}) is a \emph{controlled adaptation}
+of the AuralGuard-AASISTPP detector, not a re-training. Only a small
+part of the model is allowed to move during fine-tuning; the rest is
+frozen at its baseline-checkpoint values. This appendix records the
+exact set of modules that are trainable in v2 and the corresponding
+parameter counts.
+
+\begin{table}[t]
+\centering
+\caption{Trainable modules used in mitigation v2.}
+\label{tab:appendix-mitigation-trainable-modules}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}l l X c@{}}
+\toprule
+\textbf{Component} & \textbf{Module name} & \textbf{Role} & \textbf{Trainable in v2?} \\
+\midrule
+Final H-GAT stage       & \texttt{HtrgGAT\_layer\_ST21} & Second heterogeneous graph-attention layer of the final AASIST stage & Yes \\
+Final H-GAT stage       & \texttt{HtrgGAT\_layer\_ST22} & Second heterogeneous graph-attention layer of the final AASIST stage & Yes \\
+Pooling                 & \texttt{pool\_hS2}            & Spectral pooling for the final H-GAT stage                          & Yes \\
+Pooling                 & \texttt{pool\_hT2}            & Temporal pooling for the final H-GAT stage                          & Yes \\
+Master node             & \texttt{master2}              & Learnable master token consumed by the second H-GAT stage           & Yes \\
+Binary task head        & \texttt{binary\_head}         & Real / fake classifier read at score time                           & Yes \\
+Attack-type task head   & \texttt{attack\_head}         & Auxiliary attack-type classifier (trained but not read at score time) & Yes \\
+Explanation task head   & \texttt{explanation\_head}    & Auxiliary explanation-label classifier (trained but not read at score time) & Yes \\
+\midrule
+Everything else         & \texttt{sinc.*}, encoder, first-GAT stage, first H-GAT stage & Raw-waveform SincConv front-end, encoder blocks, and the first heterogeneous-GAT stage & No (frozen) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Concretely, at the start of the v2 training run the fine-tuning
+script reports \textbf{31,372 trainable parameters} and
+\textbf{268,104 frozen parameters}, i.e.\ approximately \textbf{10.5\,\%}
+of the model's total parameters are adapted; the remaining
+$\sim$89.5\,\% retain their baseline-checkpoint values exactly.
+
+Training hyperparameters used with the modules above are documented
+in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-config}:
+5 epochs, batch size 4, learning rate $3 \times 10^{-5}$,
+\texttt{num\_workers = 0} (Windows), single GPU, AdamW over
+\texttt{filter(lambda p: p.requires\_grad, model.parameters())} so
+gradients only flow to the modules listed as \textit{Yes} above.
+
+The choice of these specific modules --- the final heterogeneous-GAT
+stage plus the three AuralGuard task heads --- is discussed in
+Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-config}:
+the fine-tune is allowed to shift the top-of-backbone view (the
+graph-attention interactions between spectral and temporal pooled
+representations) plus the classifier heads, while every low- and
+mid-level acoustic representation is left intact. The resulting
+adaptation is a \emph{controlled adaptation}, not a production
+deployment: the mitigated checkpoint's residual DECTE XTTS EER of
+23.26\,\% is well above any operational usability threshold
+(Chapter~\ref{chap:mitigation}, Section~\ref{sec:mitigation-limitations}).
