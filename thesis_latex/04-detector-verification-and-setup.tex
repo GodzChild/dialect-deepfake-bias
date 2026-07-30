@@ -310,6 +310,26 @@ near-perfect. The per-dataset breakdown and the exact sanity-%
 subsample numbers are logged in Entry 3 of the findings log and
 archived in \texttt{results/indomain\_sanity\_metrics.csv}.
 
+Table~\ref{tab:detector-verification-summary} consolidates the three
+verification checks documented in Sections~\ref{sec:detector-verification-checkpoint}--\ref{sec:detector-verification-indomain}.
+
+\begin{table}[t]
+\centering
+\caption{Summary of detector verification checks before downstream evaluation.}
+\label{tab:detector-verification-summary}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}l X X X@{}}
+\toprule
+\textbf{Check} & \textbf{Problem found} & \textbf{Fix or verification} & \textbf{Result} \\
+\midrule
+Checkpoint loading & Raw AASIST loader silently loaded zero trained tensors (Entry 1) & Instantiate \texttt{AuralGuardAASISTPP} wrapper around the backbone and load the checkpoint with \texttt{strict=True} & Detector loads all 235 trained tensors successfully \\
+Score direction & Initial \texttt{[..., 1]} slice returned fake-probability, opposite to the metric convention & Take \texttt{softmax(...)[0, 0]} = P(real / bonafide) as the returned score & Score follows the higher-is-bonafide convention required by \texttt{compute\_metrics} \\
+In-domain sanity check & Corrected pipeline needed independent validation before DECTE / VCTK numbers could be interpreted & Score the corrected pipeline on the 9,514-file AuralGuard validation set (Entry 3) & EER 1.71\,\%, AUC 0.9988, \textbf{PASS} under $\leq$ 5\,\% threshold \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 
 \section{Why the DECTE / VCTK results can be interpreted after verification}
 \label{sec:detector-verification-interpretation}

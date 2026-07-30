@@ -2,5 +2,29 @@
 \chapter{Spoof Generation Counts}
 \label{app:spoof-generation-counts}
 
-%% TODO: T2 lives here -- per (corpus, generator) cell spoof counts.
-%% See docs/THESIS_TABLES_FIGURES.md T2 and findings-log Entries 2, 5.
+Table~\ref{tab:appendix-spoof-generation-coverage} lists the per-cell
+spoof generation coverage across the two speech corpora (DECTE, VCTK
+0.92) and the two generators (XTTS v2, OpenVoice v2) used in the
+thesis. Each row records the number of successful spoofs produced by
+the generation pipeline described in Chapter~\ref{chap:data-methodology},
+Section~\ref{sec:methodology-spoof-generation}, together with how many
+of those spoofs actually reached the headline evaluations reported in
+Chapter~\ref{chap:main-results} and Chapter~\ref{chap:mitigation}.
+
+\begin{table}[t]
+\centering
+\caption{Spoof generation coverage for DECTE and VCTK evaluation sets.}
+\label{tab:appendix-spoof-generation-coverage}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}l l r X X@{}}
+\toprule
+\textbf{Corpus} & \textbf{Generator} & \textbf{Successful spoofs} & \textbf{Evaluation use} & \textbf{Manifest source} \\
+\midrule
+DECTE & XTTS v2      & 416 & 100 sampled for the balanced generator comparison (Chapter~\ref{chap:main-results}); 86 used in the mitigation held-out test slice (Chapter~\ref{chap:mitigation}) & \texttt{data/generated\_spoofs/}\allowbreak\texttt{manifest.jsonl} (XTTS rows) \\
+DECTE & OpenVoice v2 & 100 & 100 used in the balanced generator comparison (Chapter~\ref{chap:main-results}) & \texttt{data/generated\_spoofs/}\allowbreak\texttt{manifest.jsonl} (OpenVoice rows) \\
+VCTK  & XTTS v2      & 100 & 100 used in the balanced generator comparison (Chapter~\ref{chap:main-results}) & \texttt{data/generated\_spoofs\_vctk/}\allowbreak\texttt{manifest.jsonl} (XTTS rows) \\
+VCTK  & OpenVoice v2 & 100 & 100 used in the balanced generator comparison (Chapter~\ref{chap:main-results}) & \texttt{data/generated\_spoofs\_vctk/}\allowbreak\texttt{manifest.jsonl} (OpenVoice rows) \\
+\bottomrule
+\end{tabularx}
+\end{table}

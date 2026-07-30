@@ -415,7 +415,30 @@ slice essentially intact.
 \label{sec:mitigation-summary-table}
 
 Sections~\ref{sec:mitigation-decte-result},~\ref{sec:mitigation-vctk-guardrail}, and~\ref{sec:mitigation-indomain-sanity} collected into one compact view of
-the mitigation experiment:
+the mitigation experiment.
+
+Table~\ref{tab:mitigation-v1-v2-comparison} first shows the baseline, v1, and
+v2 configurations side by side on the DECTE XTTS held-out slice, so the reader
+can see why v1 was suggestive but not statistically supported while v2 crossed
+the support threshold. Table~\ref{tab:mitigation-summary} then broadens the v2
+row to include the VCTK guardrail and the in-domain sanity check.
+
+\begin{table}[t]
+\centering
+\caption{Baseline, v1, and v2 mitigation comparison on the held-out DECTE XTTS test slice (86 bonafide + 86 spoof). CIs are 95\,\% paired bootstrap intervals.}
+\label{tab:mitigation-v1-v2-comparison}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}l X r r l X@{}}
+\toprule
+\textbf{Configuration} & \textbf{Trainable part} & \textbf{DECTE XTTS EER (\%)} & \textbf{Delta (pp)} & \textbf{95\,\% CI (pp)} & \textbf{Verdict} \\
+\midrule
+Baseline               & No mitigation (frozen checkpoint) & 40.70 & ---              & ---                          & Reference condition \\
+v1 (heads only)        & Three AuralGuard task heads only ($\sim$1{,}600 params) & 36.05 & $-4.65$          & $[-12.79, +2.91]$            & Suggestive; CI crosses zero \\
+v2 (partial unfreeze)  & Final H-GAT stage + task heads ($\sim$31{,}372 params, $\sim$10.5\,\%) & 23.26 & $\mathbf{-17.44}$ & $\mathbf{[-28.49, -9.30]}$   & Statistically supported at 95\,\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \begin{table}[t]
 \centering

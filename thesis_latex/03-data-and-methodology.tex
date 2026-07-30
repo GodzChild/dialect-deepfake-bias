@@ -66,6 +66,35 @@ rather than sampling-noise intervals.
 \section{Corpora}
 \label{sec:methodology-corpora}
 
+Table~\ref{tab:dataset-corpus-overview} summarises every dataset that
+appears in the thesis pipeline. Two corpora (DECTE and VCTK 0.92) are
+directly evaluated on and are described in Sections~\ref{sec:methodology-corpora-decte}
+and~\ref{sec:methodology-corpora-vctk}. The remaining five datasets appear only as
+components of the AuralGuard training mixture that produced the primary
+detector's baseline checkpoint (verified in Chapter~\ref{chap:detector-verification}) and are
+not evaluated on directly.
+
+\begin{table}[t]
+\centering
+\caption{Dataset and corpus overview used in the thesis.}
+\label{tab:dataset-corpus-overview}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}l X X X@{}}
+\toprule
+\textbf{Resource} & \textbf{Role in thesis} & \textbf{Use in this study} & \textbf{Notes} \\
+\midrule
+DECTE            & Primary dialectal / domain test corpus & 82 eligible speakers, of which 20 formed the balanced-generator slate and 16 the held-out mitigation test set & Research-restricted Tyneside English, interview style, spans 1960s--1970s, 1990s, and 2007--2011 survey waves \\
+VCTK 0.92        & Standard-accent English control        & 20-speaker loose-English-accent slate; 100 XTTS + 100 OpenVoice spoofs per generator & Studio-read, 48\,kHz downsampled to 16\,kHz for evaluation, majority-southern English \\
+ASVspoof2019 LA  & AuralGuard training mixture (baseline detector) & Not evaluated on directly in this thesis & Bonafide + TTS/VC spoof from the ASVspoof2019 logical-access track \\
+WaveFake         & AuralGuard training mixture (baseline detector) & Not evaluated on directly in this thesis & Audio-deepfake dataset covering multiple TTS architectures \\
+EdAcc            & AuralGuard training mixture (baseline detector) & Not evaluated on directly in this thesis & Accented English recordings \\
+EnglishDialects  & AuralGuard training mixture (baseline detector) & Not evaluated on directly in this thesis & English dialect variations \\
+GLOBE            & AuralGuard training mixture (baseline detector) & Not evaluated on directly in this thesis & Multi-speaker recording set \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \subsection{DECTE --- Diachronic Electronic Corpus of Tyneside English}
 \label{sec:methodology-corpora-decte}
 
