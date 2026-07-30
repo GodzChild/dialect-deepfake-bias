@@ -54,7 +54,7 @@ DECTE / VCTK numbers were interpreted.
 The primary detector used in this thesis is the AuralGuard-AASISTPP
 wrapper around the AASIST backbone \cite{Jung2022_AASIST}, described in
 Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-detectors-aasist}. The pre-trained checkpoint
-\texttt{<AURALGUARD\_ROOT>/results/final\_accent\_globe\_wavefake\_balanced\_full/best.pt}
+\texttt{<AURALGUARD\_ROOT>/}\allowbreak\texttt{results/}\allowbreak\texttt{final\_accent\_globe\_wavefake\_balanced\_full/}\allowbreak\texttt{best.pt}
 stores 235 named tensors, all of which are namespaced under
 the \texttt{AuralGuardAASISTPP} module structure --- for example
 \texttt{backbone.encoder.0.0.conv1.weight}, \texttt{binary\_head.weight},
@@ -64,9 +64,9 @@ The original implementation of \texttt{AASISTDetector.load()} in
 \texttt{src/evaluation/detectors.py} (before this thesis' correction)
 constructed a \emph{raw} AASIST model class from the official
 \texttt{clovaai/aasist} repository, whose parameter names have no
-\texttt{backbone.} prefix (for example \texttt{encoder.0.0.conv1.weight} rather
-than \texttt{backbone.encoder.0.0.conv1.weight}). It then called
-\texttt{load\_state\_dict(state, strict=False)} on this raw model. Because
+\texttt{backbone.} prefix (for example \texttt{encoder.0.0.}\allowbreak\texttt{conv1.weight} rather
+than \texttt{backbone.encoder.}\allowbreak\texttt{0.0.conv1.weight}). It then called
+\texttt{load\_state\_dict}\allowbreak\texttt{(state, strict=False)} on this raw model. Because
 \texttt{strict=False} treats unmatched keys as a warning rather than an
 error, the load returned normally, but every single one of the
 235 checkpoint tensors was silently discarded --- none of them
@@ -399,7 +399,7 @@ deployment-grade detector --- it is not one, and the thesis does
 not claim it to be one. They certify only that the classifier is
 being fit and scored as documented. Its role in the thesis is
 to answer the cross-architecture-replication question
-(Chapter~\ref{chap:main-results}, Section~5.5), and that role requires only that the
+(Chapter~\ref{chap:main-results}, Section~\ref{sec:main-results-aasist-openvoice}), and that role requires only that the
 classifier be \emph{itself}, not that it be \emph{good in absolute terms}.
 
 

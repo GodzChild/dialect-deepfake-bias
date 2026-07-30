@@ -183,6 +183,8 @@ DECTE test slice: \texttt{female} and \texttt{male}. (The \texttt{mixed} and
 \centering
 \caption{Gender subgroup diagnostics on the joined DECTE XTTS held-out slice. Descriptive only, no per-subgroup CIs.}
 \label{tab:subgroup-gender}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\linewidth}{X r r r r r}
 \toprule
 \textbf{Group value} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Baseline EER (\%)} & \textbf{Mitigated v2 EER (\%)} & \textbf{Delta (pp)} \\
@@ -236,6 +238,8 @@ labelled \texttt{mixed} / \texttt{unknown} and skipped per Section~\ref{sec:subg
 \centering
 \caption{Age-band subgroup diagnostics on the joined DECTE XTTS held-out slice. Descriptive only, no per-subgroup CIs.}
 \label{tab:subgroup-age}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\linewidth}{X r r r r r}
 \toprule
 \textbf{Group value} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Baseline EER (\%)} & \textbf{Mitigated v2 EER (\%)} & \textbf{Delta (pp)} \\
@@ -283,6 +287,8 @@ Section~\ref{sec:subgroup-protocol}.)
 \centering
 \caption{Recording-era subgroup diagnostics on the joined DECTE XTTS held-out slice. Descriptive only, no per-subgroup CIs.}
 \label{tab:subgroup-recording-era}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\linewidth}{X r r r r r}
 \toprule
 \textbf{Group value} & \textbf{$n_\text{bonafide}$} & \textbf{$n_\text{spoof}$} & \textbf{Baseline EER (\%)} & \textbf{Mitigated v2 EER (\%)} & \textbf{Delta (pp)} \\
@@ -353,7 +359,7 @@ speaker\_recording\_era & 2010-2011   & 20 & 20 & 25.00 & 20.00 & $\mathbf{-5.00
 
 The full per-subgroup CSV --- including the low-n rows and the
 per-speaker breakdown not shown here --- is archived at
-\texttt{results/subgroup\_diagnostics/decte\_subgroup\_metrics.csv}. Two
+\texttt{results/}\allowbreak\texttt{subgroup\_diagnostics/}\allowbreak\texttt{decte\_subgroup\_metrics.csv}. Two
 headline observations from the table above:
 
 \begin{itemize}

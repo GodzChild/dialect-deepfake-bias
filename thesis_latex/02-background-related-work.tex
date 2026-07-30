@@ -140,7 +140,7 @@ their training objective (so training is reproducible and
 determinisitic to seed), they have very few hyperparameters, and
 their feature pipeline is transparent and inspectable. This
 thesis' secondary detector --- LFCC + logistic regression, described
-in Chapter~\ref{chap:data-methodology}, Section~3.4.2 --- uses this family for exactly these
+in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-detectors-lfcc-lr} --- uses this family for exactly these
 reasons.
 
 \subsection{Neural end-to-end systems}
@@ -171,7 +171,7 @@ architecture in subsequent anti-spoofing work.
 
 For this thesis, AASIST is used as the \emph{primary} detector --- but
 via the \textbf{AuralGuard-AASISTPP wrapper} described in Chapter~\ref{chap:data-methodology},
-Section~3.4.1. The wrapper adds three linear task heads on top of
+Section~\ref{sec:methodology-detectors-aasist}. The wrapper adds three linear task heads on top of
 AASIST's hidden features (a binary bonafide/spoof head, an
 attack-type head, and an explanation head) and was fine-tuned on
 a mixture of ASVspoof2019\_LA, WaveFake, GLOBE, EdAcc,
@@ -428,7 +428,7 @@ accent metadata. This thesis uses a 20-speaker subset filtered
 to speakers whose \texttt{ACCENTS} field is \texttt{"English"} as a
 standard-accent control condition against which DECTE's
 dialectal / interview-style speech is compared. Chapter~\ref{chap:data-methodology},
-Section~3.2.2 documents the exact selection and its known
+Section~\ref{sec:methodology-corpora-vctk} documents the exact selection and its known
 composition properties (13 southern speakers, 7 non-southern, an
 age-band skew toward 21--30).
 
