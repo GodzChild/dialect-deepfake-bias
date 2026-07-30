@@ -1,28 +1,103 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 
-%% Abstract of your thesis in default document language
-%% 
+%%
+%% Abstract of your thesis in default document language (English)
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \cleardoubleoddpage%  Make sure to start abstract on a new odd page
 \begin{abstract*}
-Space for your abstract.
+Audio deepfake detectors are routinely reported as effective on
+standard benchmark corpora, yet their behaviour under a
+simultaneous shift in speaker dialect, recording domain, and
+synthesis generator is much less well characterised. This thesis
+studies how detector performance changes across two English
+corpora that differ in dialect and recording style --- DECTE
+(Diachronic Electronic Corpus of Tyneside English) and VCTK
+(Voice Cloning Toolkit corpus) --- and across two neural speech
+generators, XTTS v2 and OpenVoice v2. Two detectors are used: an
+AASIST-style graph-attention system (the AuralGuard baseline) and
+a lightweight LFCC + logistic-regression system as a
+cross-architecture check. Detector behaviour is summarised with
+equal error rate (EER), AUC, and bootstrap 95\,\% confidence
+intervals.
+
+The two generators do not agree. On XTTS v2 spoofs, both
+detectors show a positive DECTE-minus-VCTK EER gap:
+$+12.80$\,pp on AASIST and $+12.44$\,pp on LFCC + LR. On
+OpenVoice v2 spoofs the direction reverses on both detectors:
+$-26.74$\,pp on AASIST and $-42.62$\,pp on LFCC + LR. The pattern
+is therefore a generator-specific corpus interaction --- a
+dialect / domain gap whose sign depends on which generator
+produced the spoof --- not a pure dialect bias intrinsic to the
+detector.
+
+A partial-unfreeze controlled adaptation of the AuralGuard
+backbone (mitigation v2) reduced DECTE XTTS EER from 40.70\,\%
+to 23.26\,\%, a paired delta of $-17.44$\,pp with bootstrap
+95\,\% CI $[-28.49,\,-9.30]$, and produced no clear VCTK
+regression on either generator. Subgroup diagnostics on the
+mitigation-held-out DECTE slice show broad but uneven
+per-subgroup gains and are reported as descriptive diagnostics
+only, not a fairness audit. Robust evaluation of audio deepfake
+detectors must therefore vary corpus, generator, and detector
+architecture jointly.
 \end{abstract*}
 
-%% 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 
-%% Abstract of your thesis in an additional language
-%% 
+%%
+%% Abstract of your thesis in an additional language (German / Kurzfassung)
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \cleardoubleoddpage%  Make sure to start abstract on a new odd page
 \begin{otherlanguage}{ngerman}
 \begin{abstract*}
-Platz für deine Kurzfassung.
+Audio-Deepfake-Detektoren werden auf g\"angigen Benchmark-Korpora
+h\"aufig als leistungsf\"ahig berichtet; ihr Verhalten unter einer
+gleichzeitigen Verschiebung von Dialekt, Aufnahmedom\"ane und
+Synthesegenerator ist bislang jedoch deutlich weniger untersucht.
+Diese Arbeit untersucht, wie sich die Detektor-Leistung \"uber
+zwei englischsprachige Korpora hinweg ver\"andert, die sich in
+Dialekt und Aufnahmesituation unterscheiden --- DECTE
+(Diachronic Electronic Corpus of Tyneside English) und VCTK
+(Voice Cloning Toolkit corpus) --- sowie \"uber zwei neuronale
+Sprachgeneratoren, XTTS v2 und OpenVoice v2. Zwei Detektoren
+werden verwendet: ein AASIST-artiges Graph-Attention-System
+(die AuralGuard-Baseline) und ein leichtgewichtiges
+LFCC + logistische-Regression-System als architektur\"ubergreifende
+Kontrolle. Die Detektor-Leistung wird mit Equal Error Rate
+(EER), AUC und Bootstrap-95\,\%-Konfidenzintervallen
+zusammengefasst.
+
+Die beiden Generatoren zeigen kein einheitliches Bild. Auf
+XTTS-v2-Spoofs weisen beide Detektoren eine positive
+DECTE-minus-VCTK-EER-Differenz auf: $+12{,}80$\,pp auf AASIST
+und $+12{,}44$\,pp auf LFCC + LR. Auf OpenVoice-v2-Spoofs
+kehrt sich die Richtung auf beiden Detektoren um:
+$-26{,}74$\,pp auf AASIST und $-42{,}62$\,pp auf LFCC + LR.
+Das Muster wird daher als generator-spezifische Korpus-Interaktion
+beschrieben --- eine Dialekt-/Dom\"anen-L\"ucke, deren Vorzeichen
+davon abh\"angt, welcher Generator den Spoof erzeugt hat ---
+nicht als reiner, dem Detektor eigener Dialekt-Bias.
+
+Eine partielle Unfreeze-Anpassung des AuralGuard-Backbones
+(Mitigation v2) reduzierte den DECTE-XTTS-EER von
+40{,}70\,\% auf 23{,}26\,\%, ein paarweises Delta von
+$-17{,}44$\,pp mit Bootstrap-95\,\%-KI $[-28{,}49,\,-9{,}30]$,
+ohne erkennbare VCTK-Regression auf beiden Generatoren.
+Subgruppen-Diagnostiken auf dem f\"ur die Mitigation
+zur\"uckgehaltenen DECTE-Slice zeigen breite, aber
+ungleichm\"a{\ss}ige Gewinne und sind ausschlie{\ss}lich als
+deskriptive Diagnostik, nicht als Fairness-Audit zu verstehen.
+Robuste Bewertung von Audio-Deepfake-Detektoren muss
+demnach Korpus, Generator und Detektor-Architektur gemeinsam
+variieren.
 \end{abstract*}
 \end{otherlanguage}
 
-%% 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
