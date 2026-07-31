@@ -34,7 +34,7 @@ poison every later number. The stages are:
     \item \textbf{Detector evaluation.} Two detectors are evaluated on the
         generated spoofs against matched bonafide originals. The primary
         detector is the AuralGuard-AASISTPP wrapper around the AASIST
-        backbone \cite{Jung2022_AASIST}; the second detector is a classical
+        backbone \cite{Jung2022_AASIST}. The second detector is a classical
         LFCC + Logistic Regression pipeline built specifically for
         cross-architecture replication. Both detectors share the same
         audio preprocessing and the same score-direction convention.
@@ -42,16 +42,16 @@ poison every later number. The stages are:
         (EER, AUC, accuracy, FAR, FRR) are computed per subgroup and per
         corpus/generator combination. Non-parametric bootstrap resampling
         produces 95\,\% confidence intervals for every headline number and
-        for the differences between them. Finally, a conservative partial-%
-        backbone fine-tune of the primary detector is trained on a
-        leakage-safe DECTE speaker split and evaluated against the same
+        for the differences between them. Finally, a conservative
+        partial-backbone fine-tune of the primary detector is trained on
+        a leakage-safe DECTE speaker split and evaluated against the same
         held-out test slice, with a paired-bootstrap comparison against
         the baseline.
 \end{enumerate}
 
 The whole pipeline is deterministic given a fixed random seed
-(\texttt{seed = 42}, used consistently across speaker selection, target-%
-utterance sampling, bootstrap resampling, and the mitigation
+(\texttt{seed = 42}, used consistently across speaker selection,
+target-utterance sampling, bootstrap resampling, and the mitigation
 Logistic-Regression fit).
 
 An important design principle throughout is \textbf{matched-N per cell}.
@@ -98,10 +98,11 @@ in one view.
 Table~\ref{tab:dataset-corpus-overview} summarises every dataset that
 appears in the thesis pipeline. Two corpora (DECTE and VCTK 0.92) are
 directly evaluated on and are described in Sections~\ref{sec:methodology-corpora-decte}
-and~\ref{sec:methodology-corpora-vctk}. The remaining five datasets appear only as
-components of the AuralGuard training mixture that produced the primary
-detector's baseline checkpoint (verified in Chapter~\ref{chap:detector-verification}) and are
-not evaluated on directly.
+and~\ref{sec:methodology-corpora-vctk}. The remaining five datasets
+appear only as components of the AuralGuard training mixture that
+produced the primary detector's baseline checkpoint (verified in
+Chapter~\ref{chap:detector-verification}), and are not evaluated on
+directly.
 
 \begin{table}[t]
 \centering
@@ -124,95 +125,104 @@ GLOBE            & AuralGuard training mixture (baseline detector) & Not evaluat
 \end{tabularx}
 \end{table}
 
-\subsection{DECTE --- Diachronic Electronic Corpus of Tyneside English}
+\subsection{DECTE: Diachronic Electronic Corpus of Tyneside English}
 \label{sec:methodology-corpora-decte}
 
 DECTE is a research-restricted corpus of interview-style speech from
 speakers in the Tyneside region of North-East England
-\cite{Corrigan_DECTE}. It spans three recording eras (1960s--1970s reel-to-reel
-material, a 1990s follow-up survey, and a 2007--2011 modern digital
-survey), and the interview genre keeps the acoustic and pragmatic
-style of the recordings quite different from studio-read speech.
+\cite{Corrigan_DECTE}. It spans three recording eras (1960s--1970s
+reel-to-reel material, a 1990s follow-up survey, and a 2007--2011
+modern digital survey). The interview genre keeps the acoustic and
+pragmatic style of the recordings quite different from studio-read
+speech.
 
 The corpus was pre-segmented into interview-level audio chunks by a
 previous ASR/FairFix workflow before this thesis began. Those chunks
-are stored under \texttt{data/01\_chunks/} and total 10,066 files across 99
-distinct interview audio streams (roughly one file per interview
-after segmentation). Per-chunk transcripts produced by Whisper (with
-FairFix normalisation) are stored under \texttt{data/01\_chunk\_transcripts/}.
+are stored under \texttt{data/01\_chunks/} and total 10,066 files
+across 99 distinct interview audio streams (roughly one file per
+interview after segmentation). Per-chunk transcripts produced by
+Whisper (with FairFix normalisation) are stored under
+\texttt{data/01\_chunk\_transcripts/}.
 
 \textbf{Speaker metadata.} The original TEI-XML transcripts (under
-\texttt{data/decte/}\allowbreak\texttt{transcripts/Original/}) contain speaker-level
-information --- gender, age band, education, occupation, residence, and
-recording era --- inside \texttt{<SPEAKER DETAILS>} blocks. These were
-extracted by \texttt{scripts/}\allowbreak\texttt{01\_extract\_decte\_}\allowbreak\texttt{speaker\_metadata.py} into a
-per-speaker JSON file (\texttt{data/decte/metadata/}\allowbreak\texttt{speaker\_info.json}, 200
-speakers). Because DECTE audio filenames encode the \emph{interview} (e.g.
-\texttt{decten1pvc03audio\_}\allowbreak\texttt{chunk\_00043.wav}) rather than the individual
-speaker within an interview, a bridge file was later generated by
-\texttt{scripts/}\allowbreak\texttt{01b\_bridge\_metadata\_}\allowbreak\texttt{by\_audio.py} that maps each audio-stem
-identifier (e.g. \texttt{decten1pvc03}) to collapsed interview-level
-metadata (\texttt{data/decte/metadata/}\allowbreak\texttt{speaker\_info\_by\_audio.json}). Where
-speakers within an interview disagreed on a field, the field was
-collapsed to \texttt{"mixed"}; where the field was missing, \texttt{"unknown"}.
-This bridge is the file that all downstream DECTE processing uses.
+\texttt{data/decte/}\allowbreak\texttt{transcripts/Original/}) contain
+speaker-level information (gender, age band, education, occupation,
+residence, and recording era) inside \texttt{<SPEAKER DETAILS>}
+blocks. These were extracted by
+\texttt{scripts/}\allowbreak\texttt{01\_extract\_decte\_}\allowbreak\texttt{speaker\_metadata.py}
+into a per-speaker JSON file
+(\texttt{data/decte/metadata/}\allowbreak\texttt{speaker\_info.json},
+200 speakers). DECTE audio filenames encode the \emph{interview}
+(e.g.\ \texttt{decten1pvc03audio\_}\allowbreak\texttt{chunk\_00043.wav})
+rather than the individual speaker within an interview. To handle
+this, a bridge file was later generated by
+\texttt{scripts/}\allowbreak\texttt{01b\_bridge\_metadata\_}\allowbreak\texttt{by\_audio.py}
+that maps each audio-stem identifier (e.g.\ \texttt{decten1pvc03})
+to collapsed interview-level metadata
+(\texttt{data/decte/metadata/}\allowbreak\texttt{speaker\_info\_by\_audio.json}).
+Where speakers within an interview disagreed on a field, the field
+was collapsed to \texttt{"mixed"}; where the field was missing,
+\texttt{"unknown"}. This bridge is the file that all downstream DECTE
+processing uses.
 
-\textbf{Duration and transcript filter.} Only chunks between 2\,s and 15\,s
-in duration, and with a non-empty transcript of at least five
+\textbf{Duration and transcript filter.} Only chunks between 2\,s and
+15\,s in duration, and with a non-empty transcript of at least five
 characters, were kept as candidate utterances. This filter produced
 744 valid utterances across 96 speakers (Entry 5-adjacent, verified
 by the \texttt{DECTELoader.build\_utterance\_list} call in
 \texttt{src/data/decte\_loader.py}).
 
-\textbf{Known limitations of the DECTE data used here.} The transcripts
-were produced by Whisper with FairFix and are known to lightly
-normalise dialectal forms --- some Tyneside-specific spellings or
-grammatical cues may be lost. Whether this affects generator output
-is not directly measured in this thesis, but it is flagged as a
-transcript-pipeline confound in the Limitations chapter. Additionally,
-the \texttt{speaker\_ses\_class} field is essentially unpopulated for DECTE
-(the metadata extractor emits \texttt{education}, \texttt{occupation}, and
-\texttt{residence} instead of a single SES class), so no per-SES analysis
-is performed.
+\textbf{Known limitations of the DECTE data used here.} The
+transcripts were produced by Whisper with FairFix and are known to
+lightly normalise dialectal forms, so some Tyneside-specific
+spellings or grammatical cues may be lost. Whether this affects
+generator output is not directly measured in this thesis, but it is
+flagged as a transcript-pipeline confound in the Limitations
+chapter. In addition, the \texttt{speaker\_ses\_class} field is
+essentially unpopulated for DECTE (the metadata extractor emits
+\texttt{education}, \texttt{occupation}, and \texttt{residence}
+instead of a single SES class), so no per-SES analysis is performed.
 
-\subsection{VCTK 0.92 --- English standard-accent control}
+\subsection{VCTK 0.92: English standard-accent control}
 \label{sec:methodology-corpora-vctk}
 
 VCTK 0.92 is a widely used studio-recorded multi-speaker English
 corpus containing approximately 110 speakers reading a common
 sentence set at 48\,kHz \cite{Veaux2017_VCTK}. It was chosen as the
-standard-accent control because (a) it is not part of the primary
-detector's training set (see Section~\ref{sec:methodology-detectors}), (b) it has per-speaker
+standard-accent control for three reasons: (a) it is not part of the
+primary detector's training set (see
+Section~\ref{sec:methodology-detectors}), (b) it has per-speaker
 accent metadata that allows an English-accent-only filter to be
 applied, and (c) each speaker has hundreds of utterances, making
 speaker-level sampling straightforward.
 
-\textbf{Speaker filter and slate selection.} A layout-verification script
-(\texttt{scripts/}\allowbreak\texttt{00b\_verify\_vctk\_layout.py}) first confirms that the
-expected VCTK 0.92 directory tree exists on disk and parses
-\texttt{speaker-info.txt} into per-speaker attributes. For the experiments
-in this thesis, the accent filter is \emph{loose English}: any speaker
-whose \texttt{ACCENTS} field equals \texttt{"English"} in the VCTK speaker-info
-file, regardless of region. This produced 33 eligible speakers, of
-which the alphabetically first 20 (with at least 8 usable utterances
-each) form the VCTK slate for spoof generation. The region
-composition of these 20 speakers is 13 southern (Southern England,
-London, Surrey, SE England, SW England) and 7 non-southern
-(Manchester, Cumbria, Stockton-on-Tees, Birmingham, Nottingham,
-Staffordshire). No speaker is from Newcastle, so there is no
-direct region overlap with DECTE.
+\textbf{Speaker filter and slate selection.} A layout-verification
+script (\texttt{scripts/}\allowbreak\texttt{00b\_verify\_vctk\_layout.py})
+first confirms that the expected VCTK 0.92 directory tree exists on
+disk and parses \texttt{speaker-info.txt} into per-speaker attributes.
+For the experiments in this thesis, the accent filter is \emph{loose
+English}: any speaker whose \texttt{ACCENTS} field equals
+\texttt{"English"} in the VCTK speaker-info file, regardless of
+region. This produced 33 eligible speakers, of which the
+alphabetically first 20 (with at least 8 usable utterances each)
+form the VCTK slate for spoof generation. The region composition of
+these 20 speakers is 13 southern (Southern England, London, Surrey,
+SE England, SW England) and 7 non-southern (Manchester, Cumbria,
+Stockton-on-Tees, Birmingham, Nottingham, Staffordshire). No speaker
+is from Newcastle, so there is no direct region overlap with DECTE.
 
-\textbf{Duration and transcript filter.} VCTK's own \texttt{.txt} transcripts are
-used (no Whisper is needed). The same 2\,s--15\,s duration filter as
-DECTE is applied so both corpora feed the generators with comparable
-utterance lengths.
+\textbf{Duration and transcript filter.} VCTK's own \texttt{.txt}
+transcripts are used (no Whisper is needed). The same 2\,s--15\,s
+duration filter as DECTE is applied so both corpora feed the
+generators with comparable utterance lengths.
 
-\textbf{Known limitations of the VCTK data used here.} The 20-speaker
-slate is heavily skewed toward the 21--30 age band (19 of 20; one
-speaker in 31--40). DECTE, by contrast, spans several decades. Any
-DECTE-vs-VCTK comparison in this thesis therefore has an age-band
-confound alongside the dialect and channel confounds and is reported
-as a \emph{dialect / domain gap} rather than a pure dialect gap.
+\textbf{Known limitations of the VCTK data used here.} The
+20-speaker slate is heavily skewed toward the 21--30 age band (19 of
+20; one speaker in 31--40). DECTE, by contrast, spans several
+decades. Any DECTE-vs-VCTK comparison in this thesis therefore has
+an age-band confound alongside the dialect and channel confounds,
+and it is reported as a \emph{dialect / domain gap} rather than a
+pure dialect gap.
 
 
 \section{Spoof generators}
@@ -224,15 +234,16 @@ generative TTS model (XTTS v2) and a two-stage base-TTS-plus-tone-%
 colour-conversion pipeline (OpenVoice v2). Both are open-source and
 publicly available.
 
-Because the two generators have incompatible Python dependency
-graphs --- in particular, XTTS's Coqui TTS pins clash with OpenVoice's
-MeloTTS pins, and OpenVoice's \texttt{openvoice.se\_extractor} triggers a
-broken PyAV DLL on Windows --- each generator lives in its own
-Conda environment (\texttt{spoofgen} for XTTS, \texttt{openvoice} for OpenVoice).
-The detector evaluation pipeline runs in a third environment
-(\texttt{dialectbias}) that has no generator dependencies. This
-three-environment separation is deliberate and prevents dependency
-regressions in one generator from silently breaking another.
+The two generators have incompatible Python dependency graphs. In
+particular, XTTS's Coqui TTS pins clash with OpenVoice's MeloTTS
+pins, and OpenVoice's \texttt{openvoice.se\_extractor} triggers a
+broken PyAV DLL on Windows. For this reason, each generator lives in
+its own Conda environment (\texttt{spoofgen} for XTTS,
+\texttt{openvoice} for OpenVoice). The detector evaluation pipeline
+runs in a third environment (\texttt{dialectbias}) that has no
+generator dependencies. This three-environment separation is
+deliberate and prevents dependency regressions in one generator from
+silently breaking another.
 
 \subsection{XTTS v2 (Coqui)}
 \label{sec:methodology-generators-xtts}
@@ -240,8 +251,9 @@ regressions in one generator from silently breaking another.
 XTTS v2 is a zero-shot voice-cloning multilingual TTS model that
 takes a reference audio clip and a target text and produces speech
 in the reference speaker's voice \cite{Casanova2024_XTTS}. The
-implementation used here is \texttt{tts\_models/multilingual/multi-dataset/xtts\_v2}
-from the Coqui \texttt{TTS} library, wrapped in
+implementation used here is
+\texttt{tts\_models/multilingual/multi-dataset/xtts\_v2} from the
+Coqui \texttt{TTS} library, wrapped in
 \texttt{src/spoof\_gen/xtts\_gen.py}. For each generation:
 
 \begin{enumerate}
@@ -257,11 +269,12 @@ from the Coqui \texttt{TTS} library, wrapped in
 \subsection{OpenVoice v2 (MyShell)}
 \label{sec:methodology-generators-openvoice}
 
-OpenVoice v2 uses a two-stage architecture \cite{Qin2023_OpenVoice}:
+OpenVoice v2 uses a two-stage architecture \cite{Qin2023_OpenVoice}.
 MeloTTS synthesises text in a fixed base voice, and a Tone-Colour
 Converter then retargets the tone colour of the base audio to match
 a target speaker's reference audio. The implementation used here is
-wrapped in \texttt{src/spoof\_gen/openvoice\_gen.py}. For each generation:
+wrapped in \texttt{src/spoof\_gen/openvoice\_gen.py}. For each
+generation:
 
 \begin{enumerate}
     \item MeloTTS produces a base-voice \texttt{.wav} from the input text, using
@@ -285,22 +298,23 @@ wrapped in \texttt{src/spoof\_gen/openvoice\_gen.py}. For each generation:
 \subsection{Generation protocol}
 \label{sec:methodology-generators-protocol}
 
-Both generators are driven by the same \texttt{SpoofPipeline} class in
-\texttt{src/spoof\_gen/pipeline.py}, so the \emph{protocol} is identical between
-them even though the underlying models are very different. For each
-speaker:
+Both generators are driven by the same \texttt{SpoofPipeline} class
+in \texttt{src/spoof\_gen/pipeline.py}, so the \emph{protocol} is
+identical between them even though the underlying models are very
+different. For each speaker:
 
 \begin{itemize}
     \item The \texttt{n\_reference = 3} alphabetically first valid utterances are
         used as reference audio (voice identity).
     \item Up to \texttt{max\_utterances\_per\_speaker = 5} remaining utterances are
         randomly sampled (using \texttt{random.seed(42)} at the top of the run)
-        as target utterances; their audio path becomes the \emph{matched
+        as target utterances. Their audio path becomes the \emph{matched
         original} for the eventual spoof, and their transcript becomes the
         spoof's input text.
-    \item Each target utterance is synthesised by each enabled generator; the
-        output \texttt{.wav} is written under \texttt{data/generated\_spoofs/<generator>/}
-        for DECTE and \texttt{data/generated\_spoofs\_vctk/<generator>/} for VCTK.
+    \item Each target utterance is synthesised by each enabled generator.
+        The output \texttt{.wav} is written under
+        \texttt{data/generated\_spoofs/<generator>/} for DECTE and
+        \texttt{data/generated\_spoofs\_vctk/<generator>/} for VCTK.
     \item Each generation appends a row to the corresponding manifest
         (\texttt{manifest.jsonl}), recording \texttt{source\_utterance\_id},
         \texttt{source\_speaker\_id}, \texttt{generator\_name}, \texttt{output\_path},
@@ -309,18 +323,18 @@ speaker:
 \end{itemize}
 
 The manifest writer is \emph{merge-safe}: on re-runs it loads any
-existing manifest, deduplicates by \texttt{output\_path}, and appends only
-new rows. This lets the same manifest hold multiple generators and
-lets partial runs be resumed without data loss (this behaviour was
-added as a bug fix during development after an early run silently
-truncated the XTTS half of the DECTE manifest).
+existing manifest, deduplicates by \texttt{output\_path}, and appends
+only new rows. This lets the same manifest hold multiple generators
+and lets partial runs be resumed without data loss. The behaviour
+was added as a bug fix during development after an early run
+silently truncated the XTTS half of the DECTE manifest.
 
 \subsection{Scale}
 \label{sec:methodology-generators-scale}
 
-Three generation scales are used across the thesis (small and
+Three generation scales are used across the thesis. Small and
 medium scales are validation-only and could be moved to an appendix
-in the final version):
+in the final version.
 
 \begin{table}[t]
 \centering
@@ -338,17 +352,20 @@ Large / production & 20 & 5 & The 100-per-generator counts used in the thesis' h
 \end{table}
 
 Only the large-scale outputs feed the headline analyses in
-Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics}. The specific YAML configs driving each scale live
-under \texttt{configs/} (see Appendix~\ref{app:reproducibility} for the full config-to-scale index).
+Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics}.
+The specific YAML configs driving each scale live under
+\texttt{configs/} (see Appendix~\ref{app:reproducibility} for the
+full config-to-scale index).
 
 
 \section{Detectors}
 \label{sec:methodology-detectors}
 
-Two detectors are used. The primary detector is a deep graph-attention
-model (AuralGuard-AASISTPP); the secondary detector is a hand-crafted
-LFCC + Logistic Regression baseline used specifically to test whether
-the main findings persist across architectures.
+Two detectors are used. The primary detector is a deep
+graph-attention model (AuralGuard-AASISTPP). The secondary detector
+is a hand-crafted LFCC + Logistic Regression baseline used
+specifically to test whether the main findings persist across
+architectures.
 
 Both detectors share the \textbf{same audio preprocessing} at score time:
 
@@ -362,49 +379,50 @@ Both detectors share the \textbf{same audio preprocessing} at score time:
         crop at evaluation time).
 \end{itemize}
 
-Both detectors also share the \textbf{same score-direction convention}:
-the returned score is \texttt{P(bonafide)} --- higher score means ``more
-likely real''. This is the convention required by
-\texttt{src/evaluation/metrics.compute\_metrics}. Getting the score direction
-wrong (which would flip AUC below 0.5) is an easy silent bug and was
-one of the diagnostic checks in Entry 3.
+Both detectors also share the \textbf{same score-direction
+convention}: the returned score is \texttt{P(bonafide)}, so a higher
+score means ``more likely real''. This is the convention required by
+\texttt{src/evaluation/metrics.compute\_metrics}. Getting the score
+direction wrong (which would flip AUC below 0.5) is an easy silent
+bug and was one of the diagnostic checks in Entry 3.
 
-\subsection{Primary detector --- AuralGuard-AASISTPP wrapper around AASIST}
+\subsection{Primary detector: AuralGuard-AASISTPP wrapper around AASIST}
 \label{sec:methodology-detectors-aasist}
 
 The primary detector is the AuralGuard-AASISTPP wrapper (defined in
 \texttt{auralguard-aasistpp/src/model\_aasistpp.py} in the neighbouring
 AuralGuard project) around the official AASIST backbone from
-\texttt{clovaai/aasist} \cite{Jung2022_AASIST}. The AASIST backbone is a deep
-graph-attention model over spectral--temporal representations of the
-raw waveform; the AuralGuard wrapper adds three linear task heads on
-top of AASIST's hidden features:
+\texttt{clovaai/aasist} \cite{Jung2022_AASIST}. The AASIST backbone
+is a deep graph-attention model over spectral--temporal
+representations of the raw waveform. The AuralGuard wrapper adds
+three linear task heads on top of AASIST's hidden features:
 
 \begin{itemize}
-    \item \texttt{binary\_head} --- 2 classes (real / fake). This is the head used for
+    \item \texttt{binary\_head}: 2 classes (real / fake). This is the head used for
         scoring in this thesis.
-    \item \texttt{attack\_head} --- 4 classes (bonafide, tts\_vc, codec, partial).
+    \item \texttt{attack\_head}: 4 classes (bonafide, tts\_vc, codec, partial).
         Trainable during fine-tuning but not read at score time.
-    \item \texttt{explanation\_head} --- 4 classes (categorical explanation labels).
+    \item \texttt{explanation\_head}: 4 classes (categorical explanation labels).
         Same as \texttt{attack\_head}: trainable but not read at score time.
 \end{itemize}
 
-The trained checkpoint used as \emph{baseline} throughout the thesis is
-\texttt{<AURALGUARD\_ROOT>/}\allowbreak\texttt{results/}\allowbreak\texttt{final\_accent\_globe\_wavefake\_balanced\_full/}\allowbreak\texttt{best.pt},
-which was fine-tuned on a mixture of ASVspoof2019\_LA,
-WaveFake, GLOBE, EdAcc, EnglishDialects, and DECTE (17,603 bonafide +
-17,603 spoof = 35,206 rows in the training CSV). The training-time
-validation EER recorded in that checkpoint is reported in Chapter~\ref{chap:detector-verification},
-where the in-domain sanity check confirms that the loaded model
-reproduces it.
+The trained checkpoint used as \emph{baseline} throughout the thesis
+is \texttt{<AURALGUARD\_ROOT>/}\allowbreak\texttt{results/}\allowbreak\texttt{final\_accent\_globe\_wavefake\_balanced\_full/}\allowbreak\texttt{best.pt},
+which was fine-tuned on a mixture of ASVspoof2019\_LA, WaveFake,
+GLOBE, EdAcc, EnglishDialects, and DECTE (17,603 bonafide + 17,603
+spoof = 35,206 rows in the training CSV). The training-time
+validation EER recorded in that checkpoint is reported in
+Chapter~\ref{chap:detector-verification}, where the in-domain
+sanity check confirms that the loaded model reproduces it.
 
 \textbf{Validation.} During validation, the AASIST checkpoint-loading
 path was corrected so that the trained AuralGuard wrapper, rather
 than an untrained raw backbone, was evaluated. This correction was
 verified using an in-domain sanity check before the DECTE and VCTK
-experiments were interpreted. Chapter~\ref{chap:detector-verification} documents the correction in
-full; details are deferred here to keep this chapter methodology-%
-focused.
+experiments were interpreted.
+Chapter~\ref{chap:detector-verification} documents the correction
+in full. The details are deferred here to keep this chapter
+methodology-focused.
 
 \textbf{Score computation.}
 
@@ -412,13 +430,14 @@ focused.
 score = softmax(model(wav)["binary_logits"])[0, 0]
 \end{verbatim}
 
-\subsection{Secondary detector --- LFCC + Logistic Regression}
+\subsection{Secondary detector: LFCC + Logistic Regression}
 \label{sec:methodology-detectors-lfcc-lr}
 
 The secondary detector is a classical anti-spoofing baseline built
-in \texttt{scripts/11\_lfcc\_lr\_second\_detector.py}. It is deliberately far
-away from AASIST architecturally: hand-crafted spectral features,
-a convex linear classifier, closed-form-ish optimisation.
+in \texttt{scripts/11\_lfcc\_lr\_second\_detector.py}. It is
+deliberately far away from AASIST architecturally: hand-crafted
+spectral features, a convex linear classifier, closed-form-ish
+optimisation.
 
 \textbf{Feature extraction.} For each waveform (preprocessed as in the
 introduction to Section~\ref{sec:methodology-detectors}):
@@ -428,8 +447,8 @@ introduction to Section~\ref{sec:methodology-detectors}):
         \texttt{win\_length = 400}, Hann window.
     \item Take the magnitude-squared to get power.
     \item Apply a linear-frequency triangular filter bank with 20 filters
-        spanning 0--8\,kHz (LFCC front-end --- linearly spaced in Hz, unlike
-        the perceptually spaced Mel front-end).
+        spanning 0--8\,kHz. This is the LFCC front-end, linearly spaced
+        in Hz, unlike the perceptually spaced Mel front-end.
     \item Log-compress the filter energies.
     \item Apply a type-2 orthonormal DCT and keep the first 20 cepstral
         coefficients per frame.
@@ -441,29 +460,33 @@ introduction to Section~\ref{sec:methodology-detectors}):
         utterance.
 \end{enumerate}
 
-\textbf{Classifier.} The classifier is a \texttt{sklearn.pipeline.Pipeline}
-consisting of a \texttt{StandardScaler} followed by a \texttt{LogisticRegression}
-with \texttt{class\_weight="balanced"}, \texttt{C=1.0}, \texttt{max\_iter=1000},
-\texttt{solver="lbfgs"}, and \texttt{random\_state=42}. The scaler and classifier
-are fit jointly on the training set and saved as a single
-\texttt{joblib}-serialised object.
+\textbf{Classifier.} The classifier is a
+\texttt{sklearn.pipeline.Pipeline} consisting of a
+\texttt{StandardScaler} followed by a \texttt{LogisticRegression}
+with \texttt{class\_weight="balanced"}, \texttt{C=1.0},
+\texttt{max\_iter=1000}, \texttt{solver="lbfgs"}, and
+\texttt{random\_state=42}. The scaler and classifier are fit jointly
+on the training set and saved as a single \texttt{joblib}-serialised
+object.
 
-\textbf{Training data for the LFCC + LR classifier.} The classifier is
-trained on the same AuralGuard training CSV that the primary AASIST
-detector was originally fine-tuned on, \emph{minus} the 16 DECTE speakers
-held out for the mitigation test slice (Section~\ref{sec:methodology-mitigation}). Filtering
-those speakers out is essential --- otherwise the LFCC + LR baseline
-would be evaluated on speakers it had seen at training time,
-biasing its DECTE performance upward. The filter removed 1,445 rows
-from the 35,206-row training CSV (about 4\,\%), of which 8,057 $\rightarrow$ 6,612
-were DECTE rows.
+\textbf{Training data for the LFCC + LR classifier.} The classifier
+is trained on the same AuralGuard training CSV that the primary
+AASIST detector was originally fine-tuned on, \emph{minus} the 16
+DECTE speakers held out for the mitigation test slice
+(Section~\ref{sec:methodology-mitigation}). Filtering those speakers
+out is essential. Otherwise the LFCC + LR baseline would be
+evaluated on speakers it had seen at training time, biasing its
+DECTE performance upward. The filter removed 1,445 rows from the
+35,206-row training CSV (about 4\,\%), of which 8,057 $\rightarrow$
+6,612 were DECTE rows.
 
 Path resolution for training-time audio: the AuralGuard training CSV
-uses relative paths (e.g. \texttt{data/edacc\_audio/val/...}) that resolve
-against the AuralGuard project root, not the dialect-deepfake-bias
-repository root. The training script resolves these correctly and
-performs an existence pre-check on every path; only 80 files
-(0.24\,\%) were missing on disk, well below the 5\,\% abort threshold.
+uses relative paths (e.g.\ \texttt{data/edacc\_audio/val/...}) that
+resolve against the AuralGuard project root, not the
+dialect-deepfake-bias repository root. The training script resolves
+these correctly and performs an existence pre-check on every path.
+Only 80 files (0.24\,\%) were missing on disk, well below the 5\,\%
+abort threshold.
 
 \textbf{Score computation.}
 
@@ -495,32 +518,34 @@ Optimisation           & AdamW SGD                                              
 \end{tabularx}
 \end{table}
 
-A finding that holds on \emph{both} detectors is much less likely to be
-an architecture-specific artefact than a finding that appears on only
-one. This is why cross-detector replication (Chapter~\ref{chap:main-results}, Section~\ref{sec:main-results-aasist-openvoice})
-is a central part of the thesis argument.
+A finding that holds on \emph{both} detectors is much less likely
+to be an architecture-specific artefact than a finding that appears
+on only one. This is why cross-detector replication
+(Chapter~\ref{chap:main-results},
+Section~\ref{sec:main-results-aasist-openvoice}) is a central part
+of the thesis argument.
 
 
 \section{Evaluation protocol}
 \label{sec:methodology-evaluation-protocol}
 
-The evaluation flow is implemented in \texttt{scripts/03\_run\_detectors.py}
-and shared by both detectors. It takes three pieces of information
-per run:
+The evaluation flow is implemented in
+\texttt{scripts/03\_run\_detectors.py} and shared by both detectors.
+It takes three pieces of information per run:
 
 \begin{itemize}
     \item a \textbf{detector config} (which detector to use and where its
-        checkpoint lives) --- one of \texttt{configs/detectors.yaml},
+        checkpoint lives). One of \texttt{configs/detectors.yaml},
         \texttt{configs/detectors\_mitigated.yaml}, or
         \texttt{configs/detectors\_mitigated\_v2.yaml};
     \item a \textbf{manifest} to evaluate (which spoofs to score and which
         bonafide files to pair them with);
     \item a \textbf{corpus label} used for grouping in downstream analysis
-        (e.g. \texttt{decte}, \texttt{vctk\_english\_control}).
+        (e.g.\ \texttt{decte}, \texttt{vctk\_english\_control}).
 \end{itemize}
 
-For each row of the manifest that has \texttt{success == True}, the script
-constructs two evaluation records:
+For each row of the manifest that has \texttt{success == True}, the
+script constructs two evaluation records:
 
 \begin{enumerate}
     \item A \textbf{spoof record}: \texttt{audio\_path = entry["output\_path"]},
@@ -536,12 +561,13 @@ constructs two evaluation records:
         to whichever generator happened to reference it first.
 \end{enumerate}
 
-All records receive attached speaker metadata --- gender, age band,
-recording era --- via a look-up into the per-speaker metadata JSON
-(with the file-level collapse rule described in Section~\ref{sec:methodology-corpora-decte}).
-After deduplication on \texttt{(audio\_path, label)}, the resulting DataFrame
-is scored by the detector one row at a time; each row's \texttt{score}
-column becomes the detector's \texttt{P(bonafide)} output.
+All records receive attached speaker metadata (gender, age band,
+recording era) via a look-up into the per-speaker metadata JSON,
+with the file-level collapse rule described in
+Section~\ref{sec:methodology-corpora-decte}. After deduplication on
+\texttt{(audio\_path, label)}, the resulting DataFrame is scored by
+the detector one row at a time. Each row's \texttt{score} column
+becomes the detector's \texttt{P(bonafide)} output.
 
 \textbf{Per-corpus and per-group metric computation.} Metrics are computed
 by \texttt{src/evaluation/metrics.py::compute\_metrics(bonafide\_scores, spoof\_scores)}:
@@ -555,19 +581,21 @@ by \texttt{src/evaluation/metrics.py::compute\_metrics(bonafide\_scores, spoof\_
 \end{itemize}
 
 Grouped metrics (per generator, per gender, per age band, per
-recording era) are produced by \texttt{src/evaluation/bias\_analysis.py}.
-For generator groupings specifically, bonafide rows are pooled once
-across the whole DataFrame and compared against each generator's
-spoof rows separately, so that a shared bonafide file is not double-%
-counted or arbitrarily assigned to one generator.
+recording era) are produced by
+\texttt{src/evaluation/bias\_analysis.py}. For generator groupings
+specifically, bonafide rows are pooled once across the whole
+DataFrame and compared against each generator's spoof rows
+separately, so that a shared bonafide file is not double-counted or
+arbitrarily assigned to one generator.
 
 
 \section{Bootstrap confidence intervals}
 \label{sec:methodology-bootstrap}
 
 Point estimates alone are not enough for the sample sizes in this
-thesis (typically 100 spoofs per corpus $\times$ generator cell against a
-bonafide pool of 120--216). Every headline number in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics} is
+thesis (typically 100 spoofs per corpus $\times$ generator cell
+against a bonafide pool of 120--216). Every headline number in
+Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics} is
 reported with a 95\,\% non-parametric bootstrap confidence interval
 \cite{Efron1993_Bootstrap}.
 
@@ -588,9 +616,10 @@ reported with a 95\,\% non-parametric bootstrap confidence interval
 \end{itemize}
 
 These parameters are held fixed across all bootstrap scripts
-(\texttt{scripts/04}, \texttt{scripts/05}, \texttt{scripts/06}, \texttt{scripts/10}, \texttt{scripts/12},
-\texttt{scripts/13}), so any two intervals in this thesis are directly
-comparable in terms of estimator behaviour.
+(\texttt{scripts/04}, \texttt{scripts/05}, \texttt{scripts/06},
+\texttt{scripts/10}, \texttt{scripts/12}, \texttt{scripts/13}), so
+any two intervals in this thesis are directly comparable in terms
+of estimator behaviour.
 
 \subsection{Two bootstrap flavours used}
 \label{sec:methodology-bootstrap-flavours}
@@ -598,27 +627,28 @@ comparable in terms of estimator behaviour.
 Two flavours of bootstrap appear in this thesis, distinguished by
 what the two arms of a comparison have in common.
 
-\textbf{Corpus comparisons --- independent resampling per corpus.} For a
-DECTE-vs-VCTK comparison holding the detector and generator fixed
-(Chapter~\ref{chap:main-results}), the two corpora share no speakers and no files, so
-the two sides can be resampled independently. On each of the 1000
-bootstrap iterations, all four arrays (DECTE bonafide, DECTE spoof,
-VCTK bonafide, VCTK spoof) are drawn with replacement at their
-original sizes, the per-corpus EER is recomputed, and the difference
-(DECTE $-$ VCTK) is recorded. The percentiles of the 1000 recorded
-differences give the 95\,\% confidence interval on the corpus gap
-directly. Reading the CI on the gap this way (rather than combining
-the two per-corpus CIs) is what lets a small consistent per-%
-iteration difference show a tight one-sided CI even when the two
-per-corpus CIs overlap.
+\textbf{Corpus comparisons: independent resampling per corpus.} For
+a DECTE-vs-VCTK comparison holding the detector and generator fixed
+(Chapter~\ref{chap:main-results}), the two corpora share no speakers
+and no files, so the two sides can be resampled independently. On
+each of the 1000 bootstrap iterations, all four arrays (DECTE
+bonafide, DECTE spoof, VCTK bonafide, VCTK spoof) are drawn with
+replacement at their original sizes, the per-corpus EER is
+recomputed, and the difference (DECTE $-$ VCTK) is recorded. The
+percentiles of the 1000 recorded differences give the 95\,\%
+confidence interval on the corpus gap directly. Reading the CI on
+the gap this way (rather than combining the two per-corpus CIs) is
+what lets a small consistent per-iteration difference show a tight
+one-sided CI even when the two per-corpus CIs overlap.
 
-\textbf{Mitigation comparisons --- paired comparison on the same files.}
-For a baseline-vs-mitigated comparison of two detector checkpoints
-(Chapter~\ref{chap:mitigation}), both checkpoints are evaluated on the \emph{same} held-out
-files. Each file has a paired \texttt{(score\_baseline, score\_mitigated)}.
-On each bootstrap iteration, the same set of file indices is drawn
-for both checkpoints --- the bootstrap sample is the same subset of
-files under both models. The resulting delta EER is therefore a
+\textbf{Mitigation comparisons: paired comparison on the same
+files.} For a baseline-vs-mitigated comparison of two detector
+checkpoints (Chapter~\ref{chap:mitigation}), both checkpoints are
+evaluated on the \emph{same} held-out files. Each file has a paired
+\texttt{(score\_baseline, score\_mitigated)}. On each bootstrap
+iteration, the same set of file indices is drawn for both
+checkpoints, so the bootstrap sample is the same subset of files
+under both models. The resulting delta EER is therefore a
 within-file paired quantity, and its confidence interval isolates
 the effect of the fine-tune from the noise of which files happen
 to be drawn.
@@ -636,38 +666,40 @@ For a gap CI on \texttt{A $-$ B}, one of three verdicts holds:
 \end{itemize}
 
 All three verdicts appear in this thesis. Which comparison produces
-which verdict is reported in Chapter~\ref{chap:main-results} (corpus and generator
-comparisons) and Chapter~\ref{chap:mitigation} (mitigation comparisons).
+which verdict is reported in Chapter~\ref{chap:main-results} (corpus
+and generator comparisons) and Chapter~\ref{chap:mitigation}
+(mitigation comparisons).
 
 
 \section{Mitigation protocol}
 \label{sec:methodology-mitigation}
 
-The mitigation experiment (Chapter~\ref{chap:mitigation}, Entry 7) fine-tunes the
-AuralGuard-AASISTPP detector on a small DECTE-adapted training set
-and evaluates the resulting checkpoint against the same held-out
-DECTE test slice used by the baseline.
+The mitigation experiment (Chapter~\ref{chap:mitigation}, Entry 7)
+fine-tunes the AuralGuard-AASISTPP detector on a small
+DECTE-adapted training set and evaluates the resulting checkpoint
+against the same held-out DECTE test slice used by the baseline.
 
 \subsection{Speaker split}
 \label{sec:methodology-mitigation-split}
 
-The 82 speakers who have both valid DECTE bonafide utterances \emph{and}
-at least one successful XTTS spoof in the DECTE manifest form the
-eligible pool. This pool is deterministically partitioned into:
+The 82 speakers who have both valid DECTE bonafide utterances
+\emph{and} at least one successful XTTS spoof in the DECTE manifest
+form the eligible pool. This pool is deterministically partitioned
+into:
 
 \begin{itemize}
-    \item \textbf{Training set} --- 52 speakers.
-    \item \textbf{Validation set} --- 14 speakers.
-    \item \textbf{Test set} --- 16 speakers.
+    \item \textbf{Training set}: 52 speakers.
+    \item \textbf{Validation set}: 14 speakers.
+    \item \textbf{Test set}: 16 speakers.
 \end{itemize}
 
 The partition uses \texttt{numpy.random.default\_rng(seed=42).permutation}
 over the alphabetically sorted eligible speaker list, so it is
 reproducible and independent of downstream code changes. The three
 sets are speaker-disjoint by construction, and the file-level
-leakage check in \texttt{scripts/09\_build\_mitigation\_csvs.py} verifies
-this on every run and aborts before writing any output if a speaker
-or file appears in more than one set.
+leakage check in \texttt{scripts/09\_build\_mitigation\_csvs.py}
+verifies this on every run and aborts before writing any output if
+a speaker or file appears in more than one set.
 
 \subsection{Training data CSV}
 \label{sec:methodology-mitigation-csv}
@@ -675,32 +707,32 @@ or file appears in more than one set.
 For each speaker in the training and validation sets, every valid
 bonafide utterance and every successful XTTS spoof for that speaker
 is written to an AuralGuard-format training CSV
-(\texttt{data/decte/metadata/}\allowbreak\texttt{decte\_mitigation\_train.csv} and
-\texttt{..\_val.csv}). The AuralGuard convention \texttt{binary\_label = 0} for
-bonafide and \texttt{binary\_label = 1} for spoof is used (this is the
-opposite of the ``higher score = bonafide'' convention on the
-detector output side; the two conventions are reconciled at
-scoring time). The final training CSV contains 453 bonafide + 258
-spoof rows (711 total); the validation CSV contains 129 + 72
-(201 total).
+(\texttt{data/decte/metadata/}\allowbreak\texttt{decte\_mitigation\_train.csv}
+and \texttt{..\_val.csv}). The AuralGuard convention
+\texttt{binary\_label = 0} for bonafide and \texttt{binary\_label = 1}
+for spoof is used. This is the opposite of the ``higher score =
+bonafide'' convention on the detector output side; the two
+conventions are reconciled at scoring time. The final training CSV
+contains 453 bonafide + 258 spoof rows (711 total). The validation
+CSV contains 129 + 72 (201 total).
 
 \subsection{Held-out test manifest}
 \label{sec:methodology-mitigation-testmanifest}
 
 For the 16 test speakers, a filtered copy of the DECTE spoof
 manifest is written to
-\texttt{data/generated\_spoofs/manifest\_mitigation\_test.jsonl}
-(86 successful XTTS rows). Each row also has its \texttt{source\_audio\_path}
-resolved and verified --- this is what lets the evaluation script
-build 86 matched-pair evaluation records (86 bonafide + 86 spoof)
-rather than the reference-based 42 bonafide it would build with
-only the pre-Entry-5 manifest schema.
+\texttt{data/generated\_spoofs/manifest\_mitigation\_test.jsonl} (86
+successful XTTS rows). Each row also has its
+\texttt{source\_audio\_path} resolved and verified. This is what
+lets the evaluation script build 86 matched-pair evaluation records
+(86 bonafide + 86 spoof) rather than the reference-based 42
+bonafide it would build with only the pre-Entry-5 manifest schema.
 
 \subsection{Fine-tuning configuration}
 \label{sec:methodology-mitigation-config}
 
-Fine-tuning is done via the AuralGuard project's own \texttt{train.py},
-with these choices:
+Fine-tuning is done via the AuralGuard project's own
+\texttt{train.py}, with these choices:
 
 \begin{itemize}
     \item \texttt{--init-checkpoint} points to the baseline \texttt{best.pt} (starting
@@ -711,7 +743,7 @@ with these choices:
         The \texttt{--unfreeze-modules} flag was added to \texttt{train.py} specifically
         for this thesis (Chapter~\ref{chap:mitigation}, Section~\ref{sec:mitigation-motivation} documents the patch).
         Only the final heterogeneous-GAT block of the AASIST backbone
-        plus the AuralGuard task heads are trainable; every other
+        plus the AuralGuard task heads are trainable. Every other
         parameter (SincConv front-end, encoder, first-GAT stage) is
         frozen.
     \item Trainable-parameter count is printed at training start and
@@ -750,19 +782,21 @@ Two guardrails protect the interpretation of the mitigation result:
 An initial mitigation attempt (v1) fine-tuned only the three task
 heads while keeping the entire AASIST backbone frozen ($\sim$1,600
 trainable parameters). The head-only approach was found to be
-insufficient to close the DECTE gap on this test slice, motivating
-the modest capacity increase in v2 described above (the last
-heterogeneous-GAT block plus the task heads, $\sim$31k trainable
-parameters). Both attempts are compared in Chapter~\ref{chap:mitigation}; the specific
-delta EERs and their confidence intervals are reported there.
+insufficient to close the DECTE gap on this test slice. This
+motivated the modest capacity increase in v2 described above (the
+last heterogeneous-GAT block plus the task heads, $\sim$31k
+trainable parameters). Both attempts are compared in
+Chapter~\ref{chap:mitigation}; the specific delta EERs and their
+confidence intervals are reported there.
 
 
 \section{Subgroup diagnostic protocol}
 \label{sec:methodology-subgroups}
 
-Chapter~\ref{chap:subgroup-diagnostics} reports per-subgroup EER before and after mitigation on
-the DECTE held-out test slice. This is a descriptive analysis and
-is explicitly \emph{not} a fairness audit.
+Chapter~\ref{chap:subgroup-diagnostics} reports per-subgroup EER
+before and after mitigation on the DECTE held-out test slice. This
+is a descriptive analysis and is explicitly \emph{not} a fairness
+audit.
 
 \subsection{Grouping columns}
 \label{sec:methodology-subgroups-columns}
@@ -785,10 +819,11 @@ One diagnostic appendix column:
     \item \texttt{speaker\_id}. Always low-n given $\sim$5--6 files per test speaker.
 \end{itemize}
 
-The values \texttt{unknown}, \texttt{mixed}, \texttt{fill\_in}, \texttt{""}, \texttt{nan} are skipped
-because they represent missing metadata rather than a real subgroup.
-\texttt{speaker\_ses\_class} is skipped for DECTE because the extractor emits
-\texttt{"unknown"} for essentially every speaker.
+The values \texttt{unknown}, \texttt{mixed}, \texttt{fill\_in},
+\texttt{""}, \texttt{nan} are skipped because they represent missing
+metadata rather than a real subgroup. \texttt{speaker\_ses\_class}
+is skipped for DECTE because the extractor emits \texttt{"unknown"}
+for essentially every speaker.
 
 \subsection{Main-table threshold}
 \label{sec:methodology-subgroups-threshold}
@@ -796,29 +831,30 @@ because they represent missing metadata rather than a real subgroup.
 A subgroup enters the main table only if it has \textbf{at least 10
 bonafide and at least 10 spoof files}. Subgroups below this
 threshold are shown separately in a low-n diagnostic table (still
-computed, but explicitly flagged with \texttt{below\_n\_threshold = True}
-in the CSV output). Subgroups with fewer than 5 per class receive
-NaN metrics --- the metrics themselves are considered undefined at
-that sample size.
+computed, but explicitly flagged with \texttt{below\_n\_threshold =
+True} in the CSV output). Subgroups with fewer than 5 per class
+receive NaN metrics, since the metrics themselves are considered
+undefined at that sample size.
 
 \subsection{Baseline-vs-mitigated pairing}
 \label{sec:methodology-subgroups-pairing}
 
 Baseline and mitigated prediction CSVs are joined on
-\texttt{(audio\_path, label)} with \texttt{validate="one\_to\_one"}. This guarantees
-that both detectors were scored on the same file set; if the join
-would produce a mismatch, the script errors out rather than silently
-computing on unmatched data. Delta EER is then a within-file paired
-quantity per subgroup.
+\texttt{(audio\_path, label)} with \texttt{validate="one\_to\_one"}.
+This guarantees that both detectors were scored on the same file
+set; if the join would produce a mismatch, the script errors out
+rather than silently computing on unmatched data. Delta EER is then
+a within-file paired quantity per subgroup.
 
 \subsection{Wording contract}
 \label{sec:methodology-subgroups-wording}
 
-Because the DECTE held-out slice has only 16 speakers and
-per-subgroup n is small, no per-subgroup delta EER is claimed as
-statistically distinguishable in this thesis. The chapter's
-descriptive-only wording contract is enforced by convention in the
-prose (Chapter~\ref{chap:subgroup-diagnostics}) and by the diagnostic-notes block printed by
+The DECTE held-out slice has only 16 speakers and per-subgroup n is
+small, so no per-subgroup delta EER is claimed as statistically
+distinguishable in this thesis. The chapter's descriptive-only
+wording contract is enforced by convention in the prose
+(Chapter~\ref{chap:subgroup-diagnostics}) and by the
+diagnostic-notes block printed by
 \texttt{scripts/14\_decte\_subgroup\_diagnostics.py}. In particular:
 
 \begin{itemize}
@@ -843,17 +879,18 @@ scratch using the committed code.
 Three Conda environments, each self-contained:
 
 \begin{itemize}
-    \item \textbf{\texttt{dialectbias}} --- data preparation, metadata extraction,
+    \item \textbf{\texttt{dialectbias}}: data preparation, metadata extraction,
         detector loading and scoring, LFCC + LR training and scoring,
         bootstrap analyses. Uses PyTorch 2.5 + CUDA 12.1.
-    \item \textbf{\texttt{spoofgen}} --- XTTS v2 spoof generation. Uses Coqui TTS.
-    \item \textbf{\texttt{openvoice}} --- OpenVoice v2 spoof generation. Uses MeloTTS +
+    \item \textbf{\texttt{spoofgen}}: XTTS v2 spoof generation. Uses Coqui TTS.
+    \item \textbf{\texttt{openvoice}}: OpenVoice v2 spoof generation. Uses MeloTTS +
         MyShell's OpenVoice library, Python 3.9.
 \end{itemize}
 
-The environments do not share dependencies, and the only shared
+The environments do not share dependencies. The only shared
 artefacts between them are (a) the JSON-Lines manifests under
-\texttt{data/generated\_spoofs*/} and (b) the raw audio under \texttt{data/}.
+\texttt{data/generated\_spoofs*/} and (b) the raw audio under
+\texttt{data/}.
 
 \subsection{Deterministic seeds}
 \label{sec:methodology-repro-seeds}
@@ -869,43 +906,45 @@ The value \texttt{42} is used throughout as the base random seed:
 \end{itemize}
 
 Where a script performs two independent bootstraps that would
-otherwise reuse the same seed (e.g. XTTS vs OpenVoice in Script 5),
+otherwise reuse the same seed (e.g.\ XTTS vs OpenVoice in Script 5),
 the second bootstrap uses \texttt{seed + 1} to avoid identical index
 sequences.
 
 \subsection{Merge-safe manifests}
 \label{sec:methodology-repro-manifests}
 
-The manifest writer in \texttt{SpoofPipeline.\_save\_manifest} was originally
-implemented as a simple ``open in write mode and dump \texttt{self.results}'',
-which silently truncated the manifest on any resumed run (because
-the resume logic skips already-generated files before adding them to
-\texttt{self.results}). This was fixed early in the project by loading any
-existing manifest first, merging by \texttt{output\_path}, and rewriting.
-Every downstream analysis in the thesis depends on this fix.
+The manifest writer in \texttt{SpoofPipeline.\_save\_manifest} was
+originally implemented as a simple ``open in write mode and dump
+\texttt{self.results}'', which silently truncated the manifest on
+any resumed run (because the resume logic skips already-generated
+files before adding them to \texttt{self.results}). This was fixed
+early in the project by loading any existing manifest first, merging
+by \texttt{output\_path}, and rewriting. Every downstream analysis
+in the thesis depends on this fix.
 
 \subsection{Repository layout}
 \label{sec:methodology-repro-layout}
 
 \begin{itemize}
-    \item \texttt{scripts/} --- top-level entry points (numbered by execution order:
-        01 for data prep, 03 for detector evaluation, 04--13 for statistical
-        analyses, 14 for subgroup diagnostics, etc.).
-    \item \texttt{configs/} --- YAML configs for spoof generation and detector
+    \item \texttt{scripts/}: top-level entry points, numbered by execution order
+        (01 for data prep, 03 for detector evaluation, 04--13 for
+        statistical analyses, 14 for subgroup diagnostics, etc.).
+    \item \texttt{configs/}: YAML configs for spoof generation and detector
         evaluation, one config per scale $\times$ generator $\times$ mitigation-version.
-    \item \texttt{src/} --- importable modules: \texttt{data/}, \texttt{spoof\_gen/}, \texttt{evaluation/}.
-    \item \texttt{docs/} --- the running findings log and this thesis draft.
-    \item \texttt{data/}, \texttt{checkpoints/}, \texttt{results/} --- all gitignored, all
+    \item \texttt{src/}: importable modules: \texttt{data/}, \texttt{spoof\_gen/}, \texttt{evaluation/}.
+    \item \texttt{docs/}: the running findings log and this thesis draft.
+    \item \texttt{data/}, \texttt{checkpoints/}, \texttt{results/}: all gitignored, all
         reproducible from the scripts.
 \end{itemize}
 
 \subsection{Commit-to-entry traceability}
 \label{sec:methodology-repro-traceability}
 
-Every numbered Entry in \texttt{docs/THESIS\_FINDINGS\_LOG.md} corresponds to
-a specific commit on the \texttt{main} branch, and every quantitative
-claim in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics} traces back to a specific Entry. Appendix~\ref{app:reproducibility} of
-the thesis will contain the full commit-hash-to-entry table.
+Every numbered Entry in \texttt{docs/THESIS\_FINDINGS\_LOG.md}
+corresponds to a specific commit on the \texttt{main} branch, and
+every quantitative claim in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics}
+traces back to a specific Entry. Appendix~\ref{app:reproducibility}
+of the thesis will contain the full commit-hash-to-entry table.
 
 \subsection{External resources required for full reproduction}
 \label{sec:methodology-repro-external}
@@ -939,4 +978,5 @@ restrictions (DECTE) or because of size / licensing considerations
 \end{itemize}
 
 These four items are the minimum external requirements to reproduce
-every number in Chapters~\ref{chap:detector-verification}--\ref{chap:subgroup-diagnostics} from scratch.
+every number in Chapters~\ref{chap:detector-verification}--\ref{chap:subgroup-diagnostics}
+from scratch.
