@@ -17,16 +17,16 @@ addresses three of the four research questions stated in the
 writing plan:
 
 \begin{itemize}
-    \item \textbf{RQ1 --- Does dialectal / domain-shifted speech affect deepfake
+    \item \textbf{RQ1. Does dialectal / domain-shifted speech affect deepfake
         detection performance?} Answered by comparing the primary
         detector's error rate on Tyneside DECTE audio against its error
         rate on a standard-accent VCTK control set, holding the generator
         fixed (Sections~\ref{sec:main-results-aasist-xtts},~\ref{sec:main-results-aasist-openvoice}).
-    \item \textbf{RQ2 --- Does the effect of dialect / domain shift interact with
+    \item \textbf{RQ2. Does the effect of dialect / domain shift interact with
         the choice of spoof generator?} Answered by running the same
         DECTE-vs-VCTK comparison for a second generator (OpenVoice v2)
         and comparing the outcome to the XTTS v2 outcome (Section~\ref{sec:main-results-aasist-openvoice}).
-    \item \textbf{RQ4 --- Do the main corpus-gap patterns persist across detector
+    \item \textbf{RQ4. Do the main corpus-gap patterns persist across detector
         architectures?} Answered by re-running the whole XTTS and
         OpenVoice comparison with a completely different detector family
         (LFCC + Logistic Regression) and checking whether the direction
@@ -37,7 +37,7 @@ Every headline number in this chapter is reported with a 95\,\%
 non-parametric bootstrap confidence interval, computed via the
 protocol laid out in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-bootstrap} (1000 iterations,
 seed 42, joint per-corpus resampling for gap CIs). The chapter is
-descriptive of the results themselves; the framing of what these
+descriptive of the results themselves. The framing of what these
 results mean for the thesis' broader questions is expanded in
 Chapter~\ref{chap:discussion} (Discussion \& Limitations).
 
@@ -52,7 +52,7 @@ combined in the final $2 \times 2$ table.
 \label{sec:main-results-design}
 
 The main analysis in this chapter is organised around a small
-factorial structure --- two corpora, two generators, two detectors ---
+factorial structure (two corpora, two generators, two detectors)
 that produces eight distinct evaluation cells:
 
 \begin{itemize}
@@ -81,13 +81,13 @@ DECTE-vs-VCTK comparison into a CI on the corpus gap itself.
 The chapter reports the cells in a fixed order:
 
 \begin{enumerate}
-    \item AASIST + XTTS (Section~\ref{sec:main-results-aasist-xtts}) --- the primary dialect / domain-gap
+    \item AASIST + XTTS (Section~\ref{sec:main-results-aasist-xtts}): the primary dialect / domain-gap
         result.
-    \item LFCC + LR + XTTS (Section~\ref{sec:main-results-lfcc-xtts}) --- the cross-architecture
+    \item LFCC + LR + XTTS (Section~\ref{sec:main-results-lfcc-xtts}): the cross-architecture
         replication of the XTTS gap.
-    \item AASIST + OpenVoice (Section~\ref{sec:main-results-aasist-openvoice}) --- the generator-dependent
+    \item AASIST + OpenVoice (Section~\ref{sec:main-results-aasist-openvoice}): the generator-dependent
         reversal result.
-    \item LFCC + LR + OpenVoice (Section~\ref{sec:main-results-lfcc-openvoice}) --- the cross-architecture
+    \item LFCC + LR + OpenVoice (Section~\ref{sec:main-results-lfcc-openvoice}): the cross-architecture
         replication of the OpenVoice reversal.
     \item A combined $2 \times 2$ (corpus $\times$ generator) $\times$ 2 (detector) table
         (Section~\ref{sec:main-results-combined}).
@@ -96,20 +96,20 @@ The chapter reports the cells in a fixed order:
 \end{enumerate}
 
 
-\section{AASIST XTTS corpus gap --- the primary dialect / domain-gap result}
+\section{AASIST XTTS corpus gap: the primary dialect / domain-gap result}
 \label{sec:main-results-aasist-xtts}
 
 The primary dialect / domain-gap comparison holds the detector and
 the generator fixed and varies only the corpus. Under the primary
 detector (AuralGuard-AASISTPP, baseline checkpoint verified in
 Chapter~\ref{chap:detector-verification}) and XTTS v2, the DECTE arm was evaluated against the
-DECTE bonafide pool of 216 unique matched originals; the VCTK arm
+DECTE bonafide pool of 216 unique matched originals. The VCTK arm
 was evaluated against the VCTK bonafide pool of 120 unique matched
-originals. Both arms use 100 XTTS v2 spoofs --- for the DECTE arm this
+originals. Both arms use 100 XTTS v2 spoofs. For the DECTE arm this
 is a stratified random subsample from the full 416-spoof pool
-(seed 42), for the VCTK arm this is the full XTTS pool from the
-Entry 5 run. This matched-N protocol is what makes the two per-%
-corpus point estimates directly comparable.
+(seed 42); for the VCTK arm this is the full XTTS pool from the
+Entry 5 run. This matched-N protocol is what makes the two
+per-corpus point estimates directly comparable.
 
 The point estimates and 95\,\% non-parametric bootstrap confidence
 intervals are:
@@ -128,24 +128,24 @@ VCTK XTTS v2  & 120 & 100 & 21.83 & 15.91--27.25 & 0.8917 \\
 \end{tabularx}
 \end{table}
 
-The DECTE-minus-VCTK gap is \textbf{$+12.80$ percentage points, with 95\,\%
-bootstrap CI $[+6.13, +22.07]$\,pp}. The full CI lies above zero.
-This is the primary quantitative result behind RQ1: with the
-detector and generator held fixed, the corpus difference between
-Tyneside DECTE and standard-accent VCTK produces a statistically
-supported difference in detector error rate at 95\,\%.
+The DECTE-minus-VCTK gap is \textbf{$+12.80$ percentage points,
+with 95\,\% bootstrap CI $[+6.13, +22.07]$\,pp}. The full CI lies
+above zero. This is the primary quantitative result behind RQ1.
+With the detector and generator held fixed, the corpus difference
+between Tyneside DECTE and standard-accent VCTK produces a
+statistically supported difference in detector error rate at 95\,\%.
 
 Two things are worth flagging about the way this is stated:
 
 \begin{itemize}
     \item The gap is a \textbf{corpus / domain gap}, not a pure dialect gap.
         DECTE and VCTK differ on multiple axes simultaneously (dialect,
-        recording style, channel, age distribution --- see Section~\ref{sec:main-results-limitations}).
+        recording style, channel, age distribution; see Section~\ref{sec:main-results-limitations}).
         The observed $+12.80$\,pp point estimate cannot be attributed
         exclusively to the dialect axis.
     \item The gap is a \textbf{95\,\% result under the specific detector-and-%
         generator pairing used here}. What happens under other detectors
-        is the subject of Section~\ref{sec:main-results-lfcc-xtts} (LFCC + LR); what happens under
+        is the subject of Section~\ref{sec:main-results-lfcc-xtts} (LFCC + LR). What happens under
         other generators is the subject of Section~\ref{sec:main-results-aasist-openvoice} (OpenVoice).
         Neither of those questions is answered by Section~\ref{sec:main-results-aasist-xtts} alone.
 \end{itemize}
@@ -156,17 +156,17 @@ predictions from \texttt{results/detector\_predictions.csv} and
 in Entry 6 of the findings log.
 
 
-\section{LFCC + LR XTTS replication --- cross-architecture check}
+\section{LFCC + LR XTTS replication: cross-architecture check}
 \label{sec:main-results-lfcc-xtts}
 
-To test whether the corpus gap reported in Section~\ref{sec:main-results-aasist-xtts} is specific
-to the AASIST architecture, the same DECTE-vs-VCTK XTTS comparison
-was repeated on a hand-crafted-feature LFCC + Logistic Regression
-detector. The two detectors differ on nearly every architecturally
-meaningful axis --- feature representation (learned vs hand-crafted),
+The corpus gap reported in Section~\ref{sec:main-results-aasist-xtts}
+was re-tested under a hand-crafted-feature LFCC + Logistic
+Regression detector, using the same DECTE-vs-VCTK XTTS comparison.
+The two detectors differ on nearly every architecturally
+meaningful axis: feature representation (learned vs hand-crafted),
 model family (deep graph-attention vs convex linear), and
 optimisation regime (SGD with dropout vs LBFGS on a small feature
-matrix) --- so a same-direction gap on both detectors is not
+matrix). So a same-direction gap on both detectors is not
 architecture-specific in any straightforward sense.
 
 The LFCC + LR classifier was fitted on the AuralGuard training CSV
@@ -189,8 +189,9 @@ VCTK XTTS v2 (LFCC + LR)  & 120 & 100 & 31.75 & 25.00--38.17 & 0.7262 \\
 \end{tabularx}
 \end{table}
 
-The DECTE-minus-VCTK gap is \textbf{$+12.44$ percentage points, with 95\,\%
-bootstrap CI $[+1.96, +21.76]$\,pp}. The full CI lies above zero.
+The DECTE-minus-VCTK gap is \textbf{$+12.44$ percentage points,
+with 95\,\% bootstrap CI $[+1.96, +21.76]$\,pp}. The full CI lies
+above zero.
 
 Two features of this replication are directly meaningful for the
 thesis' argument:
@@ -201,31 +202,32 @@ thesis' argument:
     \item \textbf{Similar magnitude.} The AASIST gap ($+12.80$\,pp) and the
         LFCC + LR gap ($+12.44$\,pp) differ by about a third of a
         percentage point. Given the bootstrap CIs of $\sim$$\pm 10$\,pp on each
-        arm, this is well within sampling noise --- the two point
+        arm, this is well within sampling noise. The two point
         estimates are consistent with a common underlying corpus-gap
         effect on the order of $\sim$10--13\,pp.
 \end{itemize}
 
-The two detectors do not agree on the absolute EER level (LFCC +
-LR is a weaker classifier overall --- its DECTE EER is $\sim$10\,pp above
-the AASIST DECTE EER, and its VCTK EER is $\sim$10\,pp above the AASIST
-VCTK EER). The magnitude of the \emph{gap}, however, is nearly the same
-in both cases. That is the property Chapter~\ref{chap:main-results} leans on.
+The two detectors do not agree on the absolute EER level. LFCC + LR
+is a weaker classifier overall: its DECTE EER is $\sim$10\,pp above
+the AASIST DECTE EER, and its VCTK EER is $\sim$10\,pp above the
+AASIST VCTK EER. The magnitude of the \emph{gap}, however, is
+nearly the same in both cases. That is the property Chapter~\ref{chap:main-results}
+leans on.
 
 Reproducer: \texttt{scripts/11\_lfcc\_lr\_second\_detector.py} (fits the LFCC +
 LR classifier and runs the bootstrap in a single self-contained
 run). Details are in Entry 8 of the findings log.
 
 
-\section{AASIST OpenVoice reversal --- direction depends on generator}
+\section{AASIST OpenVoice reversal: direction depends on generator}
 \label{sec:main-results-aasist-openvoice}
 
 The primary detector was then evaluated on the second generator
 (OpenVoice v2) under the same DECTE-vs-VCTK protocol. The DECTE arm
 used the 100 OpenVoice v2 spoofs against the full 216-row DECTE
-bonafide pool; the VCTK arm used 100 OpenVoice v2 spoofs against
+bonafide pool. The VCTK arm used 100 OpenVoice v2 spoofs against
 the 120-row VCTK bonafide pool. All eight cell-level counts are
-identical to Section~\ref{sec:main-results-aasist-xtts}, only the generator differs.
+identical to Section~\ref{sec:main-results-aasist-xtts}; only the generator differs.
 
 The point estimates and 95\,\% bootstrap CIs are:
 
@@ -243,27 +245,28 @@ VCTK OpenVoice v2  & 120 & 100 & 74.58 & 68.17--80.92 & 0.1643 \\
 \end{tabularx}
 \end{table}
 
-The DECTE-minus-VCTK gap is \textbf{$-26.74$ percentage points, with 95\,\%
-bootstrap CI $[-35.69, -18.26]$\,pp}. The full CI lies below zero.
+The DECTE-minus-VCTK gap is \textbf{$-26.74$ percentage points,
+with 95\,\% bootstrap CI $[-35.69, -18.26]$\,pp}. The full CI lies
+below zero.
 
-This is the second central quantitative result of the
-chapter, and it goes in the opposite direction from Section~\ref{sec:main-results-aasist-xtts}.
+This is the second central quantitative result of the chapter, and
+it goes in the opposite direction from Section~\ref{sec:main-results-aasist-xtts}.
 Under the same detector, the same bonafide pools, the same audio
 preprocessing, and the same evaluation protocol, OpenVoice v2
-spoofs produce a \emph{lower} EER on DECTE than on VCTK. The dialect /
-domain axis that made XTTS harder on DECTE (Section~\ref{sec:main-results-aasist-xtts}) does not
-merely have a smaller effect for OpenVoice --- it appears to run in
-the opposite direction.
+spoofs produce a \emph{lower} EER on DECTE than on VCTK. The
+dialect / domain axis that made XTTS harder on DECTE
+(Section~\ref{sec:main-results-aasist-xtts}) does not merely have a smaller effect for
+OpenVoice; it appears to run in the opposite direction.
 
 Interpreted structurally, this rules out an explanation in which
 DECTE is uniformly ``harder'' than VCTK for anti-spoofing
 regardless of what is being detected. If DECTE were uniformly
 harder, then holding the detector fixed and swapping the generator
-would preserve the sign of the gap --- it would only shift its
-magnitude. The observed sign flip means the interaction between
-generator and corpus is doing real work: for the OpenVoice v2
-generator, the detector's failure mode is stronger on the
-studio-quality VCTK input than on the dialectal DECTE input.
+would preserve the sign of the gap and only shift its magnitude.
+The observed sign flip means the interaction between generator and
+corpus is doing real work. For the OpenVoice v2 generator, the
+detector's failure mode is stronger on the studio-quality VCTK
+input than on the dialectal DECTE input.
 
 Two properties of the VCTK OpenVoice arm are worth naming
 explicitly because they might otherwise look like reporting errors:
@@ -275,22 +278,23 @@ explicitly because they might otherwise look like reporting errors:
         many OpenVoice-spoofed VCTK samples received higher bonafide
         scores than the corresponding real samples.
     \item \textbf{The two arms' bootstrap CIs do not overlap on the raw EER
-        scale} (DECTE upper 53.39\,\% vs VCTK lower 68.17\,\%), which is
-        consistent with --- indeed stronger than --- the gap CI being
+        scale} (DECTE upper 53.39\,\% vs VCTK lower 68.17\,\%), which
+        is consistent with (and indeed stronger than) the gap CI being
         entirely below zero.
 \end{itemize}
 
-The OpenVoice failure mode this exposes is \emph{generator-specific} in
-the sense that it does not appear under XTTS with the same detector
-on the same corpora. It is not, however, a claim about OpenVoice v2
-in general --- see Section~\ref{sec:main-results-limitations} for the scope limitation.
+The OpenVoice failure mode this exposes is \emph{generator-specific}
+in the sense that it does not appear under XTTS with the same
+detector on the same corpora. It is not, however, a claim about
+OpenVoice v2 in general; see Section~\ref{sec:main-results-limitations}
+for the scope limitation.
 
 Reproducer: \texttt{scripts/12\_bootstrap\_openvoice\_corpus\_gap.py}
 (same predictions files as Section~\ref{sec:main-results-aasist-xtts}, filtered to the OpenVoice
 subset). Details are in Entry 9 of the findings log.
 
 
-\section{LFCC + LR OpenVoice replication --- the reversal is cross-detector}
+\section{LFCC + LR OpenVoice replication: the reversal is cross-detector}
 \label{sec:main-results-lfcc-openvoice}
 
 The direction reversal reported in Section~\ref{sec:main-results-aasist-openvoice} was then rechecked
@@ -317,24 +321,26 @@ VCTK OpenVoice v2 (LFCC + LR)  & 120 & 100 & 80.83 & 76.33--87.25 & 0.0830 \\
 \end{tabularx}
 \end{table}
 
-The DECTE-minus-VCTK gap is \textbf{$-42.62$ percentage points, with 95\,\%
-bootstrap CI $[-50.78, -35.64]$\,pp}. The full CI lies below zero.
+The DECTE-minus-VCTK gap is \textbf{$-42.62$ percentage points,
+with 95\,\% bootstrap CI $[-50.78, -35.64]$\,pp}. The full CI lies
+below zero.
 
 The two detectors agree on the sign of the OpenVoice gap. They also
-agree that the OpenVoice failure on VCTK is severe (both have VCTK
-AUC below the random-classifier line --- 0.1643 for AASIST, 0.0830
-for LFCC + LR). The two detectors do not agree on the exact
-magnitude of the gap (AASIST $-26.74$\,pp vs LFCC + LR $-42.62$\,pp);
-that magnitude is larger for LFCC + LR mainly because its DECTE
+agree that the OpenVoice failure on VCTK is severe. Both have VCTK
+AUC below the random-classifier line (0.1643 for AASIST, 0.0830 for
+LFCC + LR). The two detectors do not agree on the exact magnitude
+of the gap (AASIST $-26.74$\,pp vs LFCC + LR $-42.62$\,pp). That
+magnitude is larger for LFCC + LR mainly because its DECTE
 OpenVoice EER (38.21\,\%) is lower than AASIST's DECTE OpenVoice EER
 (47.84\,\%), which widens the DECTE-vs-VCTK arithmetic. Nothing in
-the chapter turns on the exact magnitude of the OpenVoice gap;
-what matters is the sign and its statistical support.
+the chapter turns on the exact magnitude of the OpenVoice gap.
+What matters is the sign and its statistical support.
 
-Together with Section~\ref{sec:main-results-aasist-openvoice}, this makes the OpenVoice reversal a
-\emph{cross-detector} finding rather than an AASIST-specific one. The
-same reversal appears on two very different detector architectures
-under identical evaluation conditions.
+Together with Section~\ref{sec:main-results-aasist-openvoice}, this
+makes the OpenVoice reversal a \emph{cross-detector} finding rather
+than an AASIST-specific one. The same reversal appears on two very
+different detector architectures under identical evaluation
+conditions.
 
 Reproducer: \texttt{scripts/13\_lfcc\_lr\_openvoice\_corpus\_gap.py} (uses the
 same fitted LR pipeline from Section~\ref{sec:main-results-lfcc-xtts}, scores the same file
@@ -458,16 +464,16 @@ questions the chapter set out to address.
 \end{itemize}
 
 Put together, these three answers back the thesis' main
-descriptive claim about detector behaviour: \textbf{detector reliability
-depends jointly on the corpus / domain of the input and on the
-generator that produced the spoof.} Neither factor alone
-predicts the direction of the observed EER change; only the
+descriptive claim about detector behaviour: \textbf{detector
+reliability depends jointly on the corpus / domain of the input
+and on the generator that produced the spoof.} Neither factor
+alone predicts the direction of the observed EER change; only the
 combination does.
 
-The chapter does \emph{not} claim, and its evidence does not support,
-the stronger reading that dialect alone explains detector
+The chapter does \emph{not} claim, and its evidence does not
+support, the stronger reading that dialect alone explains detector
 failures. That framing is explicitly ruled out by the OpenVoice
-reversal --- under OpenVoice v2, DECTE is the \emph{easier} corpus for
+reversal. Under OpenVoice v2, DECTE is the \emph{easier} corpus for
 this detector, not the harder one.
 
 
@@ -495,11 +501,12 @@ Chapter~\ref{chap:discussion} treats them at greater length.
     \item \textbf{The OpenVoice reversal is a generator-specific corpus
         interaction, not a claim about OpenVoice generally.} The
         observation that OpenVoice v2 produces a stronger detector
-        failure on VCTK than on DECTE describes one specific detector-%
-        generator-corpus combination. It is not evidence that OpenVoice
-        is a ``worse'' or ``more dangerous'' generator in absolute terms
-        than XTTS. A different anti-spoofing detector trained on
-        OpenVoice-generated data might show a very different pattern.
+        failure on VCTK than on DECTE describes one specific
+        detector-generator-corpus combination. It is not evidence that
+        OpenVoice is a ``worse'' or ``more dangerous'' generator in
+        absolute terms than XTTS. A different anti-spoofing detector
+        trained on OpenVoice-generated data might show a very different
+        pattern.
     \item \textbf{These are detection-performance results, not human-perceptual
         results.} EER measures the operating point at which a
         classifier's false accept rate equals its false reject rate. It
@@ -521,11 +528,12 @@ Chapter~\ref{chap:discussion} treats them at greater length.
 \end{itemize}
 
 None of these limitations invalidate the qualitative claims in
-Sections~\ref{sec:main-results-aasist-xtts}--\ref{sec:main-results-rq-answers}: the XTTS gap is positive under both detectors,
-the OpenVoice gap is negative under both detectors, and both
-signs are supported at 95\,\%. What they constrain is how \emph{strongly}
-those claims can be phrased in the thesis' broader argument ---
+Sections~\ref{sec:main-results-aasist-xtts}--\ref{sec:main-results-rq-answers}:
+the XTTS gap is positive under both detectors, the OpenVoice gap
+is negative under both detectors, and both signs are supported at
+95\,\%. What they constrain is how \emph{strongly} those claims can
+be phrased in the thesis' broader argument. The safe wording is
 ``dialect / domain gap'' rather than ``dialect bias'',
-``generator-specific corpus interaction'' rather than ``OpenVoice is
-harder in general'', and ``cross-detector replication on the two
+``generator-specific corpus interaction'' rather than ``OpenVoice
+is harder in general'', and ``cross-detector replication on the two
 detectors tested'' rather than ``architecture-invariant''.
