@@ -4,50 +4,50 @@
 
 %% Draft preamble note (kept in source for reference; not rendered):
 %% Written to be read by the thesis supervisor first, then polished into
-%% final prose. Citation keys follow the Chapter 2 style -- bracketed short
+%% final prose. Citation keys follow the Chapter 2 style, bracketed short
 %% keys like \cite{Todisco2019_ASVspoof} that resolve against references.bib.
 
 
 \section{Opening motivation}
 \label{sec:introduction-motivation}
 
-Audio deepfakes --- synthetic speech that mimics a target speaker's
-voice from a short reference recording --- have moved from a
-research demonstration to a routine capability of publicly
-available voice-cloning systems in the last few years
+Audio deepfakes are synthetic speech that mimic a target speaker's
+voice from a short reference recording. In the last few years they
+have moved from a research demonstration to a routine capability of
+publicly available voice-cloning systems
 \cite{Casanova2024_XTTS} \cite{Qin2023_OpenVoice}. Zero-shot cloning
-pipelines that once required a specialist ML team can now be run
-from open-source libraries with a handful of lines of code, and
-the output quality is high enough that a listener without prior
-context could mistake it for genuine speech. The
-detection side of that story has developed in parallel: the
-anti-spoofing and audio-deepfake-detection literature has
-produced a series of shared benchmarks and detector architectures
-that report very low error rates on the challenge conditions
-they were designed against \cite{Todisco2019_ASVspoof}
-\cite{Yamagishi2021_ASVspoof2021} \cite{Yi2022_ADD}.
+pipelines that once required a specialist machine-learning team can
+now be run from open-source libraries with a handful of lines of
+code, and the output quality is high enough that a listener without
+prior context could mistake it for genuine speech. The detection
+side of that story has developed in parallel. The anti-spoofing and
+audio-deepfake-detection literature has produced a series of shared
+benchmarks and detector architectures that report very low error
+rates on the challenge conditions they were designed against
+\cite{Todisco2019_ASVspoof} \cite{Yamagishi2021_ASVspoof2021}
+\cite{Yi2022_ADD}.
 
-However, low error on a benchmark is not the same as reliability
-in the field. Recent cross-domain analyses have shown that
-detectors trained on one source distribution often generalise
-poorly to another --- to unseen recording conditions, unseen
-speaker populations, or unseen spoof-generator families
-\cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}. A separate
-line of speech-technology research has documented that speech
-systems trained predominantly on standard-accent material can
+However, low error on a benchmark is not the same as reliability in
+the field. Recent cross-domain analyses have shown that detectors
+trained on one source distribution often generalise poorly to
+another, for example to unseen recording conditions, unseen speaker
+populations, or unseen spoof-generator families
+\cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}. A
+separate line of speech-technology research has documented that
+speech systems trained mostly on standard-accent material can
 perform unevenly on dialectal or non-standard-accent speech
-\cite{Koenecke2020_ASRDisparities} \cite{Serditova2025_NewcastleASR},
-though almost all of that work is about automatic speech
-recognition rather than about anti-spoofing.
+\cite{Koenecke2020_ASRDisparities} \cite{Serditova2025_NewcastleASR}.
+Almost all of that work is about automatic speech recognition
+rather than about anti-spoofing.
 
 Putting those two literatures next to each other raises the
-question this thesis is built around: anti-spoofing detectors
+question this thesis is built around. Anti-spoofing detectors
 already generalise poorly across source datasets in the abstract,
 and speech systems already behave unevenly across accents in
-transcription tasks, but how do audio deepfake detectors behave
-on dialectal, interview-style real speech --- and does the answer
-depend on which voice-cloning generator produced the spoof they
-are asked to reject?
+transcription tasks. So how do audio deepfake detectors behave on
+dialectal, interview-style real speech, and does the answer depend
+on which voice-cloning generator produced the spoof they are asked
+to reject?
 
 
 \section{Problem statement}
@@ -56,38 +56,37 @@ are asked to reject?
 Standard anti-spoofing benchmarks are typically built from
 studio-quality read speech, in a limited range of recording
 conditions, and against a fixed list of spoofing systems
-\cite{Todisco2019_ASVspoof} \cite{ASVspoof2019_Database}. Real speech that
-a deployed detector might see is not distributed the same way.
-It varies by dialect, by accent, by recording condition and
-channel, by speaker demographics, and by the pragmatic style of
+\cite{Todisco2019_ASVspoof} \cite{ASVspoof2019_Database}. Real
+speech that a deployed detector might see is not distributed the
+same way. It varies by dialect, by accent, by recording condition
+and channel, by speaker demographics, and by the pragmatic style of
 the utterance (conversation, interview, phone call, read
 sentence). It is also produced by spoofing systems that may not
-match any of the systems present at the detector's training
-time --- voice-cloning tools are released and updated on a
-timescale much faster than any single anti-spoofing benchmark.
+match any of the systems present at the detector's training time.
+Voice-cloning tools are released and updated on a timescale much
+faster than any single anti-spoofing benchmark.
 
 This thesis narrows that broad problem to a specific empirical
 question: does the choice of \emph{corpus} (specifically, dialectal
 Tyneside DECTE versus standard-accent English VCTK) change how a
-modern anti-spoofing detector behaves on the spoofed audio it
-must reject, and does the observed change depend on which
-voice-cloning generator produced the spoof? Because the two
-corpora used here differ on several axes at once --- dialect,
-recording style, channel quality, speaker demographics --- the
-observed effect is described throughout the thesis as a
-\textbf{dialect / domain gap} rather than as a ``pure dialect bias''.
-The phrasing is deliberate: the evidence in this thesis
-supports the former, not the latter, and Chapter~\ref{chap:discussion} explains
-why in detail.
+modern anti-spoofing detector behaves on the spoofed audio it must
+reject, and does the observed change depend on which voice-cloning
+generator produced the spoof? The two corpora used here differ on
+several axes at once (dialect, recording style, channel quality,
+speaker demographics), so the observed effect is described
+throughout the thesis as a \textbf{dialect / domain gap} rather than
+as a ``pure dialect bias''. The phrasing is deliberate: the
+evidence in this thesis supports the former, not the latter, and
+Chapter~\ref{chap:discussion} explains why in detail.
 
 
 \section{Research aim}
 \label{sec:introduction-aim}
 
-The aim of this thesis is to measure whether dialect / domain
-and generator choice affect an audio anti-spoofing detector's
-error behaviour, and to test whether a small controlled
-adaptation of the detector can reduce the clearest observed gap.
+The aim of this thesis is to measure whether dialect / domain and
+generator choice affect an audio anti-spoofing detector's error
+behaviour, and to test whether a small controlled adaptation of the
+detector can reduce the clearest observed gap.
 
 In practice, the thesis reports a four-part study on the same
 underlying material:
@@ -102,18 +101,17 @@ underlying material:
     \item a \textbf{cross-detector replication} using a hand-crafted-feature
         LFCC + Logistic Regression classifier alongside the primary
         AuralGuard-AASISTPP wrapper around AASIST \cite{Jung2022_AASIST};
-        and
-    \item a \textbf{controlled adaptation experiment} --- mitigation v2, a
+    \item a \textbf{controlled adaptation experiment} (mitigation v2, a
         partial-backbone fine-tune of the primary detector on a
-        leakage-safe DECTE speaker split --- evaluated on a held-out
+        leakage-safe DECTE speaker split), evaluated on a held-out
         DECTE test slice and a VCTK out-of-training-domain guardrail.
 \end{itemize}
 
-A subgroup diagnostic layer over the mitigation slice is added
-as an appendix-style descriptive analysis. Every headline number
-in the study is reported with a 95\,\% non-parametric bootstrap
-confidence interval computed under a single fixed protocol so
-that all reported quantities are directly comparable.
+A subgroup diagnostic layer over the mitigation slice is added as
+an appendix-style descriptive analysis. Every headline number in
+the study is reported with a 95\,\% non-parametric bootstrap
+confidence interval computed under a single fixed protocol, so that
+all reported quantities are directly comparable.
 
 
 \section{Research questions}
@@ -132,17 +130,17 @@ Four research questions structure the empirical work.
         main corpus-gap patterns persist across detector architectures?
 \end{itemize}
 
-RQ4 is framed as a \emph{robustness check} on RQ1 and RQ2 rather than
-as a separate central thesis: it would only weaken the RQ1 / RQ2
-story if the patterns failed to replicate on a second detector,
+RQ4 is framed as a \emph{robustness check} on RQ1 and RQ2 rather
+than as a separate central thesis. It would only weaken the RQ1 /
+RQ2 story if the patterns failed to replicate on a second detector,
 and it does not stand alone.
 
 
 \section{Method overview}
 \label{sec:introduction-method}
 
-The full experimental setup is documented in Chapter~\ref{chap:data-methodology} and
-verified in Chapter~\ref{chap:detector-verification}. In brief:
+The full experimental setup is documented in Chapter~\ref{chap:data-methodology}
+and verified in Chapter~\ref{chap:detector-verification}. In brief:
 
 \begin{itemize}
     \item \textbf{Two speech corpora.} DECTE and VCTK 0.92 provide,
@@ -155,20 +153,20 @@ verified in Chapter~\ref{chap:detector-verification}. In brief:
         represent two different design philosophies inside the
         contemporary zero-shot voice-cloning space.
     \item \textbf{Two detectors.} A primary AuralGuard-AASISTPP wrapper
-        around the AASIST backbone \cite{Jung2022_AASIST} and a secondary
-        LFCC + Logistic Regression classifier are used together
-        specifically so that a same-direction finding on both can rule
-        out the interpretation that a given result is an
+        around the AASIST backbone \cite{Jung2022_AASIST} and a
+        secondary LFCC + Logistic Regression classifier are used
+        together specifically so that a same-direction finding on both
+        can rule out the interpretation that a given result is an
         architecture-specific artefact.
     \item \textbf{Bootstrap 95\,\% confidence intervals} on every headline
         quantity, using 1000 iterations and a fixed base seed so the
         intervals reported in different chapters are directly
         comparable.
-    \item \textbf{Controlled adaptation} --- mitigation v2 --- evaluated on a
+    \item \textbf{Controlled adaptation} (mitigation v2) evaluated on a
         leakage-safe held-out DECTE speaker split and against a VCTK
         out-of-training-domain guardrail, with the in-domain sanity
-        check from Chapter~\ref{chap:detector-verification} rerun on the mitigated checkpoint as a
-        catastrophic-forgetting safeguard.
+        check from Chapter~\ref{chap:detector-verification} rerun on the mitigated
+        checkpoint as a catastrophic-forgetting safeguard.
     \item \textbf{Subgroup diagnostics} on the same held-out slice, reported
         as descriptive per-metadata point estimates rather than as a
         formal fairness audit.
@@ -178,29 +176,29 @@ verified in Chapter~\ref{chap:detector-verification}. In brief:
 \section{Main contributions}
 \label{sec:introduction-contributions}
 
-Five main contributions organise what the thesis puts on
-record. Additional pipeline verification and reproducibility
-work is treated as methodology or as an appendix rather than as
-a standalone contribution.
+Five main contributions organise what the thesis puts on record.
+Additional pipeline verification and reproducibility work is
+treated as methodology or as an appendix rather than as a
+standalone contribution.
 
 \begin{enumerate}
-    \item \textbf{A DECTE--VCTK evaluation benchmark for dialect / domain
+    \item \textbf{A DECTE, VCTK evaluation benchmark for dialect / domain
         effects on audio deepfake detection.} A leakage-safe,
         matched-N, bootstrap-supported protocol for evaluating an
         anti-spoofing detector on Tyneside dialectal speech against a
         standard-accent VCTK control, with per-cell 95\,\% confidence
         intervals and paired-original bonafide selection (Chapters~\ref{chap:data-methodology}
         and~\ref{chap:main-results}).
-    \item \textbf{A cross-generator finding --- a generator-specific corpus
+    \item \textbf{A cross-generator finding: a generator-specific corpus
         interaction.} XTTS v2 shows a positive DECTE $-$ VCTK EER gap
         (DECTE harder); OpenVoice v2 reverses the direction (VCTK
-        harder). The two generators do not fail the detector the
-        same way, and the reversal cannot be explained as a dialect
-        effect (Chapter~\ref{chap:main-results}).
+        harder). The two generators do not fail the detector the same
+        way, and the reversal cannot be explained as a dialect effect
+        (Chapter~\ref{chap:main-results}).
     \item \textbf{Cross-detector replication.} Both the XTTS gap and the
         OpenVoice reversal reproduce on a hand-crafted-feature +
-        Logistic-Regression detector --- an architecturally very
-        different second detector --- with same-direction 95\,\%
+        Logistic-Regression detector, which is an architecturally very
+        different second detector, with same-direction 95\,\%
         bootstrap CIs. The direction split by generator is therefore
         not specific to the AASIST architecture (Chapter~\ref{chap:main-results}).
     \item \textbf{A statistically supported controlled adaptation.} A
@@ -212,17 +210,17 @@ a standalone contribution.
     \item \textbf{Sociolinguistic subgroup diagnostics.} On the held-out
         DECTE slice, mitigation v2 improves every main-table subgroup
         (gender, age band, recording era), with substantial spread in
-        magnitude. Reported as descriptive diagnostics, not as a
-        formal fairness audit (Chapter~\ref{chap:subgroup-diagnostics}).
+        magnitude. This is reported as descriptive diagnostics, not as
+        a formal fairness audit (Chapter~\ref{chap:subgroup-diagnostics}).
 \end{enumerate}
 
 The thesis does not claim any of these as first-of-a-kind
 results. Cross-domain robustness for anti-spoofing has already
 been established in the recent literature
-\cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}; dialectal
-speech-technology bias has already been documented for automatic
-speech recognition \cite{Koenecke2020_ASRDisparities}. What this
-thesis adds is the bridge between those two existing
+\cite{Li2024_CrossDomainADD} \cite{Muller2024_HarderDifferent}, and
+dialectal speech-technology bias has already been documented for
+automatic speech recognition \cite{Koenecke2020_ASRDisparities}.
+What this thesis adds is the bridge between those two existing
 concerns, within the scope of the corpora, generators, and
 detectors described in Chapter~\ref{chap:data-methodology}.
 
@@ -233,29 +231,31 @@ detectors described in Chapter~\ref{chap:data-methodology}.
 Given the size of the empirical slices, the scope of the
 detectors, and the sensitivity of the topic, several explicit
 non-claims are worth stating up front so a reader coming to the
-results in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics} knows what the thesis is \emph{not} claiming.
+results in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics}
+knows what the thesis is \emph{not} claiming.
 
 \begin{itemize}
     \item The thesis \textbf{does not prove that dialect alone causes detector
         failure.} DECTE and VCTK differ on multiple simultaneous axes
         (dialect, recording style, channel, age distribution,
-        transcript pipeline); the safe empirical claim is a \emph{dialect /
-        domain gap} claim, not a pure dialect-causality claim
-        (Chapter~\ref{chap:discussion}, Section~\ref{sec:discussion-wording-contract}).
+        transcript pipeline). The safe empirical claim is a
+        \emph{dialect / domain gap} claim, not a pure dialect-causality
+        claim (Chapter~\ref{chap:discussion},
+        Section~\ref{sec:discussion-wording-contract}).
     \item The thesis \textbf{does not prove that the detector is biased
-        against any protected group.} Chapter~\ref{chap:subgroup-diagnostics}'s subgroup diagnostic
-        is descriptive on a 16-speaker held-out slice and does not
-        attach per-subgroup bootstrap intervals; fairness claims of
-        the shape ``the detector is biased against group X'' are not
-        supported by that evidence.
+        against any protected group.} Chapter~\ref{chap:subgroup-diagnostics}'s
+        subgroup diagnostic is descriptive on a 16-speaker held-out
+        slice and does not attach per-subgroup bootstrap intervals.
+        Fairness claims of the shape ``the detector is biased against
+        group X'' are not supported by that evidence.
     \item The thesis \textbf{does not rank XTTS v2 and OpenVoice v2 by human
         perceptual naturalness.} The reported EERs are detector
-        performance numbers; whether human listeners would find one
+        performance numbers. Whether human listeners would find one
         generator's outputs more or less convincing is a separate
         research question.
     \item The thesis \textbf{does not provide a production-ready detector.}
         The mitigated v2 checkpoint reduces DECTE XTTS error but
-        remains far above the training-distribution EER; it is an
+        remains far above the training-distribution EER. It is an
         adaptation experiment under RQ3, not a deployment-grade
         system.
     \item The thesis \textbf{studies detection behaviour under controlled
@@ -266,9 +266,9 @@ results in Chapters~\ref{chap:main-results}--\ref{chap:subgroup-diagnostics} kno
 \end{itemize}
 
 Each non-claim corresponds to a claim the evidence does \emph{not}
-support at the strength required. A reader who wants to
-generalise past the thesis' scope does so on their own
-authority, not on the thesis'.
+support at the strength required. A reader who wants to generalise
+past the thesis' scope does so on their own authority, not on the
+thesis'.
 
 
 \section{Thesis structure}
@@ -277,7 +277,7 @@ authority, not on the thesis'.
 The remainder of the thesis is organised as follows.
 
 \begin{itemize}
-    \item \textbf{Chapter~\ref{chap:background} --- Background and Related Work.} Introduces the
+    \item \textbf{Chapter~\ref{chap:background}: Background and Related Work.} Introduces the
         four research areas needed to read the rest of the thesis:
         anti-spoofing benchmarks and metrics, detector architectures
         (classical LFCC / CQCC baselines and modern neural systems),
@@ -285,38 +285,39 @@ The remainder of the thesis is organised as follows.
         anti-spoofing, and dialect / accent effects in speech
         technology. It closes with the specific research gap this
         thesis addresses.
-    \item \textbf{Chapter~\ref{chap:data-methodology} --- Data and Methodology.} Describes the two
+    \item \textbf{Chapter~\ref{chap:data-methodology}: Data and Methodology.} Describes the two
         corpora (DECTE, VCTK), the two generators (XTTS v2, OpenVoice
         v2), the two detectors (AuralGuard-AASISTPP, LFCC + LR), the
         evaluation protocol, the bootstrap methodology, the mitigation
         training protocol, and the subgroup diagnostic protocol.
-    \item \textbf{Chapter~\ref{chap:detector-verification} --- Detector Verification and Experimental Setup.}
+    \item \textbf{Chapter~\ref{chap:detector-verification}: Detector Verification and Experimental Setup.}
         Documents the correctness-check step: why detector verification
         was necessary, the specific checkpoint-loading correction
         applied to the primary detector, the shared audio preprocessing
         and score-direction convention across both detectors, and the
         in-domain sanity check that must pass before any DECTE / VCTK
         number is interpreted.
-    \item \textbf{Chapter~\ref{chap:main-results} --- Corpus--Generator Analysis with Statistical
-        Support.} The main empirical chapter: reports the AASIST XTTS
-        corpus gap, the LFCC + LR XTTS replication, the AASIST
+    \item \textbf{Chapter~\ref{chap:main-results}: Corpus--Generator Analysis with Statistical
+        Support.} The main empirical chapter. It reports the AASIST
+        XTTS corpus gap, the LFCC + LR XTTS replication, the AASIST
         OpenVoice reversal, the LFCC + LR OpenVoice reversal, and the
-        combined $2 \times 2 \times 2$ result table. Answers RQ1, RQ2, and RQ4.
-    \item \textbf{Chapter~\ref{chap:mitigation} --- Mitigation Experiment.} Reports the controlled
-        partial-backbone fine-tune (mitigation v2), the held-out
-        DECTE XTTS result, the VCTK guardrail, the post-mitigation
-        in-domain sanity check, and the paired-bootstrap CI on the
-        mitigation effect. Answers RQ3.
-    \item \textbf{Chapter~\ref{chap:subgroup-diagnostics} --- Subgroup Diagnostics.} Descriptive per-metadata
+        combined $2 \times 2 \times 2$ result table. Answers RQ1, RQ2,
+        and RQ4.
+    \item \textbf{Chapter~\ref{chap:mitigation}: Mitigation Experiment.} Reports the controlled
+        partial-backbone fine-tune (mitigation v2), the held-out DECTE
+        XTTS result, the VCTK guardrail, the post-mitigation in-domain
+        sanity check, and the paired-bootstrap CI on the mitigation
+        effect. Answers RQ3.
+    \item \textbf{Chapter~\ref{chap:subgroup-diagnostics}: Subgroup Diagnostics.} Descriptive per-metadata
         view of the same mitigation on the DECTE held-out slice, by
         gender, age band, and recording era. Reported explicitly as
         diagnostic, not as a fairness audit.
-    \item \textbf{Chapter~\ref{chap:discussion} --- Discussion, Limitations, and Threats to
+    \item \textbf{Chapter~\ref{chap:discussion}: Discussion, Limitations, and Threats to
         Validity.} Interpretation of the four main findings together;
         standard four-plus-one threats-to-validity discussion;
         practical implications for anti-spoofing evaluation practice;
         and an explicit list of what the thesis does \emph{not} claim.
-    \item \textbf{Chapter~\ref{chap:conclusion} --- Conclusion and Future Work.} Restates the
+    \item \textbf{Chapter~\ref{chap:conclusion}: Conclusion and Future Work.} Restates the
         research-question answers, the main contributions, and the
         practical implications, and sketches the follow-up studies
         that would broaden the external validity of the findings.
