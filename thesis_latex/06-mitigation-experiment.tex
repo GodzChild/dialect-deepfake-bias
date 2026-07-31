@@ -103,10 +103,10 @@ this:
         baseline checkpoint.
 \end{itemize}
 
-The partition is deterministic (seed 42, \texttt{numpy.random.default\_rng.permutation}
+The partition is deterministic (seed 42, \texttt{numpy.random.}\allowbreak\texttt{default\_rng.}\allowbreak\texttt{permutation}
 over the alphabetically sorted eligible speaker
 list), so it can be regenerated at will. A leakage-check step in
-\texttt{scripts/09\_build\_mitigation\_csvs.py} verifies that the three
+\texttt{scripts/}\allowbreak\texttt{09\_build\_mitigation\_csvs.py} verifies that the three
 resulting speaker sets are disjoint at the speaker level \emph{and}
 that the resulting file sets are disjoint at the audio-file
 level, and aborts before writing any outputs if either check

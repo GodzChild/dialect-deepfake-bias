@@ -61,7 +61,7 @@ the \texttt{AuralGuardAASISTPP} module structure --- for example
 \texttt{attack\_head.bias}, and so on.
 
 The original implementation of \texttt{AASISTDetector.load()} in
-\texttt{src/evaluation/detectors.py} (before this thesis' correction)
+\texttt{src/}\allowbreak\texttt{evaluation/}\allowbreak\texttt{detectors.py} (before this thesis' correction)
 constructed a \emph{raw} AASIST model class from the official
 \texttt{clovaai/aasist} repository, whose parameter names have no
 \texttt{backbone.} prefix (for example \texttt{encoder.0.0.}\allowbreak\texttt{conv1.weight} rather
@@ -236,7 +236,7 @@ validation EER. This is the central test.
 \label{sec:detector-verification-indomain-refset}
 
 The reference set is the AuralGuard-original validation CSV
-\texttt{<AURALGUARD\_ROOT>/data/metadata/val\_final\_accent\_globe\_wavefake\_balanced.csv},
+\texttt{<AURALGUARD\_ROOT>/}\allowbreak\texttt{data/}\allowbreak\texttt{metadata/}\allowbreak\texttt{val\_final\_accent\_globe\_}\allowbreak\texttt{wavefake\_balanced.csv},
 containing \textbf{9,514 rows}: 4,757 bonafide and 4,757
 spoof (\texttt{tts\_vc}), drawn from six source datasets: ASVspoof2019\_LA
 (6,775 rows), DECTE (1,014), WaveFake (530), EdAcc (500),
@@ -389,7 +389,7 @@ at score time:
 
 \begin{itemize}
     \item \textbf{Class ordering.} After the pipeline is fit,
-        \texttt{model.named\_steps["lr"].classes\_} is printed. The expected
+        \texttt{model.named\_steps}\allowbreak\texttt{["lr"].classes\_} is printed. The expected
         value is \texttt{[0 1]}, which locks \texttt{predict\_proba[:, 0]} as the
         bonafide probability. If a future version of scikit-learn ever
         changed class-sorting behaviour, the printed value would change,

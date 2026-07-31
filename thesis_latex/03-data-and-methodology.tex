@@ -266,9 +266,9 @@ wrapped in \texttt{src/spoof\_gen/openvoice\_gen.py}. For each generation:
 \begin{enumerate}
     \item MeloTTS produces a base-voice \texttt{.wav} from the input text, using
         \texttt{language="EN"} and \texttt{speaker\_key="EN-US"}.
-    \item The Tone-Colour Converter loads its checkpoint (\texttt{converter/checkpoint.pth})
+    \item The Tone-Colour Converter loads its checkpoint (\texttt{converter/}\allowbreak\texttt{checkpoint.pth})
         and a source speaker embedding
-        (\texttt{base\_speakers/ses/en-us.pth}) that matches the base-voice
+        (\texttt{base\_speakers/}\allowbreak\texttt{ses/}\allowbreak\texttt{en-us.pth}) that matches the base-voice
         speaker.
     \item The target speaker embedding is extracted from the reference
         audio using \texttt{converter.extract\_se([ref\_wav], se\_save\_path=None)}.
@@ -706,7 +706,8 @@ with these choices:
     \item \texttt{--init-checkpoint} points to the baseline \texttt{best.pt} (starting
         from the production checkpoint, not from a previous mitigation
         attempt).
-    \item \texttt{--freeze-backbone} is set, then followed by \texttt{--unfreeze-modules "HtrgGAT\_layer\_ST21,HtrgGAT\_layer\_ST22,pool\_hS2,pool\_hT2,master2"}.
+    \item \texttt{--freeze-backbone} is set, then followed by
+        \texttt{--unfreeze-modules}\allowbreak{} \texttt{"HtrgGAT\_layer\_ST21,}\allowbreak\texttt{HtrgGAT\_layer\_ST22,}\allowbreak\texttt{pool\_hS2,pool\_hT2,master2"}.
         The \texttt{--unfreeze-modules} flag was added to \texttt{train.py} specifically
         for this thesis (Chapter~\ref{chap:mitigation}, Section~\ref{sec:mitigation-motivation} documents the patch).
         Only the final heterogeneous-GAT block of the AASIST backbone
