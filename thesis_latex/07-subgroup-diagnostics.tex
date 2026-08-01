@@ -24,8 +24,8 @@ improvement is an average across every audio file in the held-out
 DECTE test slice. That average could correspond to a uniform
 per-subgroup improvement, or it could correspond to some subgroups
 improving substantially while others barely move. If the underlying
-distribution of baseline errors was itself uneven --- for example,
-concentrated in a specific age band or recording era --- then a
+distribution of baseline errors was itself uneven (for example,
+concentrated in a specific age band or recording era), then a
 subgroup-level view is what makes that visible.
 
 The chapter therefore reports a \textbf{subgroup-level diagnostic view}
@@ -42,9 +42,9 @@ statistical claims out of scope.
 \label{sec:subgroup-rationale}
 
 The thesis is framed around dialect / domain effects. Chapters~\ref{chap:main-results}
-and~\ref{chap:mitigation} both treat DECTE as a whole --- a single dialectal / domain-%
-shifted test condition. Corpus-level metrics on DECTE are the
-correct unit of analysis for the RQ1, RQ2, RQ3, RQ4 arguments
+and~\ref{chap:mitigation} both treat DECTE as a whole, that is as a single dialectal
+/ domain-shifted test condition. Corpus-level metrics on DECTE are
+the correct unit of analysis for the RQ1, RQ2, RQ3, RQ4 arguments
 those chapters make.
 
 But corpus-level metrics can also hide uneven error
@@ -59,11 +59,11 @@ DECTE metadata gives three coarse metadata axes along which such
 concentration can be described:
 
 \begin{itemize}
-    \item \textbf{Gender} (\texttt{speaker\_gender}) --- recorded per speaker in the
+    \item \textbf{Gender} (\texttt{speaker\_gender}): recorded per speaker in the
         DECTE speaker-info files (Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-corpora-decte}).
-    \item \textbf{Age band} (\texttt{speaker\_age\_group}) --- recorded per speaker in
+    \item \textbf{Age band} (\texttt{speaker\_age\_group}): recorded per speaker in
         10-year bins (16--20, 21--30, ..., 81--90).
-    \item \textbf{Recording era} (\texttt{speaker\_recording\_era}) --- the DECTE
+    \item \textbf{Recording era} (\texttt{speaker\_recording\_era}): the DECTE
         interview period the speaker was recorded in (1960s--1970s,
         1990s, 2007--2008, 2008--2009, 2010--2011).
 \end{itemize}
@@ -104,7 +104,7 @@ Section~\ref{sec:methodology-subgroups}. The salient points are:
         No file is rescored; no detector is
         reloaded; no manifest is modified.
     \item \textbf{Paired join.} The two prediction CSVs are joined on
-        \texttt{(audio\_path, label)} with \texttt{validate="one\_to\_one"} --- a join
+        \texttt{(audio\_path, label)} with \texttt{validate="one\_to\_one"}, a join
         that fails loudly if the two files disagree on which audio
         files were evaluated. This guarantees the subgroup diagnostic
         compares baseline and mitigated numbers over the same file
@@ -167,8 +167,8 @@ Mitigated v2 & 86 & 86 & 23.26 \\
 This matches the Chapter~\ref{chap:mitigation} headline delta on the same file set
 and confirms that the subgroup diagnostic is being computed on
 the same joined slice, not on a subtly different subset. The
-95\,\% paired-bootstrap CI on this overall delta --- $[-28.49, -9.30]$\,pp
---- is reported in Chapter~\ref{chap:mitigation} and is not repeated in the
+95\,\% paired-bootstrap CI on this overall delta ($[-28.49, -9.30]$\,pp)
+is reported in Chapter~\ref{chap:mitigation} and is not repeated in the
 per-subgroup tables below, where no per-subgroup CI is claimed.
 
 
@@ -222,7 +222,7 @@ files.
 The pattern is worth reporting as \emph{descriptive error concentration}
 that mitigation v2 reduced by different amounts across the two
 subgroups. It is not evidence that the detector is (or is not)
-``biased against'' either subgroup --- the phrasing to avoid is named
+``biased against'' either subgroup. The phrasing to avoid is named
 explicitly in Section~\ref{sec:subgroup-interpretation}.
 
 
@@ -254,9 +254,9 @@ labelled \texttt{mixed} / \texttt{unknown} and skipped per Section~\ref{sec:subg
 Every main-table age band improved. The largest improvements landed
 on the youngest two bands (\texttt{16-20} and \texttt{21-30}, both around $-32$\,pp)
 and the smallest on \texttt{41-50} ($-10$\,pp). The baseline EER pattern
-across age bands is not monotonic on this slice --- \texttt{21-30} had the
+across age bands is not monotonic on this slice. \texttt{21-30} had the
 highest baseline EER (66.67\,\%), while \texttt{16-20} and \texttt{41-50} were
-lower --- so the pattern of improvement does not simply follow the
+lower, so the pattern of improvement does not simply follow the
 pattern of baseline errors.
 
 The descriptive reading of this table is that \textbf{baseline errors on
@@ -308,7 +308,7 @@ in the entire chapter); the smallest was on the \texttt{2010-2011} era
 noticeably higher on the older eras (\texttt{1960s-1970s} at 68.75\,\%,
 \texttt{1990s} at 40.63\,\%) than on the newer ones (\texttt{2007-2008} at 20.00\,\%,
 \texttt{2010-2011} at 25.00\,\%). The mitigation reduced this baseline
-spread substantially --- after mitigation, the \texttt{1990s} and
+spread substantially. After mitigation, the \texttt{1990s} and
 \texttt{2007-2008} eras are both in the single digits, while the
 \texttt{1960s-1970s} era remains clearly higher (47.92\,\%).
 
@@ -316,15 +316,15 @@ A cautious reading of this table: on this 16-speaker slice, the
 recording-era axis is where the largest per-subgroup differences
 appear both at baseline and in mitigation delta. The most likely
 substantive interpretation is \emph{not} that the calendar year of the
-recording is doing the work directly --- it is that recording era
-in DECTE is confounded with channel characteristics (analog reel-%
-to-reel in the 1960s-1970s vs digital in the 2000s+), interview
-technology, and the speaker demographics of each survey wave. The
-observed spread in per-era baseline EER and per-era mitigation
-delta could therefore reflect any combination of channel, speaker
-population, and time-period effects. Attributing it to time
-period alone would over-interpret the data. Chapter~\ref{chap:discussion} revisits
-this confound at greater length.
+recording is doing the work directly. It is that recording era
+in DECTE is confounded with channel characteristics (analog
+reel-to-reel in the 1960s-1970s vs digital in the 2000s+),
+interview technology, and the speaker demographics of each survey
+wave. The observed spread in per-era baseline EER and per-era
+mitigation delta could therefore reflect any combination of
+channel, speaker population, and time-period effects. Attributing
+it to time period alone would over-interpret the data.
+Chapter~\ref{chap:discussion} revisits this confound at greater length.
 
 
 \section{Summary table}
@@ -357,8 +357,8 @@ speaker\_recording\_era & 2010-2011   & 20 & 20 & 25.00 & 20.00 & $\mathbf{-5.00
 \end{tabularx}
 \end{table}
 
-The full per-subgroup CSV --- including the low-n rows and the
-per-speaker breakdown not shown here --- is archived at
+The full per-subgroup CSV (including the low-n rows and the
+per-speaker breakdown not shown here) is archived at
 \texttt{results/}\allowbreak\texttt{subgroup\_diagnostics/}\allowbreak\texttt{decte\_subgroup\_metrics.csv}. Two
 headline observations from the table above:
 
@@ -457,7 +457,7 @@ Sections~\ref{sec:subgroup-gender}--\ref{sec:subgroup-summary}:
         joined DECTE test slice.} No main-table row went in the wrong
         direction. Given that Chapter~\ref{chap:mitigation} already established a
         statistically supported overall improvement, this rules out one
-        concerning scenario --- that the overall improvement was driven by
+        concerning scenario: that the overall improvement was driven by
         large gains in one or two subgroups while other subgroups got
         clearly worse.
     \item \textbf{The size of the improvement was uneven across metadata
@@ -496,8 +496,8 @@ here explicitly:
         attribution to the labelled attribute.
 \end{itemize}
 
-The chapter's wording --- \emph{``subgroup diagnostics''}, \emph{``error
-concentration''}, \emph{``uneven mitigation gains''} --- is chosen to
+The chapter's wording (\emph{``subgroup diagnostics''}, \emph{``error
+concentration''}, \emph{``uneven mitigation gains''}) is chosen to
 communicate exactly the descriptive claim above without inviting
 the causal readings that would go beyond the evidence.
 
@@ -555,14 +555,14 @@ Chapter~\ref{chap:mitigation} limitations.
         fairness definitions (equalised odds, demographic parity,
         calibration), a demographically balanced evaluation set with
         larger per-subgroup counts, per-subgroup CIs on each fairness
-        quantity, and --- for actionable claims --- an explicit deployment
+        quantity, and, for actionable claims, an explicit deployment
         context in which the fairness definitions have operational
         meaning. None of these are provided in this chapter, and the
         chapter therefore explicitly does not make fairness claims.
 \end{itemize}
 
 Chapter~\ref{chap:subgroup-diagnostics}'s role in the thesis' overall argument is therefore
-modest: it complements Chapter~\ref{chap:mitigation}'s overall mitigation result
+modest. It complements Chapter~\ref{chap:mitigation}'s overall mitigation result
 with a subgroup-level view, shows that the improvement was
 directionally uniform but magnitudinally uneven, and flags where
 a follow-up study might look. It is not the last word on detector

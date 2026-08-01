@@ -4,7 +4,7 @@
 
 %% Draft preamble note (kept in source for reference; not rendered):
 %% Written to be read by the thesis supervisor first, then polished into
-%% final prose. Interpretation chapter --- quantitative results already
+%% final prose. Interpretation chapter. Quantitative results already
 %% reported in Chapters 5-7 are not re-tabulated here; specific numbers
 %% appear only when needed to anchor an interpretation.
 
@@ -24,16 +24,16 @@ results narrowly.
 This chapter puts the four findings together. Its role is
 interpretive rather than empirical. Sections~\ref{sec:discussion-rq1}--\ref{sec:discussion-rq3} summarise the
 four main findings in the language the thesis will use in its
-Conclusion and Abstract; Section~\ref{sec:discussion-wording-contract} argues for why ``dialect /
-domain gap'' is the right phrase rather than ``dialect bias'';
+Conclusion and Abstract. Section~\ref{sec:discussion-wording-contract} argues for why ``dialect /
+domain gap'' is the right phrase rather than ``dialect bias''.
 Section~\ref{sec:discussion-threats-validity} collects the threats to validity across the entire
-study; Section~\ref{sec:discussion-practical-meaning} sketches the practical implications; and
+study. Section~\ref{sec:discussion-practical-meaning} sketches the practical implications, and
 Section~\ref{sec:discussion-non-claims} lists what the thesis explicitly does \emph{not} claim.
 Section~\ref{sec:discussion-summary} restates the final interpretation the thesis will
 carry into Chapter~\ref{chap:conclusion}.
 
 
-\section{Main finding 1 --- dialect / domain effects matter for XTTS}
+\section{Main finding 1: dialect / domain effects matter for XTTS}
 \label{sec:discussion-rq1}
 
 Under both detectors evaluated in this thesis (the primary
@@ -41,18 +41,18 @@ AuralGuard-AASISTPP wrapper and the secondary LFCC + Logistic
 Regression baseline), the DECTE XTTS EER was substantially higher
 than the VCTK XTTS EER, and the DECTE-minus-VCTK gap CI lay
 entirely above zero at 95\,\% (Chapter~\ref{chap:main-results}, Sections~\ref{sec:main-results-aasist-xtts} and~\ref{sec:main-results-lfcc-xtts}). The
-two detectors disagreed on absolute EER level --- LFCC + LR is a
-weaker classifier and its EER on both corpora was $\sim$10\,pp higher
-than the AASIST equivalents --- but they agreed on the sign of the
-gap and, remarkably, on its rough magnitude: $\sim$12\,pp on both
-detectors, with overlapping bootstrap CIs.
+two detectors disagreed on absolute EER level. LFCC + LR is a
+weaker classifier and its EER on both corpora was $\sim$10\,pp
+higher than the AASIST equivalents. But they agreed on the sign of
+the gap and, remarkably, on its rough magnitude: $\sim$12\,pp on
+both detectors, with overlapping bootstrap CIs.
 
 The \textbf{cross-detector replication} does substantive work here.
 A DECTE-vs-VCTK gap on one detector could plausibly be an
-architecture-specific artefact --- a quirk of AASIST's graph-attention
-pipeline on interview-style audio, say. The same gap appearing on
-a completely different classifier family (linear model on
-hand-crafted spectral features) rules out that specific escape.
+architecture-specific artefact, for example a quirk of AASIST's
+graph-attention pipeline on interview-style audio. The same gap
+appearing on a completely different classifier family (linear model
+on hand-crafted spectral features) rules out that specific escape.
 The gap is therefore a property of the \emph{DECTE-vs-VCTK-under-XTTS}
 condition rather than of any one detector.
 
@@ -61,21 +61,21 @@ The safe framing throughout is \textbf{dialect / domain gap}, not
 DECTE and VCTK differ on several axes simultaneously (dialect,
 recording style, channel quality, age distribution, transcript
 pipeline), and Chapter~\ref{chap:main-results}'s design does not isolate the dialect
-axis from the others. What the two chapters do isolate --- and
-support at 95\,\% on two detectors --- is that DECTE-style
+axis from the others. What the two chapters do isolate, and
+support at 95\,\% on two detectors, is that DECTE-style
 dialectal / interview-style audio produces higher XTTS detection
 error rates than VCTK-style studio-read audio does under the
 detectors tested.
 
 
-\section{Main finding 2 --- generator choice changes the direction of the corpus gap}
+\section{Main finding 2: generator choice changes the direction of the corpus gap}
 \label{sec:discussion-rq2}
 
 The Chapter~\ref{chap:main-results} result that most reshapes the thesis' original
 framing is the OpenVoice comparison (Sections~\ref{sec:main-results-aasist-openvoice} and~\ref{sec:main-results-lfcc-openvoice}). Under
-identical evaluation conditions to the XTTS comparison --- same
+identical evaluation conditions to the XTTS comparison (same
 detector, same bonafide pools, same audio preprocessing, same
-bootstrap protocol --- swapping XTTS for OpenVoice reverses the
+bootstrap protocol), swapping XTTS for OpenVoice reverses the
 sign of the DECTE-vs-VCTK EER gap. The DECTE arm becomes the
 easier of the two; the VCTK arm becomes the harder. Both
 detectors show this reversal at 95\,\%.
@@ -89,8 +89,8 @@ depends jointly on the corpus / domain of the input and on the
 generator that produced the spoof}. Neither factor alone predicts
 the sign of the gap; only the combination does.
 
-The right phrase for this --- used consistently throughout the
-thesis --- is \textbf{generator-specific corpus interaction}. It captures
+The right phrase for this, used consistently throughout the
+thesis, is \textbf{generator-specific corpus interaction}. It captures
 that OpenVoice v2's failure mode is not a dialect effect and not
 a corpus-quality effect on its own, but an interaction between the
 generator's output distribution and the corpus the detector is
@@ -100,8 +100,8 @@ statistically (both CIs entirely below zero) and cross-detector
 descriptively accurate.
 
 Two things this thesis does not claim from the OpenVoice
-finding: it does not claim OpenVoice v2 is a ``worse'' or ``more
-dangerous'' generator than XTTS in absolute terms, and it does
+finding. It does not claim OpenVoice v2 is a ``worse'' or ``more
+dangerous'' generator than XTTS in absolute terms. And it does
 not claim the OpenVoice reversal generalises to every anti-spoofing
 detector or every recording condition. Different detectors trained
 on different data may exhibit very different patterns. What this
@@ -110,11 +110,11 @@ tested, generator choice clearly changes not only the size of
 the corpus gap but its sign.
 
 
-\section{Main finding 3 --- targeted adaptation can reduce the DECTE XTTS gap}
+\section{Main finding 3: targeted adaptation can reduce the DECTE XTTS gap}
 \label{sec:discussion-rq3}
 
 Chapter~\ref{chap:mitigation}'s mitigation v2 was designed as a \textbf{controlled
-adaptation} --- a small, targeted increase in the AuralGuard-%
+adaptation}. It is a small, targeted increase in the AuralGuard-%
 AASISTPP wrapper's trainable-parameter budget (the last
 heterogeneous-GAT stage of the AASIST backbone plus the three
 AuralGuard task heads, approximately 10.5\,\% of the model's total
@@ -164,7 +164,7 @@ Two boundaries on this claim, both from Chapter~\ref{chap:mitigation}:
 \end{itemize}
 
 
-\section{Main finding 4 --- subgroup diagnostics show uneven improvement}
+\section{Main finding 4: subgroup diagnostics show uneven improvement}
 \label{sec:discussion-rq4}
 
 Chapter~\ref{chap:subgroup-diagnostics}'s per-subgroup view of the same held-out DECTE test
@@ -174,7 +174,7 @@ substantially between subgroups (from $-5.00$\,pp to $-34.38$\,pp
 across the main-table recording-era rows, and from $-6.41$\,pp to
 $-26.92$\,pp across the two gender rows). The uniformity of the
 \emph{direction} of the mitigation effect (no subgroup went the wrong
-way) is a genuinely reassuring diagnostic result --- it rules out
+way) is a genuinely reassuring diagnostic result. It rules out
 the concerning scenario in which the overall improvement of
 Chapter~\ref{chap:mitigation} was driven by large gains in some subgroups combined
 with regressions in others.
@@ -186,10 +186,10 @@ only 16 held-out DECTE speakers and per-subgroup counts in the
 wide enough that most between-subgroup differences in delta EER
 would sit inside sampling noise. No such per-subgroup CIs are
 computed, and no per-subgroup difference is claimed as
-statistically supported. The chapter's diagnostic conclusion ---
-that \emph{error concentration and mitigation benefit were not uniform
+statistically supported. The chapter's diagnostic conclusion, that
+\emph{error concentration and mitigation benefit were not uniform
 across DECTE metadata groups on the 16-speaker held-out test
-slice} --- is descriptive of the point-estimate spread and no more.
+slice}, is descriptive of the point-estimate spread and no more.
 
 Read together with Chapter~\ref{chap:mitigation}, the subgroup layer supports two
 narrow substantive claims. First, the overall mitigation result
@@ -197,7 +197,7 @@ in Chapter~\ref{chap:mitigation} is not an artefact of averaging across a
 homogeneously-improving pool: the direction is uniform across
 metadata subgroups on this slice. Second, the observed spread in
 per-subgroup delta EER is worth flagging for a follow-up study
-with tighter per-subgroup samples --- as future work, not as a
+with tighter per-subgroup samples, as future work rather than as a
 finding this thesis makes.
 
 
@@ -234,7 +234,7 @@ Chapter~\ref{chap:main-results}'s design holds the detector and generator fixed 
 compares the two corpora, but it does not isolate the dialect
 axis from any of the other four. A finding that DECTE EER exceeds
 VCTK EER under XTTS therefore reflects the combined effect of
-all five axes --- the observed $+12.80$\,pp gap on AASIST and $+12.44$\,pp
+all five axes. The observed $+12.80$\,pp gap on AASIST and $+12.44$\,pp
 gap on LFCC + LR cannot be attributed exclusively to dialect
 without an additional control that this thesis does not run.
 
@@ -336,13 +336,13 @@ Every quantitative claim in this thesis is scoped to:
         bootstrap).
 \end{itemize}
 
-Whether the findings generalise beyond these scoping choices --- to
-other anti-spoofing detectors (Wav2Vec2-based, RawGAT-ST, etc.),
-to other zero-shot voice-cloning generators (RVC, StyleTTS 2), to
-other English dialects (Scottish, Irish, Northern English, Indian
-English), or to non-English languages --- is not established here.
-Chapter~\ref{chap:conclusion} sketches the follow-up studies that would extend the
-external validity envelope.
+Whether the findings generalise beyond these scoping choices is
+not established here. Extending them would mean testing other
+anti-spoofing detectors (Wav2Vec2-based, RawGAT-ST, etc.), other
+zero-shot voice-cloning generators (RVC, StyleTTS 2), other
+English dialects (Scottish, Irish, Northern English, Indian
+English), or non-English languages. Chapter~\ref{chap:conclusion} sketches the
+follow-up studies that would extend the external validity envelope.
 
 \subsection{Statistical validity}
 \label{sec:discussion-statistical-validity}
@@ -412,7 +412,7 @@ practice, following from the four main findings above.
     \item \textbf{Generator-specific testing matters.} A single-generator
         evaluation would not have exposed the OpenVoice reversal of
         Chapter~\ref{chap:main-results}. Any anti-spoofing benchmark that reports a single
-        generator's EER --- even on a diverse corpus --- will underestimate
+        generator's EER (even on a diverse corpus) will underestimate
         the joint corpus $\times$ generator interaction that determines real
         behaviour.
     \item \textbf{Cross-detector replication is a cheap and informative
@@ -424,7 +424,7 @@ practice, following from the four main findings above.
         cheap cross-architecture check before publishing.
     \item \textbf{Adaptation can help but needs guardrails.} Chapter~\ref{chap:mitigation}'s
         mitigation reduced the DECTE XTTS gap without regressing on
-        VCTK or on the training-distribution validation set --- but only
+        VCTK or on the training-distribution validation set, but only
         because those two guardrails were explicitly measured. A
         mitigation study that reports only its target-corpus
         improvement risks silently displacing errors elsewhere.
@@ -453,7 +453,7 @@ support at the strength required.
         speakers and no per-subgroup CIs, statements of the form ``the
         detector is biased against group X'' are not supported.
     \item \textbf{This thesis does not solve audio deepfake detection.} The
-        mitigated checkpoint's residual DECTE XTTS EER is 23.26\,\% ---
+        mitigated checkpoint's residual DECTE XTTS EER is 23.26\,\%,
         well above the training-distribution EER of 1.71\,\% and far
         above any operational usability threshold. The mitigation is
         an adaptation experiment under RQ3, not a deployment-grade
@@ -474,7 +474,7 @@ support at the strength required.
 \end{itemize}
 
 Each of these non-claims names a stronger claim the evidence
-\emph{does not} support --- so a downstream reader who generalises
+\emph{does not} support, so a downstream reader who generalises
 past the thesis' scope does so on their own authority, not on
 the thesis'.
 
@@ -489,7 +489,7 @@ carries into its Conclusion:
 \begin{quote}
 \textbf{Detector reliability depends jointly on the corpus / domain
 of the input, on the spoof generator that produced the
-candidate spoof, and on the detector architecture --- and only
+candidate spoof, and on the detector architecture. Only
 the combination of these three factors predicts the observed
 error pattern.}
 \end{quote}
