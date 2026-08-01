@@ -46,8 +46,8 @@ in Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-
 \texttt{filter(lambda p: p.requires\_grad, model.parameters())} so
 gradients only flow to the modules listed as \textit{Yes} above.
 
-The choice of these specific modules --- the final heterogeneous-GAT
-stage plus the three AuralGuard task heads --- is discussed in
+The choice of these specific modules (the final heterogeneous-GAT
+stage plus the three AuralGuard task heads) is discussed in
 Chapter~\ref{chap:data-methodology}, Section~\ref{sec:methodology-mitigation-config}:
 the fine-tune is allowed to shift the top-of-backbone view (the
 graph-attention interactions between spectral and temporal pooled
