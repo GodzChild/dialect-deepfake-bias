@@ -1,25 +1,15 @@
-# Detector Evaluation Configuration
-# ====================================
+# Baseline detector configuration
 
 detectors:
   aasist:
     enabled: true
-    # Point this to your trained AASIST checkpoint from auralguard-aasistpp,
-    # or a pretrained checkpoint from the original AASIST repo
-    # (https://github.com/clovaai/aasist) if you haven't trained your own yet.
-    checkpoint_path: "C:/Users/AYO/Desktop/JKU/Extra Semester/THESIS AND PRACTICAL/auralguard-aasistpp/results/final_accent_globe_wavefake_balanced_full/best.pt"
-    # Path to your model definition code if not installed as a package
+
+    # Baseline AuralGuard-AASIST checkpoint.
+    # The checkpoint itself is not committed to this repository.
+    checkpoint_path: "checkpoints/aasist/baseline_best.pt"
+
+    # Local copy of the model definition used by the detector wrapper.
     model_module_path: "checkpoints/aasist/model_code"
+
     device: "cuda"
     target_sr: 16000
-
-  # Add more detectors here as you build them out:
-  # wav2vec2_aasist:
-  #   enabled: false
-  #   checkpoint_path: "checkpoints/wav2vec2_aasist/model.pth"
-  #   device: "cuda"
-
-  # whisper_detector:
-  #   enabled: false
-  #   checkpoint_path: "checkpoints/whisper_detector/model.pth"
-  #   device: "cuda"
